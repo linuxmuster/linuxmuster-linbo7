@@ -1,4 +1,4 @@
-![linbo icon](files/srv/linbo/boot/grub/themes/linbo/linbo_logo_big.png)  
+<img src="https://raw.githubusercontent.com/linuxmuster/linuxmuster-artwork/master/linbo/linbo_logo_small.svg" alt="linbo icon" width="200"/>
 
 # linuxmuster-linbo7 (next generation)
 
