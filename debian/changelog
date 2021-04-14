@@ -1,0 +1,14 @@
+linuxmuster-linbo7 (4.0.0-0alpha1) lmn7-experimental; urgency=low
+
+  * increased verbosity.
+  * more english translations.
+  * return code improvements.
+  * removed partition guid restoration.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 14 Apr 2021 13:01:00 +0200
+
+linuxmuster-linbo7 (4.0.0-0alpha0) lmn7-experimental; urgency=low
+
+  * initial release of qcow2 imaging.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 10 Mar 2021 19:43:54 +0100

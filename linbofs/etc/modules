@@ -1,0 +1,4 @@
+# modules to load on boot
+fan
+thermal
+nbd

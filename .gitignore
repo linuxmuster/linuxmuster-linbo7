@@ -1,0 +1,10 @@
+build.log
+src64
+kernel64
+cache
+configure-stamp
+build-stamp
+.directory
+.debhelper
+mkpkg
+tmp

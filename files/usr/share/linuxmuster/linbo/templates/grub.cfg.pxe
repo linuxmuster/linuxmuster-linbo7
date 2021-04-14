@@ -1,0 +1,169 @@
+#
+# default grub.cfg, pxe boot version (placed on server, don't edit!)
+# thomas@linuxmuster.net
+# 20210202
+#
+
+set timeout=0
+
+set prefix=/boot/grub
+set netroot="(tftp)"
+
+# one menu entry does it all
+menuentry 'Default' {
+
+ # look for reboot grubenv pipe on server and execute it if present
+ set remote_grubenv=$prefix/spool/${net_pxe_hostname}.reboot
+ if [ -s "$remote_grubenv" ]; then
+  echo -n Loading remote grub environment ...
+  load_env -f "$remote_grubenv"
+ fi
+
+ # if grub reboot variable is not set from server
+ if [ -z "$reboot_grub" ]; then
+
+  # look for it on cache partition
+  if search --set root --file /start.conf; then
+
+   # save local root in variable
+   set localroot="${root}"
+
+   # read grub environment variables
+   if [ -s /boot/grub/grubenv ]; then
+    echo -n Loading local grub environment ...
+    load_env
+    set localboot=yes
+    echo
+   fi
+
+  else
+   clear
+  fi
+
+ fi
+
+ # if reboot is set try to load the os on the given partition
+ if [ -n "${reboot_label}" ]; then
+  search --label "$reboot_label" --set tmproot
+ fi
+ if [ -n "${reboot_grub}" -a -z "${tmproot}" ]; then
+  set tmproot="${reboot_grub}"
+ fi
+
+ if [ -n "${tmproot}" ]; then
+  terminal_output console
+  echo Booting operating system ...
+  echo
+
+  if [ "$localboot" ]; then
+   set reboot_grub=""
+   set reboot_label=""
+   save_env reboot_grub
+   save_env reboot_label
+  fi
+  set root="${tmproot}"
+  set win_efiloader="/EFI/Microsoft/Boot/bootmgfw.efi"
+
+  if [ -e "$reboot_kernel" -a -e "$reboot_initrd" ]; then
+   linux $reboot_kernel $reboot_append
+   initrd $reboot_initrd
+   boot
+  elif [ -e /boot/vmlinuz -a -e /boot/initrd.img ]; then
+   linux /boot/vmlinuz $reboot_append
+   initrd /boot/initrd.img
+   boot
+  elif [ -e /boot/vmlinuz -a -e /boot/initrd ]; then
+   linux /boot/vmlinuz $reboot_append
+   initrd /boot/initrd
+   boot
+  elif [ -e /vmlinuz -a -e /initrd.img ]; then
+   linux /vmlinuz $reboot_append
+   initrd /initrd.img
+   boot
+  elif [ -e /vmlinuz -a -e /initrd ]; then
+   linux /vmlinuz $reboot_append
+   initrd /initrd
+   boot
+  elif [ -s /boot/grub/grub.cfg ] ; then
+   configfile /boot/grub/grub.cfg
+  elif [ "$grub_platform" = "pc" ]; then
+   if [ -s /bootmgr ] ; then
+    ntldr /bootmgr
+    boot
+   elif [ -s /ntldr ] ; then
+    ntldr /ntldr
+    boot
+   elif [ -s /grldr ] ; then
+    ntldr /grldr
+    boot
+   else
+    chainloader +1
+    boot
+   fi
+  elif [ -e "$win_efiloader" ]; then
+   chainloader $win_efiloader
+   boot
+  fi
+
+ fi
+
+ # finally fallback to netboot if previous boot methods were not successful
+ set root="${netroot}"
+
+ # compute path to group specific config
+ if [ "$grub_platform" = "efi" ]; then
+  if [ -n "$net_efinet0_extensionspath" ]; then
+   set group="$net_efinet0_extensionspath"
+   set net_pxe_hostname="$net_efinet0_hostname"
+  elif [ -n "$net_efinet1_extensionspath" ]; then
+   set group="$net_efinet1_extensionspath"
+   set net_pxe_hostname="$net_efinet1_hostname"
+  elif [ -n "$net_efinet2_extensionspath" ]; then
+   set group="$net_efinet2_extensionspath"
+   set net_pxe_hostname="$net_efinet2_hostname"
+  fi
+ else
+  set group="$net_pxe_extensionspath"
+ fi
+ set groupcfg="$prefix/${group}.cfg"
+ set hostcfg="$prefix/hostcfg/${net_pxe_hostname}.cfg"
+
+ # try host specific config from server and boot it if exists
+ configfile $hostcfg
+
+ # try group specific config from server and boot it if exists
+ configfile $groupcfg
+
+ # try local boot in the other case
+ if [ -n "$localroot" ]; then
+  set root="${localroot}"
+  # load local custom.cfg if present
+  set customcfg=$prefix/custom.cfg
+  if [ -s "$customcfg" ]; then
+   configfile $customcfg
+  fi
+ fi
+
+ # finally try netboot linbo directly in failsafe mode
+ set root="${netroot}"
+ set gfxpayload=640x480x16
+
+ # 32bit pae, non pae or 64bit kernel
+ if cpuid -l; then
+  set linbo_kernel=/linbo64
+  set linbo_initrd=/linbofs64.lz
+ elif cpuid -p; then
+  set linbo_kernel=/linbo
+  set linbo_initrd=/linbofs.lz
+ else
+  set linbo_kernel=/linbo-np
+  set linbo_initrd=/linbofs-np.lz
+ fi
+ echo "LINBO netboot in failsafe mode"
+ echo -n "Loading $linbo_kernel .."
+ linux $linbo_kernel quiet netboot
+ echo
+ echo -n "Loading $linbo_initrd .."
+ initrd $linbo_initrd
+ boot
+}
