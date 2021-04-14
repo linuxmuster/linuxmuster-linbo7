@@ -6,6 +6,7 @@
 
 Important notices:
 * The code in this repo is currently experimental.
+* There is only a linuxmuster-linbo7 package. The old common package is deprecated and will be removed by upgrade.
 * In spite of former [linuxmuster-linbo](https://github.com/linuxmuster/linuxmuster-linbo) images in cloop format where only supported for restore.
 * For image creation only qcow2 format is supported. You have to change the baseimage name in the start.conf accordingly (e.g. image.qcow2).
 * [qemu-img](http://manpages.ubuntu.com/manpages/bionic/man1/qemu-img.1.html) is used for qcow2 image creation and restore.
