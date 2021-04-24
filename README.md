@@ -16,6 +16,13 @@ Important notices:
 * No differential imaging yet.
 * Packages were published in the [lmn7-experimental repository](http://archive.linuxmuster.net/lmn7-experimental/).
 
+Planned features:
+* qcow2 image format, good bye cloop.
+* place images in subdirs of /srv/linbo.
+* start.conf in yaml format.
+* replace bittorrent with ctorrent.
+* step by step changeover of the scripting to python.
+
 Build instructions:
 
 * Install 64bit Ubuntu 18.04
