@@ -13,13 +13,13 @@
 ### END INIT INFO
 
 # thomas@linuxmuster.net
-# 20190114
+# 20210423
 # GPL v3
 
 #set -e
 
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
-DESC="BitTorrent service for"
+DESC="ctorrent service for"
 
 # lmn7 specific paths
 . /usr/share/linuxmuster/defaults.sh || exit 1
@@ -34,31 +34,6 @@ action="$1"
 images="$2"
 force="$3"
 
-# default values
-MINPORT=6881
-MAX_UPLOADS=20
-MAX_UPLOAD_RATE=0
-REREQUEST_INTERVAL=60
-MIN_PEERS=20
-MAX_INITIATE=20
-KEEPALIVE_INTERVAL=120
-DOWNLOAD_SLICE_SIZE=131072
-REQUEST_BACKLOG=5
-MAX_MESSAGE_LENGTH=8388608
-TIMEOUT=300
-TIMEOUT_CHECK_INTERVAL=60
-MAX_RATE_PERIOD=20
-UPLOAD_RATE_FUDGE=5
-DISPLAY_INTERVAL=1
-MAX_SLICE_LENGTH=131072
-CLIENT_CONFIG="torrent-client.conf"
-
-# get daemon default settings and exit if
-[ -e /etc/default/linbo-bittorrent ] && . /etc/default/linbo-bittorrent
-[ "$START_BITTORRENT" = "1" ] || exit 0
-. /etc/default/bittorrent || exit 1
-[ "$START_BTTRACK" = "1" ] || exit 0
-
 cd $LINBODIR
 
 # check if single image file is given on cmdline
@@ -71,23 +46,11 @@ if [ -n "$images" -a "$images" != "all" ]; then
 else
   # get all active images from helperfunctions
   images="$(active_images)"
-  # add additional files and dirs placed below $LINBODIR/torrentadds
-  tadds="$(ls -1 torrentadds/ | grep -v .torrent | sed 's|^|torrentadds/|')"
-  [ -n "$tadds" ] && images="$images $tadds"
   if [ -z "$images" ]; then
     echo "There exist no images yet!"
     exit 0
   fi
 fi
-
-# write client torrent config
-write_client_config(){
-  echo "MINPORT=$MINPORT"
-  echo "MAX_INITIATE=$MAX_INITIATE"
-  echo "MAX_UPLOAD_RATE=$MAX_UPLOAD_RATE"
-  echo "DOWNLOAD_SLICE_SIZE=$DOWNLOAD_SLICE_SIZE"
-  echo "TIMEOUT=$TIMEOUT"
-}
 
 start(){
 
@@ -96,8 +59,6 @@ start(){
 
   # read server ip
   serverip="$(grep ^Server "$LINBODIR/start.conf" | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
-
-  write_client_config > "$CLIENT_CONFIG"
 
   # check and create torrents first
   local i=""
