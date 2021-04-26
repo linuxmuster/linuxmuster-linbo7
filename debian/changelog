@@ -1,3 +1,15 @@
+linuxmuster-linbo7 (4.0.0-0alpha2) lmn7-experimental; urgency=low
+
+  * added grub-pc-bin to the depends.
+  * linbo-remote multi school (https://github.com/linuxmuster/linuxmuster-linbo/pull/179).
+  * Make -n -d disable the GUI immidiately after boot (https://github.com/linuxmuster/linuxmuster-linbo/pull/181).
+  * Fix issues with capital letters in hostname and log/status files (https://github.com/linuxmuster/linuxmuster-linbo/pull/183).
+  * changed iconname extension to .svg in start.conf examples.
+  * updated kernel and initrd path in ubuntu start.conf examples.
+  * wake-on-lan with broadcast address fails (https://github.com/linuxmuster/linuxmuster-linbo/issues/184).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 26 Apr 2021 17:04:00 +0200
+
 linuxmuster-linbo7 (4.0.0-0alpha1) lmn7-experimental; urgency=low
 
   * increased verbosity.
