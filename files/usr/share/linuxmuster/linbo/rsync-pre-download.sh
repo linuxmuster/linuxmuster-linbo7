@@ -2,7 +2,7 @@
 #
 # Pre-Download script for rsync/LINBO
 # thomas@linuxmuster.net
-# 20201111
+# 20210430
 #
 
 # read in linuxmuster specific environment
