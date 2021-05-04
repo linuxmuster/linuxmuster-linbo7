@@ -28,15 +28,6 @@ KERNEL64_DIR=kernel64/linux-$(KVERS)
 #KERNEL_URL=https://www.kernel.org/pub/linux/kernel/v4.x
 KERNEL_URL=$(LML_URL)
 
-# backports
-#BACKPORTS_ARCHIVE=$(shell grep backports- debian/md5sums.src | awk '{ print $$2 }')
-#BACKPORTS_DIR=kernel/$(shell echo $(BACKPORTS_ARCHIVE) | sed -e 's/.tar.xz//')
-#BACKPORTS_URL=https://www.kernel.org/pub/linux/kernel/projects/backports/stable/v4.4.2/
-# backports non pae
-#BACKPORTSNP_DIR=kernel-np/$(shell echo $(BACKPORTS_ARCHIVE) | sed -e 's/.tar.xz//')
-# backports 64bit
-#BACKPORTS64_DIR=kernel64/$(shell echo $(BACKPORTS_ARCHIVE) | sed -e 's/.tar.xz//')
-
 # cloop
 ### integrate cloop in LMN
 CLOOP_ARCHIVE=$(shell grep cloop_ debian/md5sums.src | awk '{ print $$2 }')
@@ -200,11 +191,6 @@ install: build
 
 	# supplemental files
 	cp -a files/* debian/linuxmuster-linbo7
-	install -m 644 files/usr/share/linuxmuster/linbo/templates/grub.cfg.pxe debian/linuxmuster-linbo7/srv/linbo/boot/grub/grub.cfg
-	install -m 644 linbofs/etc/linbo-version debian/linuxmuster-linbo7/srv/linbo
-	install -m 644 debian/linbo-multicast.default debian/linuxmuster-linbo7/etc/default/linbo-multicast
-	install -m 644 debian/linbo-bittorrent.default debian/linuxmuster-linbo7/etc/default/linbo-bittorrent
-	install -m 644 debian/logrotate debian/linuxmuster-linbo7/etc/logrotate.d/linuxmuster-linbo7
 	chmod 755 debian/linuxmuster-linbo7/etc/init.d/*
 
 # Build architecture-independent files here.
