@@ -1,7 +1,6 @@
 REM custom.cmd example
 REM thomas@linuxmuster.net
-REM 18.11.2015
+REM 20210504
 REM
 
-REM Beispiel: Maschinenaccount Passwort setzen
-%SystemDrive%\linuxmuster-win\lsaSecretStore.exe "$MACHINE.ACC" 12345678
+REM Place your custom windows start commands here

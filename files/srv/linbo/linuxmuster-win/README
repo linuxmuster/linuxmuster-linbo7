@@ -1,14 +1,13 @@
 linuxmuster-win
 ===============
 
-Management-Skripte für den Windows 7 Client
+Management-Skripte für den Windows 10 Client
 -------------------------------------------
 
 Installation
 ------------
 
-* Bemerkung: Ab linuxmuster-linbo 2.3.0-14 wird die Installation
-  automatisch von LINBO beim Start eines Windows-7-Systems ausgeführt.
+* install.cmd als Administrator starten.
 
 * Es wird eine "geplante Aufgabe" angelegt:
   Beim Start des Betriebssystems wird das Skript "start-tasks.cmd" automatisch
@@ -44,14 +43,5 @@ Skripte
   Beim nächsten Sync stellt LINBO die Aktivierung aus den gesicherten Dateien
   wieder her.
 
-Sonstiges
----------
-
-* lsaSecretStore.exe:
-  Tool zum lokalen Setzen des Maschinenpassworts:
-  lsaSecretStore.exe $MACHINE.ACC <Passwort>
-  (MIT-Lizenz).
-
 thomas@linuxmuster.net
-18.11.2015
-
+20210504

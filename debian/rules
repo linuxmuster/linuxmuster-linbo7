@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 #
 # thomas@linuxmuster.net
-# 20210228
+# 20210504
 # GPL v3
 #
 
@@ -52,11 +52,6 @@ BB_URL=$(LML_URL)
 #busybox64
 BB64_DIR=src64/$(shell echo $(BB_ARCHIVE) | sed -e 's/.tar.bz2//')
 
-# lsaSecrets
-LSASECRETS_ARCHIVE=$(shell grep lsaSecrets debian/md5sums.src | awk '{ print $$2 }')
-LSASECRETS_DIR=src64/$(shell echo $(LSASECRETS_ARCHIVE) | sed -e 's/.zip//')
-LSASECRETS_URL=https://github.com/linuxmuster/lsaSecrets/archive/master.zip
-
 # linbofs files for initramfs
 LINBOINITRAMFS=$(CURDIR)/cache/linbo_initramfs.conf
 
@@ -81,14 +76,6 @@ configure-stamp:
 		( cd $(BB64_DIR) && for i in ../../patches/busybox/*; do patch -p1 <$$i; done ); \
 		cp conf/busybox64.conf $(BB64_DIR)/.config; \
 		ln -sf ../$(BB64_DIR) src64/busybox; \
-	fi
-
-	# lsaSecrets
-	-@if [ ! -d $(LSASECRETS_DIR) ]; then \
-		( [ -e cache/$(LSASECRETS_ARCHIVE) ] || ( cd cache && wget $(LSASECRETS_URL) -O $(LSASECRETS_ARCHIVE) ) ); \
-		( cd cache && grep $(LSASECRETS_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-		echo "[1mUnpacking $(LSASECRETS_ARCHIVE)...[0m" ; \
-		( cd src64 && unzip ../cache/$(LSASECRETS_ARCHIVE) ); \
 	fi
 
 	# cloop64
@@ -215,7 +202,6 @@ install: build
 	cp -a files/* debian/linuxmuster-linbo7
 	install -m 644 files/usr/share/linuxmuster/linbo/templates/grub.cfg.pxe debian/linuxmuster-linbo7/srv/linbo/boot/grub/grub.cfg
 	install -m 644 linbofs/etc/linbo-version debian/linuxmuster-linbo7/srv/linbo
-	install -m 644 src64/lsaSecrets-master/bin/lsaSecretStore.exe debian/linuxmuster-linbo7/srv/linbo/linuxmuster-win
 	install -m 644 debian/linbo-multicast.default debian/linuxmuster-linbo7/etc/default/linbo-multicast
 	install -m 644 debian/linbo-bittorrent.default debian/linuxmuster-linbo7/etc/default/linbo-bittorrent
 	install -m 644 debian/logrotate debian/linuxmuster-linbo7/etc/logrotate.d/linuxmuster-linbo7
