@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20210504
+# 20210508
 # GPL v3
 #
 
@@ -574,7 +574,6 @@ format(){
   if [ -n "$label" ]; then
     case "$fstype" in
       swap|ext2|ext3|ext4|[Nn][Tt][Ff][Ss]*) label="-L $label" ;;
-      reiserfs) label="-l $label" ;;
       *[Ff][Aa][Tt]*) label="-n $label" ;;
       *) ;;
     esac
@@ -2490,31 +2489,6 @@ syncl(){
       [ -e /tmp/output ] && cat /tmp/output >>/tmp/patch.log
       rm -f "$TMP"
     fi # reg patch
-
-    # tweak windows newdev.dll (suppresses new hardware dialog)
-    local newdevdll="$(ls /mnt/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Ss][Yy][Ss][Tt][Ee][Mm]32/[Nn][Ee][Ww][Dd][Ee][Vv].[Dd][Ll][Ll] 2> /dev/null)"
-    [ -z "$newdevdll" ] && newdevdll="$(ls /mnt/[Ww][Ii][Nn][NN][Tt]/[Ss][Yy][Ss][Tt][Ee][Mm]32/[Nn][Ee][Ww][Dd][Ee][Vv].[Dd][Ll][Ll] 2> /dev/null)"
-    local newdevdllbak="$newdevdll.linbo-orig"
-    # save original file
-    [ -n "$newdevdll" -a ! -e "$newdevdllbak" ] && cp "$newdevdll" "$newdevdllbak"
-    # patch newdev.dll
-    if [ -n "$newdevdll" ]; then
-      echo -n "Patching $newdevdll ... "
-      local bcmd
-      local RC_BVI
-      # read substitute commands line for line from file
-      grep ^s/ /etc/newdev-patch.bvi | while read bcmd; do
-        echo "$bcmd" >> /tmp/patch.log
-        bvi -c "$bcmd" +"w" +"q" "$newdevdll" 2>&1 >> /tmp/patch.log || RC_BVI="1"
-        [ "$RC_BVI" = "1" ] && break
-      done
-      if [ "$RC_BVI" = "1" ]; then
-        echo "Error! See patch.log."
-        RC="$RC_BVI"
-      else
-        echo "Ok!"
-      fi
-    fi
 
     # restore windows boot files
     local bcd_backup
