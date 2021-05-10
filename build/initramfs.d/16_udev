@@ -1,0 +1,24 @@
+# udev
+
+dir /etc/udev 755 0 0
+dir /etc/udev/rules.d 755 0 0
+dir /lib/udev 755 0 0
+dir /lib/udev/rules.d 755 0 0
+file /etc/udev/rules.d/91-permissions.rules @@LINBOFS@@/etc/udev/rules.d/91-permissions.rules 644 0 0
+#file /bin/vmmouse_detect /bin/vmmouse_detect 755 0 0
+file /sbin/blkid /sbin/blkid 755 0 0
+file /bin/kmod /bin/kmod 755 0 0
+slink /sbin/insmod /bin/kmod 777 0 0
+slink /sbin/modprobe /bin/kmod 777 0 0
+slink /sbin/lsmod /bin/kmod 777 0 0
+slink /sbin/depmod /bin/kmod 777 0 0
+slink /sbin/rmmod /bin/kmod 777 0 0
+slink /sbin/modinfo /bin/kmod 777 0 0
+file /bin/readlink /bin/readlink 755 0 0
+file /bin/systemd-hwdb /bin/systemd-hwdb 755 0 0
+file /bin/udevadm /bin/udevadm 755 0 0
+file /lib/systemd/systemd-sysctl /lib/systemd/systemd-sysctl 755 0 0
+file /lib/systemd/systemd-udevd /lib/systemd/systemd-udevd 755 0 0
+file /lib/udev/hdparm /lib/udev/hdparm 755 0 0
+slink /sbin/udevd /lib/systemd/systemd-udevd 755 0 0
+slink /sbin/udevadm /bin/udevadm 755 0 0

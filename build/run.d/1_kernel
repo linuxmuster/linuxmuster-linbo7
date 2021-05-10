@@ -1,0 +1,45 @@
+#!/bin/bash
+#
+# download and build kernel
+
+# read build environment
+for i in build/conf.d/*; do source "$i" || exit 1; done
+
+# download verified kernel archive
+if [ ! -s "$KARCHIVE" ]; then
+  echo "Downloading kernel $KVERS ..."
+  "$KGET" "$KVERS" || exit 1
+fi
+
+# unpack
+if [ -d "$KSRCDIR" ]; then
+  echo "$KSRCDIR exists, skipping archive extraction."
+else
+  tar xf "$KARCHIVE" -C "$SRC" || exit 1
+fi
+
+# copy kernel config file
+cp "$KCONFIG" "$KSRCDIR/.config" || exit 1
+
+# configure kernel
+cd "$KSRCDIR"
+make olddefconfig || exit 1
+
+# compile
+if [ -s "$KIMAGE" ]; then
+  echo "Kernelimage exists, skipping compilation."
+else
+  # provide initramfs config
+  ln -snf "$INITRAMFS_KERNEL" "$SRC/initramfs_kernel.conf"
+  # make
+  make -j2 bzImage modules || exit 1
+  # remove initramfs config link
+  rm -f "$SRC/initramfs_kernel.conf"
+  # remove cloop module
+  rm -f "$CLMODULE"
+fi
+
+echo "Linking LINBO kernel to /srv/linbo/linbo64 ..."
+mkdir -p "$LINBODIR"
+cp "$KIMAGE" "$LINBODIR/linbo64" || exit 1
+md5sum "$LINBODIR/linbo64" | cut -f1 -d" " > "$LINBODIR/linbo64.md5" || exit 1

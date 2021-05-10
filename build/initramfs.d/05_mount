@@ -1,0 +1,5 @@
+# mount
+
+#file /bin/mount /bin/mount 755 0 0
+#file /bin/umount /bin/umount 755 0 0
+#file /lib/libmount.so.1 /lib/x86_64-linux-gnu/libmount.so.1 755 0 0

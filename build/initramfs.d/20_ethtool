@@ -1,0 +1,3 @@
+# ethtool
+
+file /sbin/ethtool /sbin/ethtool 755 0 0

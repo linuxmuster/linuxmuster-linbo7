@@ -1,0 +1,15 @@
+# ntfs-3g
+file /bin/ntfs-3g /bin/ntfs-3g 755 0 0
+file /lib/libntfs-3g.so.88 /lib/x86_64-linux-gnu/libntfs-3g.so.88 755 0 0
+slink /etc/mtab /proc/mounts 755 0 0
+slink /sbin/mount.ntfs /bin/ntfs-3g 755 0 0
+slink /sbin/mount.ntfs-3g /bin/ntfs-3g 755 0 0
+
+# ntfsprogs
+file /bin/ntfsclone /sbin/ntfsclone 755 0 0
+file /bin/ntfsfix /bin/ntfsfix 755 0 0
+file /bin/ntfslabel /sbin/ntfslabel 755 0 0
+file /bin/ntfsresize /sbin/ntfsresize 755 0 0
+file /bin/ntfssecaudit /bin/ntfssecaudit 755 0 0
+file /bin/mkntfs /sbin/mkntfs 755 0 0
+slink /bin/mkfs.ntfs mkntfs 777 0 0

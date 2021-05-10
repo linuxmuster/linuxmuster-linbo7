@@ -1,0 +1,44 @@
+# serverfs build environment
+
+# note: copy and link actions are applied in PKGBUILDROOT
+
+SRVFS_INITD="$PKGBUILDROOT/etc/init.d"
+SRVFS_SHAREDIR="$PKGBUILDROOT/usr/share/linuxmuster/linbo"
+
+# extra files that have to be copied to server filesystem (source and destination pairs per line)
+SRVFS_FILES="
+usr/share/linuxmuster/linbo/templates/grub.cfg.pxe srv/linbo/boot/grub/grub.cfg
+"
+
+# directories to be created on server filesystem
+SRVFS_DIRS="
+/etc/default
+/etc/init.d
+/etc/logrotate.d
+/etc/linuxmuster/linbo
+/usr/lib/linuxmuster/setup.d
+/usr/sbin
+/usr/share/linuxmuster/linbo/templates
+/var/cache/linuxmuster/linbo
+/var/lib/linuxmuster/linbo
+/var/log/linuxmuster/linbo
+/srv/linbo/examples
+/srv/linbo/boot/grub/themes/linbo
+/srv/linbo/boot/grub/hostcfg
+/srv/linbo/boot/grub/spool
+/srv/linbo/boot/grub/x86_64-efi
+/srv/linbo/icons
+/srv/linbo/linbocmd
+/srv/linbo/tmp
+/srv/linbo/winact
+"
+
+# links to be created on server filesystem (source and destination pairs per line)
+SRVFS_LINKS="
+etc/linuxmuster/linbo/start.conf.default        srv/linbo/start.conf
+usr/share/linuxmuster/linbo/update-linbofs.sh   usr/sbin/update-linbofs
+usr/share/linuxmuster/linbo/linbo-remote.sh     usr/sbin/linbo-remote
+usr/share/linuxmuster/linbo/linbo-ssh.sh        usr/sbin/linbo-ssh
+usr/share/linuxmuster/linbo/linbo-scp.sh        usr/sbin/linbo-scp
+var/log/linuxmuster/linbo                       srv/linbo/log
+"

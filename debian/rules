@@ -1,50 +1,11 @@
 #!/usr/bin/make -f
 #
 # thomas@linuxmuster.net
-# 20210504
+# 20210507
 # GPL v3
 #
 
 export DH_COMPAT=9
-
-CURDIR=$(shell pwd)
-
-LML_URL=https://download.linuxmuster.net/dev/linbo-build-cache
-
-# linbo version
-LVERS=$(shell head -n 1 debian/changelog | awk -F\( '{ print $$2 }' | awk -F\) '{ print $$1 }')
-LRELNAME=$(shell cat debian/releasename)
-
-# kernel
-#VESAMODE=785 # 640x480, 64k colors
-#VESAMODE=771 # 800x600, 256 colors
-# VESAMODE=0 # VGA16
-VESAMODE=791 # 1024x768, 64k colors # Currently not working
-KERNEL_ARCHIVE=$(shell grep " linux-" debian/md5sums.src | awk '{ print $$2 }')
-KVERS=$(shell echo $(KERNEL_ARCHIVE) | sed -e 's/linux-//' | sed -e 's/.tar.xz//')
-KMAINVERS=$(shell echo $(KVERS) | sed -e 's/.0$$//')
-# kernel64
-KERNEL64_DIR=kernel64/linux-$(KVERS)
-#KERNEL_URL=https://www.kernel.org/pub/linux/kernel/v4.x
-KERNEL_URL=$(LML_URL)
-
-# cloop
-### integrate cloop in LMN
-CLOOP_ARCHIVE=$(shell grep cloop_ debian/md5sums.src | awk '{ print $$2 }')
-CLOOP_VERSION=$(shell echo $(CLOOP_ARCHIVE) | awk -F_ '{ print $$2 }' | sed -e 's/.tar.xz//')
-CLOOP64_DIR=kernel64/cloop-$(CLOOP_VERSION)
-###CLOOP_URL=http://ftp.de.debian.org/debian/pool/main/c/cloop
-CLOOP_URL=$(LML_URL)
-
-# busybox
-BB_ARCHIVE=$(shell grep busybox- debian/md5sums.src | awk '{ print $$2 }')
-BB_URL=$(LML_URL)
-
-#busybox64
-BB64_DIR=src64/$(shell echo $(BB_ARCHIVE) | sed -e 's/.tar.bz2//')
-
-# linbofs files for initramfs
-LINBOINITRAMFS=$(CURDIR)/cache/linbo_initramfs.conf
 
 configure: configure-stamp
 configure-stamp:
@@ -52,86 +13,19 @@ configure-stamp:
 
 	# make necessary build dirs
 	mkdir -p cache || true
-	mkdir -p kernel64 || true
-	mkdir -p src64 || true
-
-	# download and unpack sources
-
-	# busybox64
-	-@if [ ! -d $(BB64_DIR) ]; then \
-		( [ -e cache/$(BB_ARCHIVE) ] || ( cd cache && wget $(BB_URL)/$(BB_ARCHIVE) ) ); \
-		( cd cache && grep $(BB_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-		echo "[1mUnpacking 64bit $(BB_ARCHIVE)...[0m" ; \
-		tar xf cache/$(BB_ARCHIVE) -C src64; \
-		echo "[1mPatching 64bit busybox sources...[0m" ; \
-		( cd $(BB64_DIR) && for i in ../../patches/busybox/*; do patch -p1 <$$i; done ); \
-		cp conf/busybox64.conf $(BB64_DIR)/.config; \
-		ln -sf ../$(BB64_DIR) src64/busybox; \
-	fi
-
-	# cloop64
-	#-@if [ ! -d $(CLOOP64_DIR) ]; then \
-	#	git clone https://github.com/PLanB2008/cloop kernel64/cloop;\
-	#fi
-	-@if [ ! -d $(CLOOP64_DIR) ]; then \
-		( [ -e cache/$(CLOOP_ARCHIVE) ] || ( cd cache && wget $(CLOOP_URL)/$(CLOOP_ARCHIVE) ) ); \
-		( cd cache && grep $(CLOOP_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-		echo "[1mUnpacking $(CLOOP_ARCHIVE)...[0m" ; \
-		tar xf cache/$(CLOOP_ARCHIVE) -C kernel64; \
-		( cd $(CLOOP64_DIR) && for i in ../../patches/cloop/*; do patch -p1 <$$i; done ); \
-		ln -sf ../$(CLOOP64_DIR) kernel64/cloop; \
-	fi
-
-	# kernel64
-	-@if [ ! -d $(KERNEL64_DIR) ]; then \
-		( [ -e cache/$(KERNEL_ARCHIVE) ] || ( cd cache && wget $(KERNEL_URL)/$(KERNEL_ARCHIVE) ) ); \
-		( cd cache && grep $(KERNEL_ARCHIVE) ../debian/md5sums.src | md5sum -c ); \
-		echo "[1mUnpacking 64bit $(KERNEL_ARCHIVE)...[0m" ; \
-		tar xf cache/$(KERNEL_ARCHIVE) -C kernel64; \
-		cp conf/kernel64.conf $(KERNEL64_DIR)/.config; \
-	fi
+	mkdir -p src || true
+	mkdir -p tmp || true
 
 	touch configure-stamp
 
 build: build-stamp
 build-stamp: configure-stamp
 	dh_testdir
-
-	# build src components
-
-	# busybox64
-	-@if [ ! -e $(BB64_DIR)/_install/bin/busybox ]; then \
-		echo "[1mBuilding 64bit busybox...[0m" ; \
-		( cd $(BB64_DIR) && make install ); \
-	fi
-
-	# linbo kernel64
-	-@if [ ! -e $(KERNEL64_DIR)/vmlinux ]; then \
-	        echo "[1mBuilding 64bit LINBO kernel...[0m" ; \
-	        rm -f $(CLOOP64_DIR)/cloop.ko || true ; \
-	        rm -rf ../modules/* || true ; \
-	        cd $(KERNEL64_DIR) ; \
-					ln -snf ../initramfs_kernel.conf . ; \
-	        :> ../initramfs_kernel.conf ; \
-	        rm -f usr/initramfs_data.cpio.gz || true ; \
-	        cat $(CURDIR)/conf/initramfs_kernel.conf > ../initramfs_kernel.conf ; \
-	        ARCH=x86_64 make -j2 bzImage modules ; \
-	fi
-
-	# cloop64 module
-	-@if [ ! -e $(CLOOP64_DIR)/cloop.ko ]; then \
-	        echo "[1mBuilding 64bit cloop module...[0m" ; \
-	        rm -f kernel64/modules/lib/modules/*/kernel/drivers/block/cloop.ko || true ; \
-	        cd $(CLOOP64_DIR) && \
-	        ( make KERNEL_DIR=$(CURDIR)/$(KERNEL64_DIR) clean ; ARCH=x86_64 make KERNEL_DIR=$(CURDIR)/$(KERNEL64_DIR) cloop.ko ) ; \
-	fi
-
 	touch build-stamp
 
 distclean: clean
-
-	rm -rf src64 || true
-	rm -rf kernel64 || true
+	rm -rf src || true
+	rm -rf tmp || true
 
 clean:
 	dh_testdir
@@ -146,52 +40,9 @@ install: build
 	#dh_clean -k
 	dh_installdirs
 	dh_install
-	## kernel, modules, initrd go to linuxmuster-linbo-common package
-	( cd $(KERNEL64_DIR) && mkdir -p ../modules ; ARCH=x86_64 make INSTALL_MOD_PATH=../modules modules_install )
-	@echo "[1mLinking 64bit LINBO kernel to /srv/linbo/linbo64.[0m" ; \
-	cp $(KERNEL64_DIR)/arch/x86/boot/bzImage $(CURDIR)/debian/linuxmuster-linbo7/srv/linbo/linbo64
-	# cloop module
-	mkdir -p kernel64/modules/lib/modules/$(KVERS)/kernel/drivers/block && \
-	cp $(CLOOP64_DIR)/cloop.ko kernel64/modules/lib/modules/$(KVERS)/kernel/drivers/block/
-	# depmod
-	-/sbin/depmod -a -b kernel64/modules $(KVERS)
-	# initrd build
-	# linbo version & codename
-	echo "LINBO $(LVERS): $(LRELNAME)" > linbofs/etc/linbo-version
 
-	# fetch common linbofs files
-	( cd linbofs && find . -type d -printf "dir %p %m 0 0\n" && find . -type f -printf "file %p %p %m 0 0\n" ) | sed -e 's|dir \./|dir /|g' -e 's|file \./|file /|g' -e 's|\./|\.\./\.\./linbofs/|g' >$(LINBOINITRAMFS)
-
-	# start building 64bit linbofs
-	@echo "[1mBuilding 64bit LINBOFS...[0m" ; \
-	cd $(KERNEL64_DIR) ; \
-	ln -snf ../initramfs.conf ./initramfs.conf ; \
-	:> ../initramfs.conf ; \
-	cat $(CURDIR)/conf/initramfs_kernel.conf > ../initramfs.conf ; \
-	cat $(CURDIR)/conf/initramfs64.conf >> ../initramfs.conf ; \
-	echo >> ../initramfs.conf ; \
-	echo "# grub2 boot images" >> $(CURDIR)/kernel64/initramfs.conf ; \
-	( cd /usr/lib/grub/i386-pc && find . -maxdepth 1 -name "*" -type f -printf "file %p %p %m 0 0\n" ) | sed -e 's|\./|/usr/lib/grub/i386-pc/|' | sed -e "s|\./|/usr/lib/grub/i386-pc/|" >>$(CURDIR)/kernel64/initramfs.conf ; \
-	( cd /usr/lib/grub/x86_64-efi && find . -maxdepth 1 -name "*" -type f -printf "file %p %p %m 0 0\n" ) | sed -e 's|\./|/usr/lib/grub/x86_64-efi/|' | sed -e "s|\./|/usr/lib/grub/x86_64-efi/|" >>$(CURDIR)/kernel64/initramfs.conf ; \
-	echo "# udev" >> ../initramfs.conf ; \
-	( find /etc/udev -type d -printf "dir %p %m 0 0\n" && find /etc/udev -type f -printf "file %p %p %m 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel64/initramfs.conf ; \
-	( find /lib/udev -type d -printf "dir %p %m 0 0\n" && find /lib/udev -type f -printf "file %p %p %m 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel64/initramfs.conf ; \
-	echo "# modules" >> ../initramfs.conf ; \
-	( cd ../modules && find . -type d -printf "dir %p %m 0 0\n" && find . -type f -printf "file %p .../modules%p %m 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel64/initramfs.conf ; \
-	echo >> ../initramfs.conf ; \
-	echo "# busybox applets" >> ../initramfs.conf ; \
-	( cd $(CURDIR)/$(BB64_DIR)/_install && find . -type d -printf "dir %p %m 0 0\n" && find . -type l -printf "slink %p /bin/busybox 777 0 0\n" ) | sed -e 's|\./|/|g' >>$(CURDIR)/kernel64/initramfs.conf ; \
-	cat $(LINBOINITRAMFS) >>$(CURDIR)/kernel64/initramfs.conf ; \
-	rm -f initramfs.lz ; ./usr/gen_init_cpio ../initramfs.conf > $(CURDIR)/debian/linuxmuster-linbo7/var/lib/linuxmuster/linbo/linbofs64.cpio
-
-	## install files to package dir
-
-	# scripts and config files
-	md5sum $(CURDIR)/debian/linuxmuster-linbo7/srv/linbo/linbo64 | cut -f1 -d" " > $(CURDIR)/debian/linuxmuster-linbo7/srv/linbo/linbo64.md5
-
-	# supplemental files
-	cp -a files/* debian/linuxmuster-linbo7
-	chmod 755 debian/linuxmuster-linbo7/etc/init.d/*
+	# invoke build helper scripts
+	run-parts build/run.d --report --exit-on-error
 
 # Build architecture-independent files here.
 binary-indep: build install

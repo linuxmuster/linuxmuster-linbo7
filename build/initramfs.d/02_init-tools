@@ -1,0 +1,5 @@
+# init-tools
+
+file /bin/killall5 /sbin/killall5 755 0 0
+file /usr/bin/bc /usr/bin/bc 755 0 0
+file /lib/libreadline.so.7 /lib/x86_64-linux-gnu/libreadline.so.7 755 0 0

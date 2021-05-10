@@ -1,0 +1,37 @@
+#!/bin/bash
+#
+# download and build cloop module
+
+# read build environment
+for i in build/conf.d/*; do source "$i" || exit 1; done
+
+# download
+ARCHIVE="$CACHE/$BBARCHIVE"
+if [ ! -s "$ARCHIVE" ]; then
+  echo "Downloading $BBARCHIVE ..."
+  curl -L -o "$ARCHIVE" "$REMOTE_CACHE/$BBARCHIVE"
+fi
+
+# check
+SHA256SUM="$(sha256sum "$ARCHIVE" | awk '{print $1}')"
+echo "Checking sha256sum ..."
+[ "$BBSHA256" = "$SHA256SUM" ] || exit 1
+
+# extract
+if [ -d "$BBSRCDIR" ]; then
+  echo "$BBSRCDIR exists, skipping archive extraction."
+else
+  echo "Extracting $BBARCHIVE ..."
+  tar xf "$ARCHIVE" -C "$SRC" || exit 1
+  cp "$BBCONFIG" "$BBSRCDIR/.config"
+fi
+
+# compile
+if [ -s "$BBBIN" ]; then
+  echo "Busybox binary exists, skipping build."
+else
+  echo "Compiling busybox ..."
+  cd "$BBSRCDIR"
+  make oldconfig || exit 1
+  make install || exit 1
+fi

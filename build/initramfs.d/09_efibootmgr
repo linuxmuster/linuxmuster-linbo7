@@ -1,0 +1,5 @@
+# efibootmgr
+
+file /usr/lib/libefiboot.so.1 /usr/lib/x86_64-linux-gnu/libefiboot.so.1 755 0 0
+file /usr/lib/libefivar.so.1 /usr/lib/x86_64-linux-gnu/libefivar.so.1 755 0 0
+file /bin/efibootmgr /bin/efibootmgr 755 0 0

@@ -1,0 +1,4 @@
+# rsync
+
+file /bin/rsync /usr/bin/rsync 755 0 0
+file /usr/lib/libpopt.so.0 /usr/lib/x86_64-linux-gnu/libpopt.so.0 755 0 0

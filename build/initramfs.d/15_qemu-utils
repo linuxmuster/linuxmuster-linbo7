@@ -1,0 +1,13 @@
+# qemu utils
+
+file /usr/bin/qemu-img /usr/bin/qemu-img 755 0 0
+file /usr/bin/qemu-nbd /usr/bin/qemu-nbd 755 0 0
+file /lib/libaio.so.1 /lib/x86_64-linux-gnu/libaio.so.1 755 0 0
+file /usr/lib/libgmodule-2.0.so.0 /usr/lib/x86_64-linux-gnu/libgmodule-2.0.so.0 755 0 0
+file /usr/lib/libnettle.so.6 /usr/lib/x86_64-linux-gnu/libnettle.so.6 755 0 0
+file /usr/lib/libgnutls.so.30 /usr/lib/x86_64-linux-gnu/libgnutls.so.30 755 0 0
+file /usr/lib/libp11-kit.so.0 /usr/lib/x86_64-linux-gnu/libp11-kit.so.0 755 0 0
+file /usr/lib/libidn2.so.0 /usr/lib/x86_64-linux-gnu/libidn2.so.0 755 0 0
+file /usr/lib/libunistring.so.2 /usr/lib/x86_64-linux-gnu/libunistring.so.2 755 0 0
+file /usr/lib/libtasn1.so.6 /usr/lib/x86_64-linux-gnu/libtasn1.so.6 755 0 0
+file /usr/lib/libhogweed.so.4 /usr/lib/x86_64-linux-gnu/libhogweed.so.4 755 0 0

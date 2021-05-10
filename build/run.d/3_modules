@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# read build environment
+for i in build/conf.d/*; do source "$i" || exit 1; done
+
+# install modules into temporary dir
+mkdir -p "$KMODTMPDIR"
+cd "$KSRCDIR"
+make INSTALL_MOD_PATH="$KMODTMPDIR" modules_install || exit 1
+
+# install cloop module
+KBLOCKDIR="$KMODTMPDIR/lib/modules/$KVERS/kernel/drivers/block"
+mkdir -p "$KBLOCKDIR"
+cp "$CLMODULE" "$KBLOCKDIR" || exit 1
+
+# depmod
+depmod -a -b "$KMODTMPDIR" "$KVERS" || exit 1

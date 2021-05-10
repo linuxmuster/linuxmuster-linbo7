@@ -1,5 +1,0 @@
-files/usr/share/linuxmuster/linbo/templates/grub.cfg.pxe srv/linbo/boot/grub/grub.cfg
-linbofs/etc/linbo-version srv/linbo
-debian/linbo-multicast.default etc/default/linbo-multicast
-debian/linbo-bittorrent.default etc/default/linbo-bittorrent
-debian/logrotate etc/logrotate.d/linuxmuster-linbo7

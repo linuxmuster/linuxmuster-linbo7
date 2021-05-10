@@ -1,0 +1,74 @@
+#!/bin/bash
+
+echo "Providing files and directories to server filesystem ..."
+
+# read build environment
+for i in build/conf.d/*; do source "$i" || exit 1; done
+
+# copy rootfs files to package root directory
+cp -a "$SERVERFS"/* "$PKGBUILDROOT" || exit 1
+
+# make certain files executable
+chmod 755 "$SRVFS_INITD"/*
+chmod 755 "$SRVFS_SHAREDIR"/*.sh
+
+# print two items in a line
+split_2items(){
+  local list="$1"
+  local item1=""
+  local item2=""
+  for i in $list; do
+    if [ -z "$item1" ]; then
+      item1="$i"
+      continue
+    fi
+    if [ -n "$item1" ]; then
+      item2="$i"
+      echo "$item1 $item2"
+      item1=""
+      item2=""
+    fi
+  done
+}
+
+# copy extra files
+split_2items "$SRVFS_FILES" | while read line; do
+  array=($line)
+  srcfile="${array[0]}"
+  dstfile="${array[1]}"
+  if [ "${srcfile:0:1}" = "/" ]; then
+    srcfile="$PKGBUILDROOT$srcfile"
+  else
+    srcfile="$PKGBUILDROOT/$srcfile"
+  fi
+  if [ "${dstfile:0:1}" = "/" ]; then
+    dstfile="$PKGBUILDROOT$dstfile"
+  else
+    dstfile="$PKGBUILDROOT/$dstfile"
+  fi
+  cp "$srcfile" "$dstfile" || exit 1
+done
+
+# create dirs
+for i in $SRVFS_DIRS; do
+  if [ "${i:0:1}" = "/" ]; then
+    dstdir="$PKGBUILDROOT$i"
+  else
+    dstdir="$PKGBUILDROOT/$i"
+  fi
+  mkdir -p "$dstdir" || exit 1
+done
+
+# create links
+split_2items "$SRVFS_LINKS" | while read line; do
+  array=($line)
+  srcfile="${array[0]}"
+  dstlink="${array[1]}"
+  [ "${srcfile:0:1}" != "/" ] && srcfile="/$srcfile"
+  if [ "${dstlink:0:1}" = "/" ]; then
+    dstlink="$PKGBUILDROOT$dstlink"
+  else
+    dstlink="$PKGBUILDROOT/$dstlink"
+  fi
+  ln -sf "$srcfile" "$dstlink" || exit 1
+done
