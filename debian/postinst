@@ -36,8 +36,6 @@ case "$1" in
  mkdir -p "$LINBODIR/backup"
  # windows activation stuff
  mkdir -p "$LINBODIR/winact"
- # additional torrents
- mkdir -p "$LINBODIR/torrentadds"
  # temp dir
  mkdir -p "$LINBODIR/tmp"
 

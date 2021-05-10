@@ -1,0 +1,3 @@
+# chntpw
+
+file /bin/reged /usr/sbin/reged 755 0 0

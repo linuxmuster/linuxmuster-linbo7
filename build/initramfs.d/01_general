@@ -1,0 +1,44 @@
+# general initramfs stuff
+
+# busybox
+file /etc/busybox.conf /dev/null 644 0 0
+file /bin/busybox @@BBBIN@@ 755 0 0
+slink /init /bin/busybox 777 0 0
+
+# german kbd
+file /etc/german.kbd @@SERVERFS@@/srv/linbo/german.kbd 644 0 0
+
+# shared libraries
+file /lib64/ld-linux-x86-64.so.2 /lib/x86_64-linux-gnu/ld-2.27.so 755 0 0
+file /usr/bin/ldd /usr/bin/ldd 755 0 0
+file /lib/libacl.so.1 /lib/x86_64-linux-gnu/libacl.so.1 755 0 0
+file /lib/libattr.so.1 /lib/x86_64-linux-gnu/libattr.so.1 755 0 0
+file /lib/libblkid.so.1 /lib/x86_64-linux-gnu/libblkid.so.1 755 0 0
+file /lib/libcrypt.so.1 /lib/x86_64-linux-gnu/libcrypt.so.1 755 0 0
+file /lib/libdbus-1.so.3 /lib/x86_64-linux-gnu/libdbus-1.so.3 755 0 0
+file /lib/libdl.so.2 /lib/x86_64-linux-gnu/libdl.so.2 755 0 0
+file /lib/libgcc_s.so.1 /lib/x86_64-linux-gnu/libgcc_s.so.1 755 0 0
+file /lib/libkmod.so.2 /lib/x86_64-linux-gnu/libkmod.so.2 755 0 0
+file /lib/libncurses.so.5 /lib/x86_64-linux-gnu/libncurses.so.5 755 0 0
+file /lib/libnih.so.1 /lib/x86_64-linux-gnu/libnih.so.1 755 0 0
+file /lib/libnih-dbus.so.1 /lib/x86_64-linux-gnu/libnih-dbus.so.1 755 0 0
+file /lib/libnsl.so.1 /lib/x86_64-linux-gnu/libnsl.so.1 755 0 0
+file /lib/libnss_compat.so.2 /lib/x86_64-linux-gnu/libnss_compat.so.2 755 0 0
+file /lib/libnss_files.so.2 /lib/x86_64-linux-gnu/libnss_files.so.2 755 0 0
+file /lib/libpcre.so.3 /lib/x86_64-linux-gnu/libpcre.so.3 755 0 0
+file /lib/libuuid.so.1 /lib/x86_64-linux-gnu/libuuid.so.1 755 0 0
+file /lib/libc.so.6 /lib/x86_64-linux-gnu/libc.so.6 755 0 0
+file /lib/libm.so.6 /lib/x86_64-linux-gnu/libm.so.6 755 0 0
+file /lib/libpthread.so.0 /lib/x86_64-linux-gnu/libpthread.so.0 755 0 0
+file /lib/librt.so.1 /lib/x86_64-linux-gnu/librt.so.1 755 0 0
+file /lib/libselinux.so.1 /lib/x86_64-linux-gnu/libselinux.so.1 755 0 0
+file /lib/libz.so.1 /lib/x86_64-linux-gnu/libz.so.1 755 0 0
+file /lib/terminfo/l/linux /lib/terminfo/l/linux 755 0 0
+file /lib/terminfo/x/xterm /lib/terminfo/x/xterm 755 0 0
+file /usr/lib/libstdc++.so.6 /usr/lib/x86_64-linux-gnu/libstdc++.so.6 755 0 0
+
+# default start.conf
+file /start.conf @@SERVERFS@@/etc/linuxmuster/linbo/start.conf.default 644 0 0
+
+# graphical stuff
+dir /icons 755 0 0

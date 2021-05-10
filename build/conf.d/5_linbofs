@@ -1,0 +1,8 @@
+# linbofs build environment
+
+# linbo version and releasename
+LVERS="$(head -n 1 "$DEBIAN/changelog" | awk -F\( '{print $2}' | awk -F\) '{print $1}')"
+LRELNAME="$(cat "$DEBIAN/releasename")"
+
+# # initramfs file used during linbofs build
+INITRAMFS_BUILD="$SRC/initramfs.conf"

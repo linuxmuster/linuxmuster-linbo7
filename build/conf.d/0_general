@@ -1,0 +1,34 @@
+# build.conf
+# general environment variables
+# thomas@linuxmuster.net
+# 20210507
+#
+
+# must be buildroot
+BUILDROOT="$(pwd)"
+
+# download address of remote cache
+REMOTE_CACHE="https://download.linuxmuster.net/dev/linbo-build-cache"
+
+# dirs relative to buildroot
+BUILDDIR="$BUILDROOT/build"
+BUILDBIN="$BUILDDIR/bin"
+BUILDCONFD="$BUILDDIR/conf.d"
+BUILDCONFIG="$BUILDDIR/config"
+BUILDINITD="$BUILDDIR/initramfs.d"
+BUILDPATCHES="$BUILDDIR/patches"
+BUILDRUND="$BUILDDIR/run.d"
+CACHE="$BUILDROOT/cache"
+DEBIAN="$BUILDROOT/debian"
+LINBOFS="$BUILDROOT/linbofs"
+SERVERFS="$BUILDROOT/serverfs"
+SRC="$BUILDROOT/src"
+TMPDIR="$BUILDROOT/tmp"
+
+# package data
+PKGNAME="linuxmuster-linbo7"
+PKGBUILDROOT="$DEBIAN/$PKGNAME"
+PKGVARDIR="$PKGBUILDROOT/var/lib/linuxmuster/linbo"
+
+# linbo related
+LINBODIR="$PKGBUILDROOT/srv/linbo"

@@ -1,0 +1,27 @@
+# basic initramfs stuff
+dir / 755 0 0
+dir /bin 755 0 0
+dir /cache 755 0 0
+dir /cloop 755 0 0
+dir /dev 755 0 0
+dir /etc 755 0 0
+dir /lib 755 0 0
+dir /lib64 755 0 0
+dir /mnt 755 0 0
+dir /proc 755 0 0
+dir /sbin 755 0 0
+dir /sys 755 0 0
+dir /tmp 1777 0 0
+dir /usr 755 0 0
+dir /usr/bin 755 0 0
+dir /usr/lib 755 0 0
+dir /usr/lib/tls 755 0 0
+dir /var 755 0 0
+dir /var/lock 755 0 0
+dir /var/log 755 0 0
+dir /var/run 755 0 0
+slink /run /var/run 777 0 0
+
+# device nodes
+nod /dev/console 644 0 0 c 5 1
+nod /dev/null 666 0 0 c 1 3

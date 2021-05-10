@@ -1,0 +1,12 @@
+# mke2fs
+
+file /sbin/mke2fs /sbin/mke2fs 755 0 0
+file /sbin/e2fsck /sbin/e2fsck 755 0 0
+file /sbin/e2label /sbin/e2label 755 0 0
+file /sbin/resize2fs /sbin/resize2fs 755 0 0
+file /lib/libext2fs.so.2 /lib/x86_64-linux-gnu/libext2fs.so.2 755 0 0
+file /lib/libcom_err.so.2 /lib/x86_64-linux-gnu/libcom_err.so.2 755 0 0
+file /lib/libe2p.so.2 /lib/x86_64-linux-gnu/libe2p.so.2 755 0 0
+slink /sbin/mkfs.ext2 mke2fs 755 0 0
+slink /sbin/mkfs.ext3 mke2fs 755 0 0
+slink /sbin/mkfs.ext4 mke2fs 755 0 0

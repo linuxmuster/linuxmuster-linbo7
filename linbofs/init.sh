@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20210310
+# 20210508
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -818,20 +818,11 @@ fbconsplash(){
 }
 
 
-
 # Main
-#clear
-echo
-echo 'Welcome to'
-echo ' _      _____ _   _ ____   ____'
-echo '| |    |_   _| \ | |  _ \ / __ \'
-echo '| |      | | |  \| | |_) | |  | |'
-echo '| |      | | | . ` |  _ <| |  | |'
-echo '| |____ _| |_| |\  | |_) | |__| |'
-echo '|______|_____|_| \_|____/ \____/'
-echo
-echo "Booting version $(cat /etc/linbo-version | sed -e 's|^LINBO ||') ..."
-echo
+
+# print welcome message
+clear
+source /.profile
 
 # evaluate commandline parameters
 read_cmdline

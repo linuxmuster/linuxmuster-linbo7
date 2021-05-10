@@ -1,0 +1,22 @@
+# kernel build environment variables
+
+# kernel version
+KVERS="5.4.116"
+
+# kernel archive and get script
+KDIR="linux-$KVERS"
+KSRCDIR="$SRC/$KDIR"
+KARCHIVE="$CACHE/$KDIR.tar.xz"
+KGET="$BUILDBIN/get-verified-kernel.sh"
+
+# kernel config file
+KCONFIG="$BUILDCONFIG/kernel"
+
+# kernel image
+KIMAGE="$KSRCDIR/arch/x86/boot/bzImage"
+
+# where kernel modules were temporary installed
+KMODTMPDIR="$TMPDIR/modules"
+
+# initramfs file used during kernel build
+INITRAMFS_KERNEL="$BUILDINITD/00_basic"

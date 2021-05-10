@@ -1,0 +1,76 @@
+#!/bin/bash
+
+echo "Creating linbofs ..."
+
+# read build environment
+for i in build/conf.d/*; do source "$i" || exit 1; done
+
+# provide linbo version in linbofs and linbo directory on server
+echo "LINBO $LVERS: $LRELNAME" > "$LINBOFS/etc/linbo-version"
+cp "$LINBOFS/etc/linbo-version" "$LINBODIR"
+
+# add static entries from initramfs.d config files, substitute placeholders
+echo "Adding static initramfs stuff ..."
+echo "# static entries" > "$INITRAMFS_BUILD"
+for i in "$BUILDINITD"/*; do
+  sed -e "s|@@BBBIN@@|$BBBIN|g
+          s|@@LINBOFS@@|$LINBOFS|g
+          s|@@SERVERFS@@|$SERVERFS|g" "$i" >> "$INITRAMFS_BUILD" || exit 1
+done
+echo >> "$INITRAMFS_BUILD"
+
+# add necessary grub stuff
+echo "Adding grub stuff ..."
+echo "# grub stuff" >> "$INITRAMFS_BUILD"
+cd /usr/lib/grub/i386-pc
+find . -maxdepth 1 -name "*" -type f -printf "file %p %p %m 0 0\n" | \
+  sed -e "s|\./|/usr/lib/grub/i386-pc/|" | sed -e "s|\./|/usr/lib/grub/i386-pc/|" \
+  >> "$INITRAMFS_BUILD" || exit 1
+cd /usr/lib/grub/x86_64-efi
+find . -maxdepth 1 -name "*" -type f -printf "file %p %p %m 0 0\n" | \
+  sed -e 's|\./|/usr/lib/grub/x86_64-efi/|' | \
+  sed -e "s|\./|/usr/lib/grub/x86_64-efi/|" \
+  >> "$INITRAMFS_BUILD" || exit 1
+
+# add udev stuff
+echo "Adding udev stuff ..."
+echo "# udev stuff" >> "$INITRAMFS_BUILD"
+find /etc/udev -type d -printf "dir %p %m 0 0\n" && \
+  find /etc/udev -type f -printf "file %p %p %m 0 0\n" | \
+  sed -e 's|\./|/|g' >> "$INITRAMFS_BUILD" || exit 1
+find /lib/udev -type d -printf "dir %p %m 0 0\n" && \
+  find /lib/udev -type f -printf "file %p %p %m 0 0\n" | \
+  sed -e 's|\./|/|g' >> "$INITRAMFS_BUILD" || exit 1
+
+# add modules
+echo "Adding kernel modules ..."
+echo "# kernel modules" >> "$INITRAMFS_BUILD"
+cd "$KMODTMPDIR"
+find . -type d -printf "dir %p %m 0 0\n" && \
+  find . -type f -printf "file %p $KMODTMPDIR%p %m 0 0\n" | \
+  sed -e 's|\./|/|g' >> "$INITRAMFS_BUILD" || exit 1
+echo >> "$INITRAMFS_BUILD"
+
+# add busybox stuff
+echo "Adding busybox applets ..."
+echo "# busybox applets" >> "$INITRAMFS_BUILD"
+cd "$BBSRCDIR/_install"
+find . -type d -printf "dir %p %m 0 0\n" && \
+  find . -type l -printf "slink %p /bin/busybox 777 0 0\n" | \
+  sed -e 's|\./|/|g' >> "$INITRAMFS_BUILD" || exit 1
+
+# add files from linbofs overlay
+echo "Adding linbofs overlay ..."
+echo "# linbofs overlay" >> "$INITRAMFS_BUILD"
+cd "$LINBOFS"
+find . -type d -printf "dir %p %m 0 0\n" | sed -e 's|^dir ./|dir /|g' \
+  >> "$INITRAMFS_BUILD" || exit 1
+find . -type f -printf "file %p %p %m 0 0\n" | \
+  sed -e "s|^file ./|file /|g
+          s| ./| $LINBOFS/|g" >> "$INITRAMFS_BUILD" || exit 1
+
+
+# create linbofs cpio archive from created initramfs.conf
+cd "$KSRCDIR"
+rm -f initramfs.lz
+./usr/gen_init_cpio "$INITRAMFS_BUILD" > "$PKGVARDIR/linbofs64.cpio" || exit 1

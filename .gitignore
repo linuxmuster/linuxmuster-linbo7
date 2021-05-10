@@ -1,10 +1,10 @@
-build.log
-src64
-kernel64
-cache
-configure-stamp
-build-stamp
 .directory
 .debhelper
+*.log
+build-stamp
+cache
+configure-stamp
+kernel64
 mkpkg
+src
 tmp

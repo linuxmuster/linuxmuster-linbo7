@@ -1,0 +1,7 @@
+# dropbear
+
+file /sbin/dropbear /usr/sbin/dropbear 755 0 0
+file /lib/libutil.so.1 /lib/x86_64-linux-gnu/libutil.so.1 755 0 0
+file /usr/lib/libgmp.so.10 /usr/lib/x86_64-linux-gnu/libgmp.so.10 755 0 0
+file /usr/lib/libtommath.so.1 /usr/lib/x86_64-linux-gnu/libtommath.so.1 755 0 0
+file /usr/lib/libtomcrypt.so.1 /usr/lib/x86_64-linux-gnu/libtomcrypt.so.1 755 0 0

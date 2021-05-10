@@ -1,4 +1,4 @@
-.debhelper
+*.debhelper*
 files
 linuxmuster-linbo7
 *.log

@@ -1,0 +1,43 @@
+#!/bin/bash
+#
+# download and build cloop module
+
+# read build environment
+for i in build/conf.d/*; do source "$i" || exit 1; done
+
+# download
+ARCHIVE="$CACHE/$CLARCHIVE"
+if [ ! -s "$ARCHIVE" ]; then
+  echo "Downloading $CLARCHIVE ..."
+  curl -L -o "$ARCHIVE" "$REMOTE_CACHE/$CLARCHIVE"
+fi
+
+# check
+SHA256SUM="$(sha256sum "$ARCHIVE" | awk '{print $1}')"
+echo "Checking sha256sum ..."
+[ "$CLSHA256" = "$SHA256SUM" ] || exit 1
+
+# extract
+if [ -d "$CLSRCDIR" ]; then
+  echo "$CLSRCDIR exists, skipping archive extraction."
+else
+  echo "Extracting $CLARCHIVE ..."
+  tar xf "$ARCHIVE" -C "$SRC" || exit 1
+  cd "$CLSRCDIR"
+
+  # patch
+  echo "Patching $(basename "$CLSRCDIR") ..."
+  for i in "$CLPATCHDIR"/*; do
+    patch -p1 <"$i" || exit 1
+  done
+fi
+
+# compile
+if [ -s "$CLMODULE" ]; then
+  echo "echo $(basename $CLMODULE) exists, skipping build."
+else
+  echo "Compiling cloop module ..."
+  cd "$CLSRCDIR"
+  make KERNEL_DIR="$KSRCDIR" clean || exit 1
+  make KERNEL_DIR="$KSRCDIR" cloop.ko || exit 1
+fi
