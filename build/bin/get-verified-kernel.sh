@@ -29,7 +29,7 @@ TARGETDIR="$CACHE"
 # Web Key Directory each time. Also, see the USEKEYRING=
 # configuration option for an alternative that doesn't
 # rely on WKD.
-GNUPGHOME=
+GNUPGHOME="$HOME/.gnupg"
 
 # For CI and other automated infrastructure, you may want to
 # create a keyring containing the keys belonging to:
