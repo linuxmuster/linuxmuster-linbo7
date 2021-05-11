@@ -1,25 +1,22 @@
 #!/bin/bash
 #
 # thomas@linuxmuster.net
-# 20210414
+# 20210511
 #
 
-for i in conf debian files graphics linbofs; do
- find ${i}/ -type f -name \*~ -exec rm '{}' \;
-done
+MY_DIR="$(dirname $0)"
+cd "$MY_DIR"
 
 rm -f debian/files
-rm -rf kernel64/modules
+rm -rf tmp/*
 
 fakeroot dpkg-buildpackage \
     -tc -sn -us -uc \
     -I".git" \
     -I".gitignore" \
     -I".directory" \
-    -I".debhelper" \
+    -I"*.debhelper*" \
     -Icache \
-    -Isrc64 \
-    -Ikernel64 \
+    -Isrc \
     -Ibuild.log \
-    -Imkpkg \
-    -Itmp
+    -Itmp 2>&1 | tee build.log
