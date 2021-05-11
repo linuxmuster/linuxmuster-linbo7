@@ -4,7 +4,7 @@
 # based on https://git.kernel.org/pub/scm/linux/kernel/git/mricon/korg-helpers.git/plain/get-verified-tarball
 # modified for linuxmuster-linbo7
 # thomas@linuxmuster.net
-# 20210504
+# 20210511
 # --------------------
 # Get Linux kernel tarball and cryptographically verify it,
 # retrieving the PGP keys using the Web Key Directory (WKD)
@@ -18,7 +18,8 @@
 # Configurable parameters
 # -----------------------
 
-source conf/build.conf
+# read environment
+source build/conf.d/0_general
 
 # Where to download the tarball and verification data.
 TARGETDIR="$CACHE"
