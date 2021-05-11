@@ -1,16 +1,23 @@
 #!/bin/sh
 #
 # thomas@linuxmuster.net
-# 20181214
+# 20210511
 #
 
 set -e
 
-[ "$(id -u)" = "0" ] || SUDO="sudo"
+SUDO="$(which sudo)"
+if [ -z "$SUDO" ]; then
+  echo "Please install sudo!"
+  exit 1
+fi
 
-echo "##############################################"
-echo "# Installing linuxmuster-linbo build depends #"
-echo "##############################################"
+PKGNAME="linuxmuster-linbo7"
+CONTROL_URL="https://raw.githubusercontent.com/linuxmuster/$PKGNAME/main/debian/control"
+
+echo "###############################################"
+echo "# Installing $PKGNAME build depends #"
+echo "###############################################"
 echo
 
 if [ ! -e debian/control ]; then
@@ -18,18 +25,15 @@ if [ ! -e debian/control ]; then
  exit
 fi
 
-if ! grep -q "Source: linuxmuster-linbo" debian/control; then
- echo "This is no linuxmuster-linbo source tree!"
+if ! grep -q "Source: $PKGNAME" debian/control; then
+ echo "This is no $PKGNAME source tree!"
  exit
 fi
 
+# install prerequisites
+$SUDO apt-get update
+$SUDO apt-get -y install bash bash-completion ccache curl dpkg-dev || exit 1
+
 # install build depends
-BUILDDEPENDS="$(LANG=C dpkg-checkbuilddeps 2>&1 | sed -e 's|dpkg-checkbuilddeps: error: Unmet build dependencies: ||' -e 's|[(][^)]*[)]||g')"
-if [ -n "$BUILDDEPENDS" ]; then
-  $SUDO apt update -y
-  $SUDO apt install dpkg-dev
-  $SUDO dpkg --add-architecture i386
-  $SUDO apt install -y $BUILDDEPENDS kmod
-else
-  echo "Nothing to do."
-fi
+BUILDDEPENDS="$(curl -s $CONTROL_URL | sed -n '/Build-Depends:/,/Package:/p' | grep -v ^Package | sed -e 's|^Build-Depends: ||' | sed -e 's|,||g')"
+$SUDO apt-get -y install $BUILDDEPENDS || exit 1
