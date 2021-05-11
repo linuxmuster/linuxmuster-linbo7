@@ -10,7 +10,7 @@ cd "$MY_DIR"
 rm -f debian/files
 rm -rf tmp/*
 
-fakeroot dpkg-buildpackage \
+dpkg-buildpackage \
     -tc -sn -us -uc \
     -I".git" \
     -I".gitignore" \
