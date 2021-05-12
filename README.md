@@ -4,7 +4,7 @@
 
  is the free and opensource imaging solution for linuxmuster.net 7. It handles Windows 10 and Linux 64bit operating systems. Via TFTP and Grub's PXE implementation it boots a small linux system (linbofs) with a [gui](https://github.com/linuxmuster/linuxmuster-linbo-gui7), which can manage all the imaging tasks on the client. Console tools are also available to manage clients and imaging remotely via the server.
 
-Important notices:
+## Important notices:
 * The code in this repo is currently experimental.
 * There is only a linuxmuster-linbo7 package. The old common package is deprecated and will be removed by upgrade.
 * In spite of former [linuxmuster-linbo](https://github.com/linuxmuster/linuxmuster-linbo) images in cloop format where only supported for restore.
@@ -16,22 +16,20 @@ Important notices:
 * No differential imaging yet.
 * Packages were published in the [lmn7-experimental repository](http://archive.linuxmuster.net/lmn7-experimental/).
 
-Planned features:
+## Planned features:
 * qcow2 image format, good bye cloop.
 * place images in subdirs of /srv/linbo.
 * start.conf in yaml format.
 * replace bittorrent with ctorrent.
 * step by step changeover of the scripting to python.
 
-Build instructions:
+## Build instructions:
 
 * Install 64bit Ubuntu 18.04
-
 * If you are using Ubuntu server or minimal:
   `sudo apt install dpkg-dev`
-
 * Install build depends (uses sudo):  
   `./get-depends.sh`
-
 * Build package:  
   `./buildpackage.sh`
+Or for better convenience use the new [linbo-build-docker](https://github.com/linuxmuster/linbo-build-docker) environment.
