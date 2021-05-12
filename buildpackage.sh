@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # thomas@linuxmuster.net
-# 20210511
+# 20210512
 #
 
 MY_DIR="$(dirname $0)"
@@ -19,4 +19,4 @@ dpkg-buildpackage \
     -Icache \
     -Isrc \
     -Ibuild.log \
-    -Itmp 2>&1 | tee build.log
+    -Itmp 2>&1 | tee ../build.log
