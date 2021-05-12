@@ -1,0 +1,28 @@
+#!/bin/bash
+#
+# download and build opentracker
+
+# read build environment
+for i in build/conf.d/*; do source "$i" || exit 1; done
+
+# check for binary
+if [ -s "$OTBIN" -a -x "$OTBIN" ]; then
+  echo "Opentracker binary exists, skipping build."
+
+else
+  # download
+  echo "Cloning $OTNAME source ..."
+  [ -d "$OTSRCDIR" ] && rm -rf "$OTSRCDIR"
+  cd "$SRC"
+  git clone "$OTURL" || exit 1
+  # compile
+  echo "Compiling $OTNAME ..."
+  cd "$OTSRCDIR" || exit 1
+  make || exit 1
+  [ -s "$OTBIN" -a -x "$OTBIN" ] || exit 1
+fi
+
+# install
+echo "Installing $OTNAME ..."
+mkdir -p "$OTINSTDIR"
+install -m 755 "$OTBIN" "$OTINSTDIR" || exit 1

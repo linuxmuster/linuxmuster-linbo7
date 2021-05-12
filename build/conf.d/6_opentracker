@@ -1,0 +1,7 @@
+# opentracker build environment
+
+OTNAME="opentracker"
+OTURL="https://erdgeist.org/gitweb/$OTNAME"
+OTSRCDIR="$SRC/$OTNAME"
+OTBIN="$OTSRCDIR/$OTNAME"
+OTINSTDIR="$PKGBUILDROOT/usr/sbin"
