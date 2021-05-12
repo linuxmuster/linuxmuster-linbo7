@@ -31,5 +31,6 @@
 * Install build depends (uses sudo):  
   `./get-depends.sh`
 * Build package:  
-  `./buildpackage.sh`
+  `./buildpackage.sh`  
+  
 Or for better convenience use the new [linbo-build-docker](https://github.com/linuxmuster/linbo-build-docker) environment.
