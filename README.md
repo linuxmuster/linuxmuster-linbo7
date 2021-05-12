@@ -1,7 +1,6 @@
 <img src="https://raw.githubusercontent.com/linuxmuster/linuxmuster-artwork/master/linbo/linbo_logo_small.svg" alt="linbo icon" width="200"/>
 
 # linuxmuster-linbo7 (next generation)
-
  is the free and opensource imaging solution for linuxmuster.net 7. It handles Windows 10 and Linux 64bit operating systems. Via TFTP and Grub's PXE implementation it boots a small linux system (linbofs) with a [gui](https://github.com/linuxmuster/linuxmuster-linbo-gui7), which can manage all the imaging tasks on the client. Console tools are also available to manage clients and imaging remotely via the server.
 
 ## Important notices:
@@ -23,8 +22,19 @@
 * replace bittorrent with ctorrent.
 * step by step changeover of the scripting to python.
 
-## Build instructions:
+## Source tree structure
+* build: all files, which are used to build the package.
+  - bin: helper scripts (only get kernel archive script at the moment).
+  - conf.d: environment variables definition for the various build components.
+  - config: configuration files for various source packages (eg. busybox, kernel).
+  - initramfs.d: initramfs configurations for the various components, which are picked from the ubuntu build system to create the linbofs system from it.
+  - patches: source patches, which are to be applied (eg. cloop).
+  - run.d: the build scripts for the package components.
+* debian: debian packaging stuff
+* linbofs: files, which are needed to be installed to the initramfs file system.
+* serverfs: files, which are needed to be installed to the server root file system.
 
+## Build instructions:
 * Install 64bit Ubuntu 18.04
 * If you are using Ubuntu server or minimal:
   `sudo apt install dpkg-dev`
@@ -32,5 +42,5 @@
   `./get-depends.sh`
 * Build package:  
   `./buildpackage.sh`  
-  
+
 Or for better convenience use the new [linbo-build-docker](https://github.com/linuxmuster/linbo-build-docker) environment.
