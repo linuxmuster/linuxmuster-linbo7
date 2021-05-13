@@ -19,7 +19,7 @@
 * qcow2 image format, good bye cloop.
 * place images in subdirs of /srv/linbo.
 * start.conf in yaml format.
-* replace bittorrent with ctorrent.
+* replace bittorrent with opentracker and ctorrent.
 * step by step changeover of the scripting to python.
 
 ## Source tree structure
