@@ -3,7 +3,7 @@
 # wrapper for linbo_cmd
 #
 # thomas@linuxmuster.net
-# 20201123
+# 20210514
 # GPL V3
 #
 
@@ -305,9 +305,9 @@ help(){
   echo "                           not given it will be fetched from start.conf."
   echo "sync:<#>                 : Synchronizes operating system nr. <#>."
   echo "start:<#>                : Starts operating system nr. <#>."
-  echo "create_cloop:<#>:<\"msg\"> : Creates a CLOOP image from operating system nr. <#>."
+  echo "create_image:<#>:<\"msg\"> : Creates a CLOOP image from operating system nr. <#>."
   echo "create_rsync:<#>:<\"msg\"> : Creates a RSYNC image from operating system nr. <#>."
-  echo "upload_cloop:<#>         : Uploads the CLOOP image of operating system nr. <#>."
+  echo "upload_image:<#>         : Uploads the CLOOP image of operating system nr. <#>."
   echo "upload_rsync:<#>         : Uploads the RSYNC image of operating system nr. <#>."
   echo "update                   : Updates LINBO's kernel and initrd and installs GRUB."
   echo "reboot                   : Reboots the client."
@@ -391,7 +391,7 @@ while [ "$#" -gt "0" ]; do
       fi
       ;;
 
-    create_cloop)
+    create_image)
       osnr="$param"
       if ! isinteger "$osnr"; then
         echo "$osnr is not an integer!"
@@ -412,7 +412,7 @@ while [ "$#" -gt "0" ]; do
       fi
       ;;
 
-    upload_cloop)
+    upload_image)
       osnr="$param"
       if ! isinteger "$osnr"; then
         echo "$osnr is not an integer!"
