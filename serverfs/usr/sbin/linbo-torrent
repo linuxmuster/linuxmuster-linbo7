@@ -1,0 +1,116 @@
+#!/bin/bash
+#
+# starts screen process for each valid torrent in LINBODIR
+# thomas@linuxmuster.net
+# 20210513
+#
+
+# read environment
+. /usr/share/linuxmuster/defaults.sh || exit 1
+THELPER=$LINBOSHAREDIR/linbo-torrenthelper.sh
+. $LINBOSHAREDIR/helperfunctions.sh || exit 1
+
+# change to LINBODIR
+cd $LINBODIR
+
+# check for torrent screen and return pid
+check_torrent(){
+  local torrent="$1"
+  local process="$(screen -ls | grep -w $torrent)"
+  [ -z "$process" ] && return 0
+  # print pid if there is any
+  echo "$process" | awk -F\. '{print $1}' | awk '{print $1}'
+}
+
+# killing torrent screen
+kill_torrent(){
+  local torrent="$1"
+  local pid="$(check_torrent "$torrent")"
+  [ -z "$pid" ] && return 0
+  kill "$pid"
+  pid="$(check_torrent "$torrent")"
+  if [ -z "$pid" ]; then
+    echo "Screen process for $torrent terminated. "
+    return 0
+  else
+    echo "Failed to terminate screen process for $torrent."
+    return 1
+  fi
+}
+
+# reloading running ctorrent processes
+reload(){
+  local torrent
+  local pid
+  local line
+  local array
+  local num
+  local pos
+  local RC
+  # iterate over torrenthelper processes
+  ps ax | grep -v grep | grep -w ctorrent | grep -w torrent | while read line; do
+    read -ra array <<< "$line"
+    pid="${array[0]}"
+    num=${#array[@]}
+    pos=$(( $num - 1 ))
+    torrent="${array[$pos]}"
+    echo -n "Reloading $torrent ... "
+    RC=0
+    kill "$pid" || RC=1
+    if [ "$RC" = "0" ]; then
+      echo "Ok!"
+    else
+      echo "Failed!"
+    fi
+  done
+}
+
+# starts torrent screen processes
+start(){
+  local torrent
+  for torrent in *.torrent; do
+    # skip already running torrents
+    local pid="$(check_torrent "$torrent")"
+    if [ -n "$pid" ]; then
+      echo "$torrent is already running."
+      continue
+    else
+      echo -n "Starting screen process for $torrent ... "
+      screen -dmS "$torrent" "$THELPER" "$torrent"
+      pid="$(check_torrent "$torrent")"
+      sleep 1
+      if [ -n "$pid" ]; then
+        echo "$pid ... Ok!"
+      else
+        echo "Failed!"
+      fi
+    fi
+  done
+}
+
+stop(){
+  local torrent
+  for torrent in *.torrent; do
+    kill_torrent "$torrent"
+  done
+}
+
+status(){
+  screen -ls | grep -w torrent
+}
+
+case "$1" in
+  start) start ;;
+  stop) stop ;;
+  restart)
+    stop
+    #sleep 2
+    start ;;
+  reload) reload ;;
+  status) status ;;
+  *)
+    echo "Usage: $0 {start|stop|restart|reload|status}" >&2
+    exit 1 ;;
+esac
+
+exit 0
