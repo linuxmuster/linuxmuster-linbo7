@@ -50,6 +50,13 @@ fi
 # create grub netboot directory
 "$LINBOSHAREDIR/mkgrubnetdir.sh"
 
+# remove deprecated linbo-bittorrent
+if [ -e /etc/init.d/linbo-bittorrent ]; then
+  systemctl stop linbo-bittorrent
+  systemctl disable linbo-bittorrent
+  rm -f /etc/init.d/linbo-bittorrent
+fi
+
 # apply any systemd changes
 systemctl daemon-reload
 
