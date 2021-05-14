@@ -2,7 +2,7 @@
 #
 # starts screen process for each valid torrent in LINBODIR
 # thomas@linuxmuster.net
-# 20210513
+# 20210514
 #
 
 # read environment
@@ -12,6 +12,25 @@ THELPER=$LINBOSHAREDIR/linbo-torrenthelper.sh
 
 # change to LINBODIR
 cd $LINBODIR
+
+# torrentfile to process (optional, used on upload, default is all were processed)
+if [ -n "$2" ]; then
+  if [ ! -s "$2" -o "${2##*.}" != "torrent" ]; then
+    echo "$2 is not a valid torrent file!"
+    exit 1
+  fi
+  case "$1" in
+    start|stop|restart) ;;
+    *) echo "Option $1 not allowed with torrentfile." ; exit 1 ;;
+  esac
+  TORRENTS="$2"
+else
+  TORRENTS="$(ls -1 *.torrent)"
+fi
+if [ -z "$TORRENTS" ]; then
+  echo "There are no torrent files to process."
+  exit 0
+fi
 
 # check for torrent screen and return pid
 check_torrent(){
@@ -68,17 +87,18 @@ reload(){
 # starts torrent screen processes
 start(){
   local torrent
-  for torrent in *.torrent; do
+  local pid
+  for torrent in $TORRENTS; do
     # skip already running torrents
-    local pid="$(check_torrent "$torrent")"
+    pid="$(check_torrent "$torrent")"
     if [ -n "$pid" ]; then
       echo "$torrent is already running."
       continue
     else
       echo -n "Starting screen process for $torrent ... "
       screen -dmS "$torrent" "$THELPER" "$torrent"
-      pid="$(check_torrent "$torrent")"
       sleep 1
+      pid="$(check_torrent "$torrent")"
       if [ -n "$pid" ]; then
         echo "$pid ... Ok!"
       else
@@ -90,7 +110,7 @@ start(){
 
 stop(){
   local torrent
-  for torrent in *.torrent; do
+  for torrent in $TORRENTS; do
     kill_torrent "$torrent"
   done
 }
@@ -104,12 +124,12 @@ case "$1" in
   stop) stop ;;
   restart)
     stop
-    #sleep 2
     start ;;
   reload) reload ;;
   status) status ;;
   *)
-    echo "Usage: $0 {start|stop|restart|reload|status}" >&2
+    echo "Usage: $0 {start|stop|restart|reload|status}"
+    echo "Optionally a torrentfile can be given as second option (start|stop|restart only)."
     exit 1 ;;
 esac
 

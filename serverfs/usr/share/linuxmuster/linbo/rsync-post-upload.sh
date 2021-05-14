@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # thomas@linuxmuster.net
-# 20210310
+# 20210514
 #
 
 # read in linuxmuster specific environment
@@ -115,9 +115,8 @@ case "$FTYPE" in
 
  *.torrent)
   # restart torrent service if torrent file was uploaded.
-  echo "Torrent file ${FILE##*/} detected. Restarting bittorrent service." >&2
-  /etc/init.d/linbo-bittorrent restart >&2
-
+  echo "Torrent file ${FILE##*/} detected. Restarting linbo-torrent service." >&2
+  linbo-torrent restart ${FILE##*/} >&2
  ;;
 
  *.new)
