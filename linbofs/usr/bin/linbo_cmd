@@ -8,7 +8,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20210508
+# 20210515
 # GPL v3
 #
 
@@ -2713,7 +2713,7 @@ log_image_status(){
 mk_info(){
   local imagefile="$1"
   local rootdev="$2"
-  local partitionsize="$(get_partition_size "$rootdev")"
+  local partsize="$(get_partition_size "$rootdev")"
   local imagesize="$(get_filesize "$imagefile")"
   local timestamp="$(date +%Y%m%d%H%M)"
   log_image_status "$imagefile" "$timestamp"
