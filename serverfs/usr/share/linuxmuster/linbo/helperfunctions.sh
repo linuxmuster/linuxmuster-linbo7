@@ -140,33 +140,6 @@ do_rsync_hostname(){
   export RSYNC_HOST_NAME
 }
 
-# return active images
-active_images() {
- # check for workstation data
- [ -z "$WIMPORTDATA" ] && return 1
- [ -s "$WIMPORTDATA" ] || return 1
- # get active groups
- local actgroups="$(grep ^[-_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789] $WIMPORTDATA | awk -F\; '{ print $3 }' | sort -u)"
- [ -z "$actgroups" ] && return 0
- # compute images used by active groups
- local tmpfile=/var/tmp/active_images.$$
- rm -f $tmpfile
- touch $tmpfile || return 1
- local i=""
- for i in $actgroups; do
-  if [ -s "$LINBODIR/start.conf.$i" ]; then
-   grep -i ^baseimage $LINBODIR/start.conf.$i | awk -F\= '{ print $2 }' | awk '{ print $1 }' >> $tmpfile
-   grep -i ^image $LINBODIR/start.conf.$i | awk -F\= '{ print $2 }' | awk '{ print $1 }' >> $tmpfile
-  fi
- done
- local actimages="$(sort -u $tmpfile)"
- rm $tmpfile
- for i in $actimages; do
-  [ -s "$LINBODIR/$i" ] && echo "$i"
- done
- return 0
-}
-
 # check torrent against image
 check_torrent() {
  local image="$1"
@@ -185,9 +158,8 @@ create_torrent() {
  cd "$LINBODIR"
  [ -s "$image" ] || return "$RC"
  local serverip="$2"
- local port="$3"
  echo "Creating $image.torrent ..."
- btmakemetafile "$image" http://${serverip}:${port}/announce ; RC="$?"
+ ctorrent -t -u "http://${serverip}:6969/announce" -s "${image}.torrent" "$image" ; RC="$?"
  return "$RC"
 }
 
