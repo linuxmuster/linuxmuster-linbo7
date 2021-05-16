@@ -1,0 +1,108 @@
+#!/bin/bash
+#
+# convert cloop image to qcow2 format
+# thomas@linuxmuster.net
+# 20210516
+#
+
+# read environment
+. /usr/share/linuxmuster/defaults.sh || exit 1
+. $LINBOSHAREDIR/helperfunctions.sh || exit 1
+
+usage(){
+  echo
+  echo "Usage: `basename $0` <path_to_cloop_image> [output_directory]"
+  echo
+  echo "Note:"
+  echo " * If output directory is omitted the output file is created in the same directory as the input file."
+  echo " * Make sure there is enough space in the output directory."
+  echo
+  exit 1
+}
+
+# check inputfile
+CLOOPFILE="$1"
+if [ ! -s "$CLOOPFILE" -o "${CLOOPFILE##*.}" != "cloop" ]; then
+  [ -z "$CLOOPFILE" ] && CLOOPFILE="[none]"
+  echo "$CLOOPFILE is not a valid cloop image."
+  usage
+fi
+
+# check output directory
+if [ -n "$2"]; then
+  if [ -d "$2" ]; then
+    TARGETDIR="$2"
+  else
+    echo "Output directory $2 does not exist!"
+    usage
+  fi
+fi
+
+# output file
+QCOW2FILE="${CLOOPFILE/.cloop/.qcow2}"
+if [ -n "$TARGETDIR" ]; then
+  QCOW2FILE="$TARGETDIR/$(basename $QCOW2FILE)"
+else
+  TARGETDIR="$(dirname "$QCOW2FILE")"
+fi
+
+# get sizes from infofile
+infofile="${CLOOPFILE}.info"
+if [ -s "$infofile" ]; then
+  psize_kb="$(grep ^partitionsize "${CLOOPFILE}.info" | awk -F\= '{print $2}')"
+  psize="$(( $psize_kb / 1024 / 1024 ))"
+  isize_b="$(grep ^imagesize "${CLOOPFILE}.info" | awk -F\= '{print $2}')"
+  isize="$(( $isize_b / 1024 / 1024 / 1024 ))"
+  isize_kb="$(( $isize_b / 1024 ))"
+fi
+
+# get image size from file
+if [ -z "$isize" ]; then
+  isize_b="$(LANG=C stat "$CLOOPFILE" | grep -i size: | awk '{print $2}')"
+  isize="$(( $isize_b / 1024 / 1024 / 1024 ))"
+fi
+
+sizefree_kb="$(LANG=C df -P "$TARGETDIR" | tail -1 | awk '{print $4}')"
+if [ $isize_kb -gt $sizefree_kb ]; then
+  echo "Not enough free space in $TARGETDIR, needed ${isize_kb}K, available ${sizefree_kb}K!"
+  exit 1
+fi
+
+isize="${isize}G"
+psize="${psize}G"
+
+echo "### $(basename $0) ###"
+echo "Input file    : $CLOOPFILE"
+echo "Output file   : $QCOW2FILE"
+echo "Image size    : $isize"
+echo "Partition size: $psize"
+echo
+
+# convert raw image
+echo "Converting $(basename $CLOOPFILE) -> $(basename $QCOW2FILE) ..."
+if ! qemu-img convert -p -c -f cloop -O qcow2 "$CLOOPFILE" "$QCOW2FILE"; then
+  rm -f "$QCOW2FILE"
+  "Conversion to qcow2 image failed!"
+  exit 1
+fi
+
+# copy supplemental files
+imagebase="${QCOW2FILE/.qcow2/}"
+for i in info desc postsync reg macct; do
+  srcfile="${CLOOPFILE}.$i"
+  [ -e "$srcfile" ] || continue
+  case "$i" in
+    info|desc) cp "$srcfile" "${QCOW2FILE}.$i" ;;
+    *) cp "$srcfile" "${imagebase}.$i" ;;
+  esac
+done
+
+# change to targetdir
+if [ "$TARGETDIR" != "." ]; then
+  cd "$TARGETDIR"
+  QCOW2FILE="$(basename "$QCOW2FILE")"
+fi
+
+# create torrent file
+echo "Creating $QCOW2FILE.torrent ..."
+ctorrent -t -u http://"$serverip":6969/announce -s "$QCOW2FILE.torrent" "$QCOW2FILE"
