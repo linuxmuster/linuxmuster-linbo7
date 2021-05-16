@@ -2,7 +2,7 @@
 #
 # starts screen process for each valid torrent in LINBODIR
 # thomas@linuxmuster.net
-# 20210514
+# 20210516
 #
 
 # read environment
@@ -15,12 +15,26 @@ cd $LINBODIR
 
 # torrentfile to process (optional, used on upload, default is all were processed)
 if [ -n "$2" ]; then
-  if [ ! -s "$2" -o "${2##*.}" != "torrent" ]; then
-    echo "$2 is not a valid torrent file!"
+  if [ "$1" = "create" ]; then
+    if [ "${2##*.}" != "torrent" ]; then
+      echo "$2 is not a torrent file!"
+      exit 1
+    fi
+    if [ -e "$2" ]; then
+      echo "$2 exists already!"
+      exit 1
+    fi
+    image="${2/.torrent/}"
+    if [ ! -s "$image" ]; then
+      echo "Corresponding image file is missing!"
+      exit 1
+    fi
+  elif [ ! -s "$2" -o "${2##*.}" != "torrent" ]; then
+    echo "$2 is not a torrent file!"
     exit 1
   fi
   case "$1" in
-    start|stop|restart) ;;
+    start|stop|restart|create) ;;
     *) echo "Option $1 not allowed with torrentfile." ; exit 1 ;;
   esac
   TORRENTS="$2"
@@ -84,6 +98,30 @@ reload(){
   done
 }
 
+# creates torrent files
+create(){
+  local torrent
+  local pid
+  local image
+  for torrent in $TORRENTS; do
+    # skip already running torrents
+    pid="$(check_torrent "$torrent")"
+    if [ -n "$pid" ]; then
+      echo "$torrent is already running."
+      continue
+    else
+      echo "Creating $torrent ... "
+      image="${torrent/.torrent/}"
+      if create_torrent "$image" ; then
+        echo "Ok!"
+        linbo-torrent restart "$torrent"
+      else
+        echo "Failed!"
+      fi
+    fi
+  done
+}
+
 # starts torrent screen processes
 start(){
   local torrent
@@ -127,9 +165,10 @@ case "$1" in
     start ;;
   reload) reload ;;
   status) status ;;
+  create) create ;;
   *)
-    echo "Usage: $0 {start|stop|restart|reload|status}"
-    echo "Optionally a torrentfile can be given as second option (start|stop|restart only)."
+    echo "Usage: $0 {start|stop|restart|reload|status|create}"
+    echo "Optionally a torrentfile can be given as second option (start|stop|restart|create only)."
     exit 1 ;;
 esac
 

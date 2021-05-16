@@ -2,7 +2,7 @@
 # helperfunctions for linbo scripts
 #
 # thomas@linuxmuster.net
-# 20210423
+# 20210516
 #
 
 # converting string to lower chars
@@ -158,7 +158,6 @@ create_torrent() {
  cd "$LINBODIR"
  [ -s "$image" ] || return "$RC"
  local serverip="$2"
- echo "Creating $image.torrent ..."
  ctorrent -t -u "http://${serverip}:6969/announce" -s "${image}.torrent" "$image" ; RC="$?"
  return "$RC"
 }
