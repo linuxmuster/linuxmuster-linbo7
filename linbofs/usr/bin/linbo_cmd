@@ -1532,7 +1532,7 @@ start(){
   # sets machine password on server
   invoke_macct
   # kill torrents if any
-  killalltorrents
+  #killalltorrents
   sync
   umount /mnt 2>> /tmp/linbo.log
   sendlog
