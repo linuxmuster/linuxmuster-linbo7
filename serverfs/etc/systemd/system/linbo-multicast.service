@@ -1,0 +1,12 @@
+[Unit]
+Description=Linbo multicast service
+After=network.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/sbin/linbo-multicast start
+ExecStop=/usr/sbin/linbo-multicast stop
+
+[Install]
+WantedBy=multi-user.target

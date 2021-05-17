@@ -2,7 +2,7 @@
 #
 # configure script for linuxmuster-linbo7 package
 # thomas@linuxmuster.net
-# 20210514
+# 20210517
 #
 
 # read constants & setup values
@@ -57,6 +57,13 @@ if [ -e /etc/init.d/linbo-bittorrent ]; then
   rm -f /etc/init.d/linbo-bittorrent
 fi
 
+# remove deprecated linbo-multicast
+if [ -e /etc/init.d/linbo-multicast ]; then
+  systemctl stop linbo-multicast
+  systemctl disable linbo-multicast
+  rm -f /etc/init.d/linbo-multicast
+fi
+
 # apply any systemd changes
 systemctl daemon-reload
 
@@ -81,6 +88,22 @@ done
 if ! systemctl status linbo-torrent &> /dev/null; then
   systemctl enable linbo-torrent
   systemctl start linbo-torrent
+fi
+
+# linbo-multicast service
+conf="/etc/default/linbo-multicast"
+if [ -e "$conf" ]; then
+  source "$conf"
+  if [ -n "$START_MULTICAST" ]; then
+    START_MULTICAST="$(echo "$START_MULTICAST" | tr A-Z a-z)"
+    sed -i 's|^START_MULTICAST|#START_MULTICAST|' "$conf"
+    if [ "$START_MULTICAST" = "yes" ]; then
+      if ! systemctl status linbo-multicast &> /dev/null; then
+        systemctl enable linbo-multicast
+        systemctl start linbo-multicast
+      fi
+    fi
+  fi
 fi
 
 update-linbofs || exit 1
