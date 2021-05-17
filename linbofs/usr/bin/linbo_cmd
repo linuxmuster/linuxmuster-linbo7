@@ -434,32 +434,31 @@ print_realdev(){
 
 # label_allpartitions
 label_allpartitions(){
-  echo "Partitionslabel schreiben:" | tee -a /tmp/linbo.log
-  if [ ! -e /dev/disk/by-uuid ]; then
-    echo "Keine Partitionen gefunden!" | tee -a /tmp/linbo.log
-    sendlog
-    return 1
-  fi
+  echo "Writing partition labels:" | tee -a /tmp/linbo.log
   local dev=""
   local line=""
   local label=""
   local RC=0
-  ls -l /dev/disk/by-uuid/ | grep ^l | awk -F\/ '{ print $3 }' | sort -u | while read line; do
-    dev="/dev/$line"
+  grep -i ^dev /start.conf | awk -F\= '{print $2}' | awk '{print $1}' | sort -u | while read dev; do
     label="$(partlabel_startconf "$dev")"
+    if [ ! -b "$dev" ]; then
+      echo "$dev is not a block device!"
+      RC=1
+      continue
+    fi
     if [ -n "$label" ]; then
       msg="Partition $dev --> Label $label ... "
       if mk_label "$dev" "$(fstype_startconf "$dev")" "$label" 2>&1 | tee -a /tmp/linbo.log; then
         echo "$msg OK!" | tee -a /tmp/linbo.log
       else
-        echo "$msg FEHLER! Gemountet?" | tee -a /tmp/linbo.log
+        echo "$msg Failed!" | tee -a /tmp/linbo.log
         RC=1
       fi
     fi
   done
   # issue 85
   [ -n "$UDEVADM" ] && "$UDEVADM" trigger
-  [ -e /dev/disk/by-label ] || echo "Keine Partitions-Label gefunden!" | tee -a /tmp/linbo.log
+  [ -e /dev/disk/by-label ] || echo "No partition labels found!" | tee -a /tmp/linbo.log
   sendlog
   return "$RC"
 }
@@ -824,7 +823,7 @@ mk_parted(){
       parted -s "$disk" set $n $partflag on || RC="1"
     fi
 
-    # format partition if NOFORMAT is not set
+    # format partition
     if [ -z "$NOFORMAT" -a -n "$fstype" ]; then
       format "$dev" "$fstype" "$label" || RC="1"
     fi
@@ -839,10 +838,8 @@ mk_parted(){
   return "$RC"
 }
 
-# Changed: All partitions start on cylinder boundaries.
-# partition dev1 size1 id1 bootable1 filesystem dev2 ...
-# When "$NOFORMAT" is set, format is skipped, otherwise all
-# partitions with known fstypes are formatted.
+# partitions defined in start.conf
+# if NOFORMAT is set, partitions are not formatted
 partition(){
   [ -s /start.conf ] || return 1
   killalltorrents
@@ -874,7 +871,12 @@ partition(){
   grep -v '^$\|^\s*\#' /start.conf | awk -F\# '{ print $1 }' | sed -e 's| ||g' -e 's|[ \t]||' | tr A-Z a-z | while read line; do
     if echo "$line" | grep -q ^'\['; then
       if [ -n "$dev" ]; then
-        [ -z "$label" ] && label="-"
+        if [ -z "$label" ]; then
+          label="-"
+        else
+          # to ensure label is not lowered
+          label="$(partlabel_startconf $dev)"
+        fi
         [ -z "$fstype" ] && fstype="-"
         [ -z "$size" ] && size="-"
         [ -z "$bootable" ] && bootable="-"
@@ -3395,8 +3397,8 @@ case "$cmd" in
   create) create "$@" ;;
   start) start "$@" ;;
   label) label_allpartitions ;;
-  partition_noformat) export NOFORMAT=1; partition "$@" ;;
-  partition) partition "$@" ;;
+  partition_noformat) export NOFORMAT=1; partition ;;
+  partition) partition ;;
   preregister) preregister "$@" ;;
   download) download "$@" ;;
   initcache) initcache "$@" ;;

@@ -348,7 +348,7 @@ while [ "$#" -gt "0" ]; do
     partition)
       get_partitions
       if [ -n "$partitions" ]; then
-        if ! linbo_cmd partition_noformat $partitions; then
+        if ! linbo_cmd partition_noformat; then
           echo "Partitioning failed!"
           exit 1
         fi
@@ -359,7 +359,7 @@ while [ "$#" -gt "0" ]; do
       get_partitions
       if [ -n "$partitions" ]; then
         if [ -z "$param" ]; then
-          if ! linbo_cmd partition $partitions; then
+          if ! linbo_cmd partition; then
             echo "Partitioning failed!"
             exit 1
           fi
