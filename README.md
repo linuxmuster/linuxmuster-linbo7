@@ -15,11 +15,25 @@
 * No differential imaging yet.
 * Packages were published in the [lmn7-experimental repository](http://archive.linuxmuster.net/lmn7-experimental/).
 
-## Planned features:
-* qcow2 image format, good bye cloop.
+## Migration
+* Add following entry to `/etc/apt/sources.list.d/lmn7.list`:
+  `deb http://archive.linuxmuster.net/ lmn7-experimental/`
+  and perform a dist-upgrade.
+* Your old cloop images are still available for client restauration.
+* Convert your cloop images to qcow2 format with `linbo-cloop2qcow2`.
+* Change the image name in the according start.conf.
+* Restart the image deployment services with `linbo-torrent|linbo-multicast restart`.
+* See the status of the image deployment services with `systemctl status linbo-torrent|linbo-multicast`.
+* Create and deploy images as usual.
+
+## Features
+* Kernel 5.10.x.
+* qcow2 image format.
+* More performant image deployment based on ctorrent and opentracker.
+
+## In planning:
 * place images in subdirs of /srv/linbo.
 * start.conf in yaml format.
-* replace bittorrent with opentracker and ctorrent.
 * step by step changeover of the scripting to python.
 
 ## Source tree structure
