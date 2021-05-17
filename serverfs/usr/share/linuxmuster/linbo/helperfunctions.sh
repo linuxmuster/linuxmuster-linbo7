@@ -2,7 +2,7 @@
 # helperfunctions for linbo scripts
 #
 # thomas@linuxmuster.net
-# 20210516
+# 20210517
 #
 
 # converting string to lower chars
@@ -138,28 +138,6 @@ do_rsync_hostname(){
   validdomain "$RSYNC_HOST_NAME" || RSYNC_HOST_NAME="${RSYNC_HOST_NAME}.$(hostname -d)"
   export compname
   export RSYNC_HOST_NAME
-}
-
-# check torrent against image
-check_torrent() {
- local image="$1"
- local torrent="$image.torrent"
- cd "$LINBODIR"
- [ -s "$image" ] || return 1
- [ -s "$torrent" ] || return 1
- ctorrent -c "$torrent" || return 1
- return 0
-}
-
-# create torrent file for image
-create_torrent() {
- local image="$1"
- local RC=1
- cd "$LINBODIR"
- [ -s "$image" ] || return "$RC"
- local serverip="$2"
- ctorrent -t -u "http://${serverip}:6969/announce" -s "${image}.torrent" "$image" ; RC="$?"
- return "$RC"
 }
 
 # test if string is in string
