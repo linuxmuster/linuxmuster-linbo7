@@ -38,7 +38,7 @@
 ## Features
 * Kernel 5.10.x.
 * qcow2 image format.
-* More performant image deployment based on ctorrent and opentracker.
+* More performant image deployment based on ctorrent and [opentracker](https://erdgeist.org/arts/software/opentracker/).
 
 ## In planning:
 * place images in subdirs of /srv/linbo.
