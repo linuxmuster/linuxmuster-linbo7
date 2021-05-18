@@ -18,13 +18,22 @@
 ## Migration
 * Add following entry to `/etc/apt/sources.list.d/lmn7.list`:
   `deb http://archive.linuxmuster.net/ lmn7-experimental/`
-  and perform a dist-upgrade.
-* Your old cloop images are still available for client restauration.
+  and perform a dist-upgrade. Note: This will deinstall the deprecated linuxmuster-linbo-common7 package.
 * Convert your cloop images to qcow2 format with `linbo-cloop2qcow2`.
-* Change the image name in the according start.conf.
+* Change the image name in the start.conf.
 * Restart the image deployment services with `linbo-torrent|linbo-multicast restart`.
 * See the status of the image deployment services with `systemctl status linbo-torrent|linbo-multicast`.
 * Create and deploy images as usual.
+* Note: Your current cloop images will be still available for client restauration after migration.
+* Explore the new linbo-torrent tool:  
+  ```
+  Usage: /usr/sbin/linbo-torrent <start|stop|restart|reload|status|create|check> [torrent_file]
+
+  Note:
+   * The commands start, stop and restart may have optionally a torrent file
+     as parameter. So the command is only processed to this certain file.
+   * A torrent file parameter is mandatory with the commands create and check.
+  ```  
 
 ## Features
 * Kernel 5.10.x.
