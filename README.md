@@ -54,8 +54,8 @@
   - patches: source patches, which are to be applied (eg. cloop).
   - run.d: the build scripts for the package components.
 * debian: debian packaging stuff
-* linbofs: files, which are needed to be installed to the initramfs file system.
-* serverfs: files, which are needed to be installed to the server root file system.
+* linbofs: files, which are installed to the initramfs file system.
+* serverfs: files, which are installed to the server root file system.
 
 ## Build instructions:
 * Install 64bit Ubuntu 18.04
