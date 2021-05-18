@@ -4,8 +4,8 @@
  is the free and opensource imaging solution for linuxmuster.net 7. It handles Windows 10 and Linux 64bit operating systems. Via TFTP and Grub's PXE implementation it boots a small linux system (linbofs) with a [gui](https://github.com/linuxmuster/linuxmuster-linbo-gui7), which can manage all the imaging tasks on the client. Console tools are also available to manage clients and imaging remotely via the server.
 
 ## Important notices:
-* The code in this repo is currently experimental.
-* There is only a linuxmuster-linbo7 package. The old common package is deprecated and will be removed by upgrade.
+* Currently the code in this repo is not for production use.
+* There is only a linuxmuster-linbo7 package, the linuxmuster-linbo-common7 package is deprecated and will be removed on dist-upgrade.
 * In spite of former [linuxmuster-linbo](https://github.com/linuxmuster/linuxmuster-linbo) images in cloop format where only supported for restore.
 * For image creation only qcow2 format is supported. You have to change the baseimage name in the start.conf accordingly (e.g. image.qcow2).
 * Supplemental macct and reg image files were now named without the image format part (e.g. image.macct and image.reg, former: image.cloop.macct etc.).
@@ -18,7 +18,7 @@
 ## Migration
 * Add following entry to `/etc/apt/sources.list.d/lmn7.list`:
   `deb http://archive.linuxmuster.net/ lmn7-experimental/`
-  and perform a dist-upgrade. Note: This will deinstall the deprecated linuxmuster-linbo-common7 package.
+  and perform a dist-upgrade.
 * Convert your cloop images to qcow2 format with `linbo-cloop2qcow2`.
 * Change the image name in the start.conf.
 * Restart the image deployment services with `linbo-torrent|linbo-multicast restart`.
