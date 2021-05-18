@@ -44,6 +44,7 @@
 * place images in subdirs of /srv/linbo.
 * start.conf in yaml format.
 * step by step changeover of the scripting to python.
+* differential imaging.
 
 ## Source tree structure
 * build: all files, which are used to build the package.
