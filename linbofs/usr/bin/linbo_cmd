@@ -2016,7 +2016,7 @@ do_opsi(){
     image="$1"
   fi
   # request opsikey
-  localmode || rsync "$serverip"::linbo/"$ip.opsikey" /tmp/opsikey
+  localmode || rsync "$serverip"::linbo/"$ip.opsikey" /tmp/opsikey &> /dev/null
   if [ -s /tmp/opsikey ]; then
     echo " * downloaded hostkey."
     clientkey="$(cat /tmp/opsikey)"
@@ -2024,7 +2024,7 @@ do_opsi(){
     remote_cache "$(cachedev)" || cp /tmp/opsikey /cache
   else
     # load opsi from cache
-    [ -s /cache/opsikey ] && key="$(cat /cache/opsikey)"
+    [ -s /cache/opsikey ] && clientkey="$(cat /cache/opsikey)"
   fi
   if [ -n "$clientkey" ]; then
     # patch opsi host key & id
@@ -2073,7 +2073,7 @@ do_opsi(){
   fi
   rm -f /tmp/opsikey
   # request opsi host ini update
-  localmode || rsync "$serverip"::linbo/"$image.opsi" /cache &> /dev/null || true
+  localmode || rsync "$serverip"::linbo/"$image.opsi" /cache &> /dev/null
   return "$RC"
 }
 
