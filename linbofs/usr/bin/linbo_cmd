@@ -2,17 +2,14 @@
 # linbo_cmd - Backend worker script for LINBO
 # (C) Klaus Knopper 2007-2010
 #
-# paedML/openML modifications by Thomas Schmitt
-#
 # ssd/4k/8k support - jonny@bzt.de 30.09.2012 alpha!
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20210515
+# 20210519
 # GPL v3
 #
 
-CLOOP_BLOCKSIZE="131072"
 RSYNC_PERMISSIONS="--chmod=ug=rw,o=r"
 UDEVADM="$(which udevadm)"
 
@@ -139,7 +136,7 @@ bailout(){
   umount /mnt >/dev/null 2>&1 || umount -l /mnt >/dev/null 2>&1
   sendlog
   umount /cache >/dev/null 2>&1 || umount -l /cache >/dev/null 2>&1
-  umount /qcow2 >/dev/null 2>&1 || umount -l /qcow2 >/dev/null 2>&1
+  umount /image >/dev/null 2>&1 || umount -l /image >/dev/null 2>&1
   rm -f "$TMP"
   echo "Aborted." >&2
   echo "" >&2
@@ -1404,12 +1401,12 @@ invoke_macct(){
   local serverip="$(grep -m1 ^linbo_server= /tmp/dhcp.log | awk -F\' '{ print $2 }')"
   [ -z "$serverip" ] && return
   [ -s /mnt/.linbo ] || return
-  local image="$(cat /mnt/.linbo)"
+  local imagename="$(cat /mnt/.linbo)"
   local macct
-  if grep -i ^baseimage /start.conf | grep -q "$image.cloop"; then
-    macct="$image.cloop.macct"
+  if grep -i ^baseimage /start.conf | grep -q "$imagename.cloop"; then
+    macct="$imagename.cloop.macct"
   else
-    macct="$image.macct"
+    macct="$imagename.macct"
   fi
   echo "Initiating machine password update on server $serverip ..."
   download "$serverip" "$macct"
@@ -1796,29 +1793,9 @@ update_status(){
 }
 
 
-# cp_cloop imagefile targetdev
-cp_cloop(){
-  echo "## $(date) : Starting full restore of $1 to $2." | tee -a /tmp/image.log
-  echo -n "cp_cloop " ;  printargs "$@" | tee -a /tmp/image.log
-  local RC=1
-  local imagefile="$1"
-  local targetdev="$2"
-  if [ ! -s "$imagefile" ]; then
-    echo "Image $imagefile is not valid"
-    return "$RC"
-  fi
-  # Forking an additional dd makes use of a second CPU and speeds up writing
-  ( interruptible extract_compressed_fs /cache/"$imagefile" - | dd of="$targetdev" bs=1M ) 2>> /tmp/linbo.log | tee -a /tmp/image.log
-  RC="$?"
-  [ "$RC" = "0" ] && update_status "$targetdev" "$imagefile"
-  echo "## $(date) : Beende Komplettrestore von $imagefile." | tee -a /tmp/image.log
-  return "$RC"
-}
-
-
 # differential/Synced
-# sync_qcow2 imagefile targetdev
-sync_qcow2(){
+# sync_image imagefile targetdev
+sync_image(){
   echo "## $(date) : Starting sync of $1 to $2." | tee -a /tmp/image.log
   local imagefile="$1"
   local targetdev="$2"
@@ -1831,15 +1808,15 @@ sync_qcow2(){
   [ "$(fstype "$targetdev")" = "vfat" ] && ROPTS="-rt"
   # mount qcow2 image as network block device
   set -o pipefail
-  qemu-nbd --connect /dev/nbd0 "$imagefile" | tee -a /tmp/image.log ; RC="$?"
+  qemu-nbd -r --connect /dev/nbd0 "$imagefile" | tee -a /tmp/image.log ; RC="$?"
   set +o pipefail
   if [ "$RC" != "0" ]; then
     echo "Connection to $imagefile failed!" | tee -a /tmp/image.log
     qemu-nbd --disconnect /dev/nbd0 | tee -a /tmp/image.log
     return "$RC"
   fi
-  mkdir -p /qcow2
-  if ! mountpart /dev/nbd0 /qcow2; then
+  mkdir -p /image
+  if ! mountpart /dev/nbd0 /image; then
     echo "Mounting $imagefile failed!" | tee -a /tmp/image.log
     qemu-nbd --disconnect /dev/nbd0 | tee -a /tmp/image.log
     return "$RC"
@@ -1847,9 +1824,9 @@ sync_qcow2(){
   # sync image
   echo "Syncing ... please wait ..."
   set -o pipefail
-  interruptible rsync "$ROPTS" --exclude="/.linbo" --exclude-from="/etc/rsync.exclude" --delete --delete-excluded --log-file=/tmp/image.log --log-file-format="" /qcow2/ /mnt 2>&1 | tee -a /tmp/image.log ; RC="$?"
+  interruptible rsync "$ROPTS" --exclude="/.linbo" --exclude-from="/etc/rsync.exclude" --delete --delete-excluded --log-file=/tmp/image.log --log-file-format="" /image/ /mnt 2>&1 | tee -a /tmp/image.log ; RC="$?"
   set +o pipefail
-  umount /qcow2
+  umount /image
   if [ "$RC" != "0" ]; then
     echo "Image sync of $imagefile to $targetdev failed!" | tee -a /tmp/image.log
   fi
@@ -1863,11 +1840,12 @@ sync_qcow2(){
 
 
 # full copy
-# cp_qcow2 imagefile targetdev
-cp_qcow2(){
+# cp_image imagefile targetdev
+cp_image(){
   echo "## $(date) : Starting full restore of $2 using $1." | tee -a /tmp/image.log
   local RC=1
   local imagefile="$1"
+  local imagetype="${imagefile##*.}"
   local targetdev="$2"
   if [ ! -s "$imagefile" ]; then
     echo "Error with $imagefile"
@@ -1878,7 +1856,7 @@ cp_qcow2(){
     return "$RC"
   fi
   # check sizes
-  qemu-nbd --connect /dev/nbd0 "$imagefile" || return "$RC"
+  qemu-nbd -r --connect /dev/nbd0 "$imagefile" || return "$RC"
   local s1="$(get_partition_size /dev/nbd0)"
   local s2="$(get_partition_size $targetdev)"
   if [ "$s1" -gt "$s2" ] 2>/dev/null; then
@@ -1889,7 +1867,7 @@ cp_qcow2(){
   # restore
   qemu-nbd --disconnect /dev/nbd0 | tee -a /tmp/image.log
   set -o pipefail
-  interruptible qemu-img convert -p -f qcow2 -O raw "$imagefile" "$targetdev" | tee -a /tmp/image.log
+  interruptible qemu-img convert -p -f "$imagetype" -O raw "$imagefile" "$targetdev" | tee -a /tmp/image.log
   RC="$?"
   set +o pipefail
   if [ "$RC" != "0" ]; then
@@ -1940,18 +1918,11 @@ restore(){
   else
     echo "File sync ..."
   fi
-  case "$imagefile" in
-    *.[Cc][Ll][Oo]*)
-      cp_cloop "$imagefile" "$targetdev" ; RC="$?"
-      ;;
-    *.[Qq][Cc][Oo]*)
-      if [ "$force" = "force" ]; then
-        cp_qcow2 "$imagefile" "$targetdev" ; RC="$?"
-      else
-        sync_qcow2 "$imagefile" "$targetdev" ; RC="$?"
-      fi
-      ;;
-  esac
+  if [ "$force" = "force" ]; then
+    cp_image "$imagefile" "$targetdev" ; RC="$?"
+  else
+    sync_image "$imagefile" "$targetdev" ; RC="$?"
+  fi
   if [ "$RC" = "0" ]; then
     echo "Done."
   else
@@ -2109,9 +2080,9 @@ do_opsi(){
 # restore windows activation tokens
 restore_winact(){
   # get image name
-  [ -s  /mnt/.linbo ] && local image="$(cat /mnt/.linbo)"
+  [ -s  /mnt/.linbo ] && local imagename="$(cat /mnt/.linbo)"
   # if an image is not yet created do nothing
-  if [ -z "$image" ]; then
+  if [ -z "$imagename" ]; then
     echo "Ueberspringe Reaktivierung, System ist unsynchronisiert."
     return
   fi
@@ -2122,7 +2093,7 @@ restore_winact(){
   local mac="$(mac | tr a-z A-Z)"
   # without linbo server
   if localmode || [ -z "$mac" ] || [ "$mac" = "OFFLINE" ]; then
-    tarchive="$(cd /cache && ls *.$image.winact.tar.gz 2> /dev/null)"
+    tarchive="$(cd /cache && ls *.$imagename.winact.tar.gz 2> /dev/null)"
     # get mac address from archive name
     for i in $tarchive; do
       mac="$(echo $i | awk -F\. '{ print $1 }')"
@@ -2132,7 +2103,7 @@ restore_winact(){
       fi
     done
   else # with linbo server
-    archive="$mac.$image.winact.tar.gz"
+    archive="$mac.$imagename.winact.tar.gz"
     # get server ip address
     local serverip="$(grep ^linbo_server /tmp/dhcp.log | tail -1 | awk -F\' '{ print $2 }')"
     echo -n "Fordere Reaktivierungs-Daten von $serverip an ... "
@@ -2149,7 +2120,7 @@ restore_winact(){
     rsync "$serverip"::linbo/winact/"$keyfile" /cache &> /dev/null
     [ -s "/cache/$keyfile" ] && source "/cache/$keyfile"
     # create windows key batchfile
-    local cache_batchfile="/cache/$image.winact.cmd"
+    local cache_batchfile="/cache/$imagename.winact.cmd"
     # remove old batchfile
     rm -f "$cache_batchfile"
     # create new one if keys are provided
@@ -2235,8 +2206,14 @@ syncl(){
   # start syncing image
   restore "$image" "$rootdev" $force ; RC="$?"
   local imagename="${image%.*}"
-  patchfile="$imagename.reg"
-  postsync="$imagename.postsync"
+  local imagetype="${image##*.}"
+  if [ "$imagetype" = "cloop" ]; then
+    patchfile="$image.reg"
+    postsync="$image.postsync"
+  else
+    patchfile="$imagename.reg"
+    postsync="$imagename.postsync"
+  fi
 
   # mount os partition
   if [ "$RC" = "0" ]; then

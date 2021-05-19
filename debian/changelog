@@ -14,7 +14,7 @@ linuxmuster-linbo7 (4.0.0-0beta1) lmn7-experimental; urgency=low
   * added linbo-multicast as a systemd service.
   * kernel update to 5.10.37.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 17 May 2021 18:32:15 +0000
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 19 May 2021 17:22:55 +0000
 
 linuxmuster-linbo7 (4.0.0-0alpha1) lmn7-experimental; urgency=low
 
