@@ -1,3 +1,9 @@
+linuxmuster-linbo7 (4.0.0-0beta2) lmn7-experimental; urgency=low
+
+  * Fix #5: Syntax error in linbo-cloop2qcow2.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 09 Jun 2021 14:39:53 +0000
+
 linuxmuster-linbo7 (4.0.0-0beta1) lmn7-experimental; urgency=low
 
   * Fix issues with capital letters in hostname and log/status files (https://github.com/linuxmuster/linuxmuster-linbo/pull/183).
