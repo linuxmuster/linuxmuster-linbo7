@@ -1,8 +1,14 @@
+linuxmuster-linbo7 (4.0.0-0beta3) lmn7-experimental; urgency=low
+
+  * Fix #6: Add Intel VMD Module to linbo.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 10 Jun 2021 12:29:49 +0000
+
 linuxmuster-linbo7 (4.0.0-0beta2) lmn7-experimental; urgency=low
 
   * Fix #5: Syntax error in linbo-cloop2qcow2.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 09 Jun 2021 14:39:53 +0000
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 10 Jun 2021 12:28:15 +0000
 
 linuxmuster-linbo7 (4.0.0-0beta1) lmn7-experimental; urgency=low
 
