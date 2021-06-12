@@ -115,6 +115,8 @@ create(){
   local tdir="$(dirname "$TORRENTS")"
   local torrent="${image}.torrent"
   local pid
+  # stop torrent service
+  linbo-torrent stop "$torrent"
   # skip already running torrents
   pid="$(torrent_pid "$torrent")"
   if [ -n "$pid" ]; then
