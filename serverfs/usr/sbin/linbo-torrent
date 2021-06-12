@@ -2,72 +2,46 @@
 #
 # starts screen process for each valid torrent in LINBODIR
 # thomas@linuxmuster.net
-# 20210517
+# 20210612
 #
 
 # read environment
 . /usr/share/linuxmuster/defaults.sh || exit 1
 THELPER=$LINBOSHAREDIR/linbo-torrenthelper.sh
 . $LINBOSHAREDIR/helperfunctions.sh || exit 1
-
-# change to LINBODIR
-cd $LINBODIR
+LINBOIMGDIR="$LINBODIR/images"
+mkdir -p "$LINBOIMGDIR"
 
 # help message
 usage(){
   echo
-  echo "Usage: $0 <start|stop|restart|reload|status|create|check> [torrent_file]"
+  echo "Usage: $0 <start|stop|restart|reload|status|create|check> [torrent_filename|image_filename]"
   echo
   echo "Note:"
-  echo " * The commands start, stop and restart may have optionally a torrent file"
+  echo " * The commands start, stop and restart may have optionally a torrent filename"
   echo "   as parameter. So the command is only processed to this certain file."
-  echo " * A torrent file parameter is mandatory with the commands create and check."
+  echo "   Without an explicit torrent filename the commands were processed to all"
+  echo "   torrent files found below $LINBODIR."
+  echo " * A torrent filename parameter is mandatory with the command check."
+  echo " * An image filename parameter is mandatory with the command create."
   echo
   exit 1
 }
 
-# check if torrent file is given
-if [ -n "$2" ]; then
-  # torrent file must have the correct extension
-  if [ "${2##*.}" != "torrent" ]; then
-    echo "$2 is not a torrent file!"
-    usage
-  fi
-  # corresponding image file must exist
-  image="${2/.torrent/}"
-  if [ ! -s "$image" ]; then
-    echo "Image file is missing!"
-    usage
-  fi
-  case "$1" in
-    create)
-      # in case of create the torrent file and may not already exist
-      if [ -e "$2" ]; then
-        echo "$2 exists already!"
-        usage
-      fi
-      ;;
-    start|stop|restart|check)
-      # torrent file must exist
-      if [ ! -s "$2" ]; then
-        echo "$2 does not exist!"
-        usage
-      fi
-      ;;
-    reload|status)
-      echo "Command $1 with torrent file is not supported!"
-      usage
-      ;;
-    *) ;;
-  esac
-  TORRENTS="$2"
+
+# check second parameter
+if [ -n "$2" ] ; then
+  filename="$(basename "$2")"
+  extension="${filename##*.}"
+fi
+if [ "$1" = "create" ]; then
+  [ "$extension" != "qcow2" -a "$extension" != "cloop" ] && usage
 else
-  TORRENTS="$(ls -1 *.torrent)"
+  [ -n "$2" -a "$extension" != "torrent" ] && usage
 fi
-if [ -z "$TORRENTS" ]; then
-  echo "There are no torrent files to process."
-  exit 0
-fi
+
+
+# start of functions
 
 # check for torrent screen and return pid
 torrent_pid(){
@@ -123,7 +97,9 @@ reload(){
 
 # check torrent
 check(){
-  local torrent="$TORRENTS"
+  local torrent="$(basename "$TORRENTS")"
+  local tdir="$(dirname "$TORRENTS")"
+  cd "$tdir"
   echo "Checking $torrent ..."
   if ctorrent -c "$torrent"; then
     echo "Ok!"
@@ -135,9 +111,10 @@ check(){
 
 # creates torrent files
 create(){
-  local torrent="$TORRENTS"
+  local image="$(basename "$TORRENTS")"
+  local tdir="$(dirname "$TORRENTS")"
+  local torrent="${image}.torrent"
   local pid
-  local image
   # skip already running torrents
   pid="$(torrent_pid "$torrent")"
   if [ -n "$pid" ]; then
@@ -145,7 +122,8 @@ create(){
     return 1
   else
     echo "Creating $torrent ..."
-    image="${torrent/.torrent/}"
+    cd "$tdir"
+    rm -f "$torrent"
     if ctorrent -t -u "http://$serverip:6969/announce" -s "$torrent" "$image" ; then
       echo "Ok!"
       linbo-torrent start "$torrent"
@@ -158,9 +136,20 @@ create(){
 
 # starts torrent screen processes
 start(){
+  local item
   local torrent
+  local image
+  local tdir
   local pid
-  for torrent in $TORRENTS; do
+  for item in $TORRENTS; do
+    torrent="$(basename "$item")"
+    image="${torrent/.torrent/}"
+    tdir="$(dirname "$item")"
+    cd "$tdir"
+    if [ ! -s "$image" ]; then
+      echo "Image $image does not exist! Skipping this torrent."
+      continue
+    fi
     # skip already running torrents
     pid="$(torrent_pid "$torrent")"
     if [ -n "$pid" ]; then
@@ -181,19 +170,47 @@ start(){
 }
 
 stop(){
-  local torrent
-  for torrent in $TORRENTS; do
+  local item
+  local torrent="$1"
+  if [ -n "$torrent" ]; then
     kill_torrent "$torrent"
-  done
+  else
+    linbo-torrent status | awk '{print $1}' | while read item; do
+      kill_torrent "${item#[0-9]*.}"
+    done
+  fi
 }
 
 status(){
   screen -ls | grep -w torrent
 }
 
+find_torrents(){
+  local search="$1"
+  [ -z "$search" ] && search="*.torrent"
+  local TORRENTS="$(find "$LINBODIR" -maxdepth 1 -name "$search")"
+  if [ -n "$TORRENTS" ]; then
+    TORRENTS="$TORRENTS $(find "$LINBOIMGDIR" -maxdepth 2 -name "$search")"
+  else
+    TORRENTS="$(find "$LINBOIMGDIR" -maxdepth 2 -name "$search")"
+  fi
+  echo $TORRENTS
+}
+
+# end of functions
+
+# not necessesary to find torrents with stop
+if [ "$1" != "stop" ]; then
+  TORRENTS="$(find_torrents "$2")"
+  if [ -z "$TORRENTS" ]; then
+    echo "There are no torrent files to process."
+    exit 0
+  fi
+fi
+
 case "$1" in
   start) start ;;
-  stop) stop ;;
+  stop) stop "$2" ;;
   restart) stop ; start ;;
   reload) reload ;;
   status) status ;;
@@ -203,3 +220,44 @@ case "$1" in
 esac
 
 exit 0
+
+
+
+# check if torrent file is given
+if [ -n "$2" ]; then
+  # torrent file must have the correct extension
+  if [ "${2##*.}" != "torrent" ]; then
+    echo "$2 is not a torrent file!"
+    usage
+  fi
+  # corresponding image file must exist
+  image="${2/.torrent/}"
+  if [ ! -s "$image" ]; then
+    echo "Image file is missing!"
+    usage
+  fi
+  case "$1" in
+    create)
+      # in case of create the torrent file and may not already exist
+      if [ -e "$2" ]; then
+        echo "$2 exists already!"
+        usage
+      fi
+      ;;
+    start|stop|restart|check)
+      # torrent file must exist
+      if [ ! -s "$2" ]; then
+        echo "$2 does not exist!"
+        usage
+      fi
+      ;;
+    reload|status)
+      echo "Command $1 with torrent file is not supported!"
+      usage
+      ;;
+    *) ;;
+  esac
+  TORRENTS="$2"
+else
+  TORRENTS="$(ls -1 *.torrent)"
+fi
