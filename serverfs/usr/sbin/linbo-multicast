@@ -1,7 +1,7 @@
 #! /bin/bash
 #
 # thomas@linuxmuster.net
-# 20210517
+# 20210613
 #
 
 DESC="Multicast session for"
@@ -12,6 +12,9 @@ INTERFACE="$(LANG=C ip route show | grep ^default | awk '{ print $5 }')"
 SERVERIP="$serverip"
 . $LINBOSHAREDIR/helperfunctions.sh || exit 1
 DAEMON=$LINBOSHAREDIR/linbo-mcasthelper.sh
+LINBOIMGDIR="$LINBODIR/images"
+mkdir -p "$LINBOIMGDIR"
+
 
 # Gracefully exit if the package has been removed.
 test -x $DAEMON || exit 0
@@ -29,15 +32,21 @@ MULTICASTLIST=$LINBODIR/multicast.list
 # read necessary functions and constants
 . /etc/default/linbo-multicast || exit 1
 
-cd $LINBODIR
-images="$(ls -1 *.cloop ; ls -1 *.qcow2)"
+images="$(find "$LINBODIR" -maxdepth 1 -name "*.[cq][lc][o][ow][p2]" ; \
+  find "$LINBOIMGDIR" -maxdepth 2 -name "*.[cq][lc][o][ow][p2]")"
 
 create_multicast_list() {
   echo -n "Creating multicast.list"
+  local i
+  local image
+  local p
   [ -e "$MULTICASTLIST" ] && mv $MULTICASTLIST $MULTICASTLIST.old
+  [ -e "${MULTICASTLIST}.tmp" ] && rm -f "${MULTICASTLIST}.tmp"
   p=$PORTBASE
   for i in $images; do
-    echo "$i $SERVERIP:$p" >> $MULTICASTLIST
+    image="$(basename "$i")"
+    echo "$image $SERVERIP:$p" >> $MULTICASTLIST
+    echo "$i" "$SERVERIP:$p" >> ${MULTICASTLIST}.tmp
     p=$(( $p + 2 ))
   done
   echo .
@@ -46,29 +55,36 @@ create_multicast_list() {
 start() {
   if [ -z "$images" ]; then
     echo "There exist no images yet!"
-    rm -f "$MULTICASTLIST"
+    rm -f "${MULTICASTLIST}*"
     exit 0
   fi
 
   create_multicast_list
 
+  local imgdir
+  local imgfile
   while read file serverport relax; do
     port="${serverport##*:}"
     if [ -s "$file" ]; then
-      # start daemon stuff
-      echo -n "Starting $DESC $file ... "
 
-      if screen -list | grep -qw "$file.mcast"; then
+      imgdir="$(dirname "$file")"
+      imgfile="$(basename "$file")"
+      cd "$imgdir"
+
+      # start daemon stuff
+      echo -n "Starting $DESC $imgfile ... "
+
+      if screen -list | grep -qw "$imgfile.mcast"; then
         echo
-        echo "Multicast for $file is already running. Skipped!"
+        echo "Multicast for $imgfile is already running. Skipped!"
         continue
       fi
 
-      LOGFILE="$LINBODIR/log/${file}_mcast.log"
+      LOGFILE="$LINBODIR/log/${imgfile}_mcast.log"
 
-      screen -dmS "$file.mcast" "$DAEMON" "$INTERFACE" "$port" "$MINCLIENTS" "$MINSECONDS" "$MAXSECONDS" "$file" "$LOGFILE"
+      screen -dmS "$imgfile.mcast" "$DAEMON" "$INTERFACE" "$port" "$MINCLIENTS" "$MINSECONDS" "$MAXSECONDS" "$imgfile" "$LOGFILE"
       sleep 1
-      if ! screen -list | grep -qw "$file.mcast"; then
+      if ! screen -list | grep -qw "$imgfile.mcast"; then
         RC=1
         echo "failed!"
       else
@@ -77,17 +93,20 @@ start() {
       fi
 
     fi
-  done < "$MULTICASTLIST"
+  done < "${MULTICASTLIST}.tmp"
+  rm -f "${MULTICASTLIST}.tmp"
 }
 
 stop(){
 
-  local i=""
-  local pid=""
+  local i
+  local imgfile
+  local pid
   for i in $images; do
-    if screen -list | grep -qw "$i.mcast"; then
-      echo -n "Stopping $DESC $i ... "
-      pid="$(screen -list | grep -w "$i.mcast" | awk -F\. '{ print $1 }' | awk '{ print $1 }')"
+    imgfile="$(basename "$i")"
+    if screen -list | grep -qw "$imgfile.mcast"; then
+      echo -n "Stopping $DESC $imgfile ... "
+      pid="$(screen -list | grep -w "$imgfile.mcast" | awk -F\. '{ print $1 }' | awk '{ print $1 }')"
       kill $pid ; RC="$?"
       if [ "$RC" = "0" ]; then
         echo "done!"
@@ -109,23 +128,7 @@ stop(){
 }
 
 status(){
-  local line=""
-  local pid=""
-  local screen=""
-  local status=""
-  local c=0
-  local d=""
-  screen -wipe | grep [ioy][nos][cop].mcast | while read line; do
-    c=+1
-    pid="$(echo $line | awk -F\. '{ print $1 }' | awk '{ print $1 }')"
-    screen="$(echo $line | awk '{ print $1 }')"
-    screen="${screen#*.}"
-    status="$(echo $line | awk '{ print $2 }')"
-    d=""
-    [ $c -lt 100 ] && d=" "
-    [ $c -lt 10 ] && d="  "
-    echo -e "$d$c\t$pid\t$screen\t$status"
-  done
+  screen -ls | grep -w mcast
 }
 
 case "$action" in
