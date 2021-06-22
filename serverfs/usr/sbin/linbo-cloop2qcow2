@@ -39,11 +39,11 @@ if [ ! -s "$CLOOPFILE" -o "${CLOOPFILE##*.}" != "cloop" ]; then
 fi
 
 # check output directory
+imagename="$(basename "$CLOOPFILE")"
+subdir="${imagename/.cloop/}"
 if [ -d "$2" ]; then
   TARGETDIR="$2"
 elif [ -z "$2" ]; then
-  imagename="$(basename "$CLOOPFILE")"
-  subdir="${imagename/.cloop/}"
   TARGETDIR="$LINBOIMGDIR/$subdir"
   mkdir -p "$TARGETDIR"
 else
@@ -102,7 +102,8 @@ fi
 # copy supplemental files
 imagebase="${QCOW2FILE/.qcow2/}"
 for i in info desc postsync prestart reg macct; do
-  srcfile="${CLOOPFILE}.$i"
+  srcfile="${CLOOPFILE/.cloop/}.$i"
+  [ -e "$srcfile" ] || srcfile="${CLOOPFILE}.$i"
   [ -e "$srcfile" ] || continue
   case "$i" in
     info|desc) cp "$srcfile" "${QCOW2FILE}.$i" ;;
