@@ -2,19 +2,24 @@
 #
 # convert cloop image to qcow2 format
 # thomas@linuxmuster.net
-# 20210516
+# 20210622
 #
 
 # read environment
 . /usr/share/linuxmuster/defaults.sh || exit 1
 . $LINBOSHAREDIR/helperfunctions.sh || exit 1
+LINBOIMGDIR="$LINBODIR/images"
+mkdir -p "$LINBOIMGDIR"
 
 usage(){
   echo
-  echo "Usage: `basename $0` <path_to_cloop_image> [output_directory]"
+  echo "Usage: `basename $0` <cloop_image> [output_directory]"
   echo
   echo "Note:"
-  echo " * If output directory is omitted the output file is created in the same directory as the input file."
+  echo " * If the cloop image is given without a path and resides not in the"
+  echo "   current directory then $LINBODIR is assumed as input directory."
+  echo " * If output directory is omitted the output file is created in a"
+  echo "   subdirectory of $LINBOIMGDIR."
   echo " * Make sure there is enough space in the output directory."
   echo
   exit 1
@@ -22,20 +27,28 @@ usage(){
 
 # check inputfile
 CLOOPFILE="$1"
+inputdir="$(dirname $CLOOPFILE)"
+if [ "$inputdir" = "." -a ! -e "$CLOOPFILE" ]; then
+  # assume inputfile is in LINBODIR
+   CLOOPFILE="$LINBODIR/$CLOOPFILE"
+fi
 if [ ! -s "$CLOOPFILE" -o "${CLOOPFILE##*.}" != "cloop" ]; then
   [ -z "$CLOOPFILE" ] && CLOOPFILE="[none]"
-  echo "$CLOOPFILE is not a valid cloop image."
+  echo "$CLOOPFILE is no cloop image."
   usage
 fi
 
 # check output directory
-if [ -n "$2" ]; then
-  if [ -d "$2" ]; then
-    TARGETDIR="$2"
-  else
-    echo "Output directory $2 does not exist!"
-    usage
-  fi
+if [ -d "$2" ]; then
+  TARGETDIR="$2"
+elif [ -z "$2" ]; then
+  imagename="$(basename "$CLOOPFILE")"
+  subdir="${imagename/.cloop/}"
+  TARGETDIR="$LINBOIMGDIR/$subdir"
+  mkdir -p "$TARGETDIR"
+else
+  echo "Output directory $2 does not exist!"
+  usage
 fi
 
 # output file
@@ -58,7 +71,7 @@ fi
 
 # get image size from file
 if [ -z "$isize" ]; then
-  isize_b="$(LANG=C stat "$CLOOPFILE" | grep -i size: | awk '{print $2}')"
+  isize_b="$(stat -t "$CLOOPFILE" | awk '{print $2}')"
   isize="$(( $isize_b / 1024 / 1024 / 1024 ))"
 fi
 
@@ -88,7 +101,7 @@ fi
 
 # copy supplemental files
 imagebase="${QCOW2FILE/.qcow2/}"
-for i in info desc postsync reg macct; do
+for i in info desc postsync prestart reg macct; do
   srcfile="${CLOOPFILE}.$i"
   [ -e "$srcfile" ] || continue
   case "$i" in
@@ -103,6 +116,22 @@ if [ "$TARGETDIR" != "." ]; then
   QCOW2FILE="$(basename "$QCOW2FILE")"
 fi
 
+# update info file
+infofile="${QCOW2FILE}.info"
+if [ -s "$infofile" ]; then
+  echo "Updating $infofile."
+  sed -i 's|.cloop|.qcow2|g' "$infofile"
+  tstamp="$(date +%Y%m%d%H%M)"
+  sed -i "s|^timestamp=.*|timestamp=$tstamp|" "$infofile"
+  size="$(stat -t "$QCOW2FILE" | awk '{print $2}')"
+  sed -i "s|^imagesize=.*|imagesize=$size|" "$infofile"
+else
+  echo "Skipping update for missing $infofile."
+fi
+
 # create torrent file
 echo "Creating $QCOW2FILE.torrent ..."
 ctorrent -t -u http://"$serverip":6969/announce -s "$QCOW2FILE.torrent" "$QCOW2FILE"
+
+# restart linbo-torrent if file is created in LINBOIMGDIR
+stringinstring "$LINBOIMGDIR" "$TARGETDIR" && linbo-torrent restart
