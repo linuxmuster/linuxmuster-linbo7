@@ -1780,8 +1780,11 @@ sync_image(){
   echo "## $(date) : Starting sync of $1 to $2." | tee -a /tmp/image.log
   local imagefile="$1"
   local targetdev="$2"
-  local RC=1
-  if ! mountpart "$targetdev" /mnt -w 2>> /tmp/linbo.log; then
+  local RC
+  set -o pipefail
+  mountpart "$targetdev" /mnt -w | tee -a /tmp/image.log ; RC="$?"
+  set +o pipefail
+  if [ "$RC" != "0" ]; then
     echo "Cannot mount $targetdev!"
     return "$RC"
   fi
@@ -1796,8 +1799,10 @@ sync_image(){
     qemu-nbd --disconnect /dev/nbd0 | tee -a /tmp/image.log
     return "$RC"
   fi
+  # wait a few seconds after qemu-nbd connect attempt
+  sleep 3
   mkdir -p /image
-  if ! mountpart /dev/nbd0 /image; then
+  if ! mountpart /dev/nbd0 /image -r; then
     echo "Mounting $imagefile failed!" | tee -a /tmp/image.log
     qemu-nbd --disconnect /dev/nbd0 | tee -a /tmp/image.log
     return "$RC"
@@ -1838,6 +1843,8 @@ cp_image(){
   fi
   # check sizes
   qemu-nbd -r --connect /dev/nbd0 "$imagefile" || return "$RC"
+  # wait a few seconds after qemu-nbd connect attempt
+  sleep 3
   local s1="$(get_partition_size /dev/nbd0)"
   local s2="$(get_partition_size $targetdev)"
   if [ "$s1" -gt "$s2" ] 2>/dev/null; then
