@@ -2,7 +2,7 @@
 #
 # configure script for linuxmuster-linbo7 package
 # thomas@linuxmuster.net
-# 20210517
+# 20210522
 #
 
 # read constants & setup values
@@ -54,6 +54,8 @@ fi
 if [ -e /etc/init.d/linbo-bittorrent ]; then
   systemctl stop linbo-bittorrent
   systemctl disable linbo-bittorrent
+  pid="$(ps ax | grep bttrack | grep -v grep | awk '{print $1}')"
+  [ -n "$pid" ] && kill $pid
   rm -f /etc/init.d/linbo-bittorrent
 fi
 
