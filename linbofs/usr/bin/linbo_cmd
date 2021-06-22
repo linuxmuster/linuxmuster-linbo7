@@ -452,56 +452,45 @@ label_allpartitions(){
   return "$RC"
 }
 
-# mountpart partition destdir [options]
+# mountpart partition destdir [readonly]
 mountpart(){
-  local RC=0
-  local type=""
-  local i=0
-  local wmsg=0
-  local label="$(print_partlabel "$1")"
-  # "noatime" is required for later remount, otherwise kernel will default to "relatime",
-  # which busybox mount does not know
-  local OPTS="noatime"
-  if [ "$3" = "-r" ]; then OPTS="$OPTS,ro"; else OPTS="$OPTS,rw"; fi
-  # wait for partition, if not labeled
-  if [ -z "$label" ]; then
-    for i in 1 2 3 4 5; do
-      RC="$?"
-      [ "$RC" = "0" ] && break
-      [ "$i" = "5" ] && break
-      echo "Partition $1 ist noch nicht verfuegbar, versuche erneut..."
-      sleep 2
-    done
-    [ "$RC" = "0" ] || { echo "Partition $1 ist nicht verfuegbar, wurde die Platte schon partitioniert?" 1>&2; return "$RC"; }
-    local mountdev="$1"
-  else
-    # mount per label
-    local mountdev="LABEL=$label"
-  fi
-  type="$(fstype $1)"
+  local type="$(fstype $1)"
+  [ -z "$type" ] && return 1
+  local partition="$1"
+  local destdir="$2"
+  local ro
+  [ "$3" = "-r" ] && ro=",ro"
+  local options
+  local mountcmd
   case "$type" in
-    *ntfs*)
-      OPTS="$OPTS,recover,remove_hiberfile,user_xattr,inherit,acl"
-      #ntfs-3g "$1" "$2" -o "$OPTS" 2>/dev/null; RC="$?"
-    ;;
-    *fat*)
-      #mount -o "$OPTS" "$1" "$2" ; RC="$?"
-    ;;
-    *)
-      OPTS="$OPTS,acl,user_xattr"
-      #mount -o "$OPTS" "$1" "$2" ; RC="$?"
-    ;;
+    ntfs) options="recover,remove_hiberfile,user_xattr,inherit,acl$ro" ;;
+    vfat) options="defaults$ro" ;;
+    *) options="acl,user_xattr$ro" ;;
   esac
-  mount -o "$OPTS" "$mountdev" "$2" ; RC="$?"
-  # second try with default options and ntfsfix in case of ntfs (netzint)
-  if [ "$RC" != "0" -a "$type" = "ntfs" ]; then
-    echo "Windows partition seems in bad shape. Try ntfsfix to solve this issue."
-    ntfsfix "$1"
-    mount -o "$OPTS" "$mountdev" "$2" ; RC="$?"
-    # second try with default options for other filesystems
-  elif [ "$RC" != "0" ]; then
-    mount "$mountdev" "$2" ; RC="$?"
+  # create mount command
+  if [ "$type" = "ntfs" ]; then
+    mountcmd="ntfs-3g -o $options $partition $destdir"
+  else
+    mountcmd="mount -i -t $type -o $options $partition $destdir"
   fi
+  # mount partition
+  $mountcmd
+  # check success
+  local RC="1"
+  grep -q ^"$partition $destdir" /proc/mounts && RC="0"
+  # second try (do ntfsfix before in case of ntfs rw mount)
+  if [ "$RC" != "0" -a "$type" = "ntfs" ]; then
+    if [ -z "$ro" ]; then
+      echo "Windows partition seems in bad shape. Try ntfsfix to solve this issue."
+      ntfsfix "$partition"
+    fi
+    $mountcmd
+  # second try with default options for other filesystems
+  elif [ "$RC" != "0" ]; then
+    mount -i -t $type $partition $destdir
+  fi
+  # check success again
+  grep -q ^"$partition $destdir" /proc/mounts && RC="0"
   return "$RC"
 }
 
