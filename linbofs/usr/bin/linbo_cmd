@@ -2585,11 +2585,11 @@ torrent_watchdog(){
   return "$RC"
 }
 
-# download_torrent image
+# download_torrent imagefile
 download_torrent(){
-  local image="$1"
-  local torrent="$image".torrent
-  local complete="$image".complete
+  local imagefile="$1"
+  local torrent="$imagefile".torrent
+  local complete="$imagefile".complete
   local RC=1
   [ -e "$torrent" ] || return "$RC"
   local ip="$(ip)"
@@ -2605,12 +2605,12 @@ download_torrent(){
   [ -n "$pid" ] && kill "$pid"
   local OPTS="-I $ip -M $MAX_INITIATE -z $SLICE_SIZE"
   [ $MAX_UPLOAD_RATE -gt 0 ] && OPTS="$OPTS -U $MAX_UPLOAD_RATE"
-  echo "Torrent-Optionen: $OPTS" >> /tmp/image.log
-  echo "Starte Torrent-Dienst fuer $image." | tee -a /tmp/image.log
-  local logfile=/tmp/"$image".log
+  echo "Torrent options: $OPTS" >> /tmp/image.log
+  echo "Starting torrent service for $imagefile." | tee -a /tmp/image.log
+  local logfile=/tmp/"$imagefile".log
   if [ ! -e "$complete" ]; then
-    rm -f "$image" "$torrent".bf
-    torrent_watchdog "$image" "$TIMEOUT" &
+    rm -f "$imagefile" "$torrent".bf
+    torrent_watchdog "$imagefile" "$TIMEOUT" &
     interruptible ctorrent -e 0 $OPTS -X "touch $complete" "$torrent" | tee -a "$logfile"
   fi
   # start seeder if download is complete
