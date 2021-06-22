@@ -6,7 +6,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20210617
+# 20210622
 # GPL v3
 #
 
@@ -183,18 +183,10 @@ cmd="$1"
 [ -n "$cmd" ] && shift # Command args are now $@
 
 # fstype partition
+# print filesystem type of a partition
 fstype(){
-  local partition="$1"
-  local i
-  local TYPE
-  for i in $(blkid "$partition"); do
-    echo "$i" | grep -q TYPE && eval "$i"
-  done
-  case "$TYPE" in
-    ntfs|vfat|ext2|ext3|ext4) echo "$TYPE" ;;
-    *) echo "auto" ;;
-  esac
-  return 0
+  [ -b "$1" ] || return 1
+  blkid -o export "$1" | grep ^TYPE | awk -F\= '{print $2}'
 }
 
 # tschmitt
