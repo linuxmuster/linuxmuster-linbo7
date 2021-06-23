@@ -1,3 +1,14 @@
+linuxmuster-linbo7 (4.0.0-0beta4) lmn7-experimental; urgency=low
+
+  * implemented images in subdirs.
+  * kernel 5.10.43.
+  * get filesytem type with blkid.
+  * fixes and improvements in linbo-cloop2qcow2.
+  * download and mount improvements in linbo_cmd.
+  * added missing bochs_drm vga driver (fixes broken vga console in proxmox).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 23 Jun 2021 13:24:16 +0000
+
 linuxmuster-linbo7 (4.0.0-0beta3) lmn7-experimental; urgency=low
 
   * Fix #6: Add Intel VMD Module to linbo.
