@@ -6,7 +6,7 @@
 # and installs a new version.
 #
 # thomas@linuxmuster.net
-# 20200414
+# 20210623
 # GPL v3
 #
 
@@ -48,6 +48,9 @@ if [ "$EXT" = ".new" ]; then
  echo "$FILE" > "$PIDFILE"
  exit 0
 fi
+
+# create image directory in case of qcow2
+[ "$EXT" = ".qcow2" ] && mkdir -p "$DIRNAME"
 
 # Bailout with error if backup file exists (another process is uploading)
 if [ -e "$BACKUP" ]; then

@@ -2769,54 +2769,57 @@ authenticate(){
 upload(){
   # do not execute in localmode
   localmode && return 0
+  local server="$1"
+  local user="$2"
+  local pw="$3"
+  local cache="$4"
+  local file="$5"
+  local filetype="${file##*.}"
   local RC=0
-  local file
-  local ext
-  if remote_cache "$4"; then
-    echo "Cache $4 is not local, no upload for $5." | tee -a /tmp/linbo.log
+  local filelist
+  local imagebase
+  local subdir
+  local i
+  if remote_cache "$cache"; then
+    echo "Cache $cache is not local, no upload for $file." | tee -a /tmp/linbo.log
     sendlog
     return 1
   fi
   # We may need this password for mountcache as well!
-  export RSYNC_PASSWORD="$3"
-  mountcache "$4" || return 1
+  export RSYNC_PASSWORD="$pw"
+  mountcache "$cache" || return 1
   cd /cache
-  if [ -s "$5" ]; then
-    local FILES="$5"
-    # file list is obsolete
-    #for ext in info postsync reg desc torrent; do
-    for ext in info desc torrent; do
-      [ -s "${5}.${ext}" ] && FILES="$FILES ${5}.${ext}"
-    done
-    echo "Uploading $FILES to $1 ..." | tee -a /tmp/linbo.log
-    for file in $FILES; do
-      interruptible rsync --log-file=/tmp/rsync.log --progress -Ha $RSYNC_PERMISSIONS --partial "$file" "$2@$1::linbo-upload/$file"
+  if [ -s "$file" ]; then
+    filelist="$file"
+    # expand filelist in case of qcow2 file
+    echo "### filetype: $filetype ###"
+    if [ "$filetype" = "qcow2" ]; then
+      imagebase="${file%.$filetype}"
+      subdir="images/$imagebase/"
+      for i in info desc torrent; do
+        [ -s "${file}.${i}" ] && filelist="$filelist ${file}.${i}"
+      done
+    fi
+    echo "Uploading $filelist to $server ..." | tee -a /tmp/linbo.log
+    for i in $filelist; do
+      interruptible rsync --log-file=/tmp/rsync.log --progress -Ha $RSYNC_PERMISSIONS --partial "$i" "$user@$server::linbo-upload/${subdir}${i}"
       # because return code is always 0 this is necessary
       grep -q "rsync error" /tmp/rsync.log && RC=1
       cat /tmp/rsync.log >> /tmp/linbo.log
       rm /tmp/rsync.log
-      if [ "$RC" != "0" ]; then
-        break
-      else
-        # start torrent service for image
-        case "$file" in
-          *.torrent) ps w | grep ctorrent | grep "$file" | grep -v grep || download_torrent "${file%.torrent}" ;;
-        esac
-      fi
-      #rm -f "$TMP"
+      [ "$RC" = "0" ] || break
     done
   else
     RC=1
-    echo "File $5 does not exist." | tee -a /tmp/linbo.log
+    echo "File $file does not exist." | tee -a /tmp/linbo.log
   fi
   if [ "$RC" = "0" ]; then
-    echo "Successfully uploaded $FILES to $1." | tee -a /tmp/linbo.log
+    echo "Successfully uploaded $filelist to $server." | tee -a /tmp/linbo.log
   else
-    echo "Failed to upload $FILES to $1." | tee -a /tmp/linbo.log
+    echo "Failed to upload $filelist to $server." | tee -a /tmp/linbo.log
   fi
   sendlog
-  cd / ; mountcache "$4" -r
-  [ "$RC" = "0" ] && echo "Successfully uploaded $FILES to $1." || echo "Failed to upload $FILES to $1." >&2
+  cd / ; mountcache "$cache" -r
   return "$RC"
 }
 
