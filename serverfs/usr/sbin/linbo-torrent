@@ -2,7 +2,7 @@
 #
 # starts screen process for each valid torrent in LINBODIR
 # thomas@linuxmuster.net
-# 20210612
+# 20210623
 #
 
 # read environment
@@ -21,7 +21,7 @@ usage(){
   echo " * The commands start, stop and restart may have optionally a torrent filename"
   echo "   as parameter. So the command is only processed to this certain file."
   echo "   Without an explicit torrent filename the commands were processed to all"
-  echo "   torrent files found below $LINBODIR."
+  echo "   torrent files found recursivly below $LINBODIR."
   echo " * A torrent filename parameter is mandatory with the command check."
   echo " * An image filename parameter is mandatory with the command create."
   echo
