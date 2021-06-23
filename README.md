@@ -19,29 +19,37 @@
 * Add following entry to `/etc/apt/sources.list.d/lmn7.list`:
   `deb http://archive.linuxmuster.net/ lmn7-experimental/`
   and perform a dist-upgrade.
-* Convert your cloop images to qcow2 format with `linbo-cloop2qcow2`.
+* Convert your cloop images to qcow2 format with `linbo-cloop2qcow2`:
+  - invoke for example `linbo-cloop2qcow2 ubuntu.cloop` and
+  - the converted image will be created in `/srv/linbo/images/ubuntu/ubuntu.qcow2`.
 * Change the image name in the start.conf.
 * Restart the image deployment services with `linbo-torrent|linbo-multicast restart`.
 * See the status of the image deployment services with `systemctl status linbo-torrent|linbo-multicast`.
 * Create and deploy images as usual.
-* Note: Your current cloop images will be still available for client restauration after migration.
 * Explore the new linbo-torrent tool:  
   ```
-  Usage: /usr/sbin/linbo-torrent <start|stop|restart|reload|status|create|check> [torrent_file]
+  Usage: /usr/sbin/linbo-torrent <start|stop|restart|reload|status|create|check> [torrent_filename|image_filename]
 
   Note:
-   * The commands start, stop and restart may have optionally a torrent file
+   * The commands start, stop and restart may have optionally a torrent filename
      as parameter. So the command is only processed to this certain file.
-   * A torrent file parameter is mandatory with the commands create and check.
+     Without an explicit torrent filename the commands were processed to all
+     torrent files found recursivly below /srv/linbo.
+   * A torrent filename parameter is mandatory with the command check.
+   * An image filename parameter is mandatory with the command create.
   ```  
+  * Note:
+    - Your current cloop images will be still functional and available for client restauration after migration.
+    - New uploaded images will be placed in subdirectories below `/srv/linbo/images`.
+    - Backups of images will be moved to `/srv/linbo/images/<imagename>/backups/<timestamp>`.
 
 ## Features
 * Kernel 5.10.x.
 * qcow2 image format.
+* images are placed in subdirectories of /srv/linbo/images.
 * More performant image deployment based on ctorrent and [opentracker](https://erdgeist.org/arts/software/opentracker/).
 
 ## In planning:
-* place images in subdirs of /srv/linbo.
 * start.conf in yaml format.
 * step by step changeover of the scripting to python.
 * differential imaging.
