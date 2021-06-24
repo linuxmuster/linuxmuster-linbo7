@@ -2,7 +2,7 @@
 #
 # starts screen process for each valid torrent in LINBODIR
 # thomas@linuxmuster.net
-# 20210623
+# 20210624
 #
 
 # read environment
@@ -138,7 +138,7 @@ create(){
 
 # starts torrent screen processes
 start(){
-  local item
+  local item=
   local torrent
   local image
   local tdir
@@ -172,10 +172,9 @@ start(){
 }
 
 stop(){
-  local item
-  local torrent="$1"
-  if [ -n "$torrent" ]; then
-    kill_torrent "$torrent"
+  local item="$1"
+  if [ -n "$item" ]; then
+    kill_torrent "$item"
   else
     linbo-torrent status | awk '{print $1}' | while read item; do
       kill_torrent "${item#[0-9]*.}"
@@ -202,18 +201,16 @@ find_torrents(){
 # end of functions
 
 # not necessesary to find torrents with stop
-if [ "$1" != "stop" ]; then
-  TORRENTS="$(find_torrents "$2")"
-  if [ -z "$TORRENTS" ]; then
-    echo "There are no torrent files to process."
-    exit 0
-  fi
+TORRENTS="$(find_torrents "$2")"
+if [ -z "$TORRENTS" -a "$1" != "stop" ] || [ -z "$TORRENTS" -a -n "$2" ]; then
+  echo "There are no torrent files to process."
+  exit 0
 fi
 
 case "$1" in
   start) start ;;
   stop) stop "$2" ;;
-  restart) stop ; start ;;
+  restart) stop "$2" ; start ;;
   reload) reload ;;
   status) status ;;
   create) create ;;
