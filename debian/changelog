@@ -1,3 +1,9 @@
+liuxmuster-linbo7 (4.0.0-0beta5) lmn7-experimental; urgency=low
+
+  * Fix #9: linbo-torrent: restarting a certain torrent process kills all other torrent processes.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 23 Jun 2021 13:24:16 +0000
+
 linuxmuster-linbo7 (4.0.0-0beta4) lmn7-experimental; urgency=low
 
   * implemented images in subdirs.

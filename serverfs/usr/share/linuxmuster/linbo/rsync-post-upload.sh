@@ -1,14 +1,18 @@
 #!/bin/bash
 #
 # thomas@linuxmuster.net
-# 20210623
+# 20210624
 #
 
 # read in linuxmuster specific environment
 source /usr/share/linuxmuster/defaults.sh || exit 1
 source $LINBOSHAREDIR/helperfunctions.sh || exit 1
 
+# where the images are uploaded
 LINBOIMGDIR="$LINBODIR/images"
+# where to place the temporary image backup
+BAKTMP="$LINBOIMGDIR/tmp"
+# logfile
 LOGFILE="$LINBOLOGDIR/rsync-post-upload.log"
 
 # Debug
@@ -44,31 +48,39 @@ echo "EXT: $FTYPE"
 if [ -s "$BACKUP" ]; then
   if [ "$RSYNC_EXIT_STATUS" = "0" ]; then
     echo "Upload of ${FILE##*/} was successful." >&2
-    DATE="$(date +'%Y-%m-%d-%H-%M-%S')"
     BASE="${FILE##*/}" ; EXT="$BASE"; BASE="${BASE%%.*}" ; EXT="${EXT##$BASE}"
     IMGDIR="$LINBOIMGDIR/$BASE"
-    BAKDIR="$IMGDIR/backups/$DATE"
-    mkdir -p "$BAKDIR"
     BASENAME="$(basename "$FILE")"
-    ARCHIVE="$BAKDIR/$BASENAME"
-    mv -fv "$BACKUP" "$ARCHIVE"
-    echo "Archive file $BASE/$DATE/${ARCHIVE##*/} created." >&2
-    # backup supplemental files
     case "$FTYPE" in
       *.qcow2)
+        # qcow2 is the first file of image upload, so place backup file in temporary dir
+        # cause without info file we don't know the timestamp
+        mkdir -p "$BAKTMP"
+        ARCHIVE="$BAKTMP/$BASENAME"
+        mv -fv "$BACKUP" "$ARCHIVE"
+        echo "$BASENAME successfully backed up." >&2
+        # backup supplemental image files that reside on server
         for i in macct opsi reg postsync prestart; do
-          case "$i" in
-            macct|opsi) SRCFILE="${FILE}.$i" ; TGTFILE="${ARCHIVE}.$i" ;;
-            *)  SRCFILE="${FILE/$FTYPE}.$i" ; TGTFILE="${ARCHIVE/$FTYPE}.$i" ;;
-          esac
-          if [ -e "$SRCFILE" ];then
-            cp -fv "$SRCFILE" "$TGTFILE"
-            echo "Archive file $BASE/$DATE/$(basename $TGTFILE) created."
-          fi
-          case "$i" in
-            macct|opsi) chmod 600 "$TGTFILE" ;;
-          esac
+          cp -f "$IMGDIR"/*."$i" "$BAKTMP" &> /dev/null
         done
+        chmod 600 "$BAKTMP"/*.macct &> /dev/null
+        chmod 600 "$BAKTMP"/*.opsi &> /dev/null
+        ;;
+      *)
+        # next is the info file, so we can get the timestamp and create the final backup dir
+        INFOFILE="$IMGDIR/$BASE".qcow2.info
+        eval "$(grep -i ^timestamp "$INFOFILE")" &> /dev/null
+        if [ -n "$timestamp" ]; then
+          BAKDIR="$IMGDIR/backups/$timestamp"
+          mkdir -p "$BAKDIR"
+          ARCHIVE="$BAKDIR/$BASENAME"
+          mv -fv "$BACKUP" "$ARCHIVE"
+          echo "$BASENAME successfully backed up." >&2
+          # move backups from temporary backup dir to final backup dir
+          if [ "$FTYPE" = ".info" ]; then
+            mv -fv "$BAKTMP/$BASE"* "$BAKDIR"
+          fi
+        fi
         ;;
     esac
   else
