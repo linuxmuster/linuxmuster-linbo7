@@ -6,7 +6,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20210622
+# 20210624
 # GPL v3
 #
 
@@ -1364,7 +1364,7 @@ download(){
   local RC=1
   [ -n "$3" ] && echo "RSYNC Download $1 -> $2..."
   rm -f "$TMP"
-  interruptible rsync -HaLz --partial "$1::linbo/$2" "$(basename $2)" 2>"$TMP"; RC="$?"
+  interruptible rsync -HaLz --partial --progress "$1::linbo/$2" "$(basename $2)" 2>"$TMP"; RC="$?"
   if [ "$RC" != "0" ]; then
     # Delete incomplete/defective/non-existent file (maybe we should check for returncode=23 first?)
     rm -f "$2" 2>/dev/null
