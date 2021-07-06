@@ -2,12 +2,14 @@
 #
 # Pre-Download script for rsync/LINBO
 # thomas@linuxmuster.net
-# 20210430
+# 20210703
 #
 
 # read in linuxmuster specific environment
 source /usr/share/linuxmuster/defaults.sh || exit 1
 source $LINBOSHAREDIR/helperfunctions.sh || exit 1
+
+LINBOIMGDIR="$LINBODIR/images"
 
 # Debug
 LOGFILE="$RSYNC_MODULE_PATH/log/rsync-pre-download.log"
@@ -17,9 +19,12 @@ exec >>$LOGFILE 2>&1
 echo "### rsync pre download begin: $(date) ###"
 
 FILE="${RSYNC_MODULE_PATH}/${RSYNC_REQUEST##$RSYNC_MODULE_NAME/}"
-EXT="$(echo $RSYNC_REQUEST | grep -o '\.[^.]*$')"
 PIDFILE="/tmp/rsync.$RSYNC_PID"
 echo "$FILE" > "$PIDFILE"
+
+BASE="${FILE##*/}" ; EXT="$BASE"; BASE="${BASE%%.*}" ; EXT="${EXT##$BASE}"
+IMGDIR="$LINBOIMGDIR/$BASE"
+BASENAME="$(basename "$FILE")"
 
 # fetch host & domainname
 do_rsync_hostname
@@ -44,24 +49,31 @@ case $EXT in
     url="--url=/var/lib/samba/private/sam.ldb"
     LDBSEARCH="$(which ldbsearch) $url"
     LDBMODIFY="$(which ldbmodify) $url"
-    imagemacct="$LINBODIR/${RSYNC_REQUEST##*/}"
-    # upload samba machine password hashes to host's ad machine account
-    if [ -s "$imagemacct" ]; then
-      echo "Machine account ldif file: $imagemacct"
-      echo "Host: $compname"
-      # get dn of host
-      dn="$($LDBSEARCH "(&(sAMAccountName=$compname$))" | grep ^dn | awk '{ print $2 }')"
-      if [ -n "$dn" ]; then
-        echo "DN: $dn"
-        ldif="/var/tmp/${compname}_macct.$$"
-        ldbopts="--nosync --verbose --controls=relax:0 --controls=local_oid:1.3.6.1.4.1.7165.4.3.7:0 --controls=local_oid:1.3.6.1.4.1.7165.4.3.12:0"
-        sed -e "s|@@dn@@|$dn|" "$imagemacct" > "$ldif"
-        $LDBMODIFY $ldbopts "$ldif"
-        rm -f "$ldif"
-      else
-        echo "Cannot determine DN of $compname! Aborting!"
+    # old version: image's macct file resides in LINBODIR
+    imagemacct_old="$FILE"
+    # new version: image's macct file resides in subdirs below LINBODIR/images
+    imagemacct="$IMGDIR/$BASENAME"
+    # new version first
+    for i in "$imagemacct" "$imagemacct_old"; do
+      # upload samba machine password hashes to host's ad machine account
+      if [ -s "$imagemacct" ]; then
+        echo "Machine account ldif file: $imagemacct"
+        echo "Host: $compname"
+        # get dn of host
+        dn="$($LDBSEARCH "(&(sAMAccountName=$compname$))" | grep ^dn | awk '{ print $2 }')"
+        if [ -n "$dn" ]; then
+          echo "DN: $dn"
+          ldif="/var/tmp/${compname}_macct.$$"
+          ldbopts="--nosync --verbose --controls=relax:0 --controls=local_oid:1.3.6.1.4.1.7165.4.3.7:0 --controls=local_oid:1.3.6.1.4.1.7165.4.3.12:0"
+          sed -e "s|@@dn@@|$dn|" "$imagemacct" > "$ldif"
+          $LDBMODIFY $ldbopts "$ldif"
+          rm -f "$ldif"
+        else
+          echo "Cannot determine DN of $compname! Aborting!"
+        fi
+        break
       fi
-    fi
+    done
     ;;
 
     # fetch logfiles from client

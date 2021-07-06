@@ -1379,19 +1379,24 @@ download(){
 }
 
 # request macct file to invoke samba password hash ldap upload stuff on the server
+# invoke_macct imagebase
 invoke_macct(){
+  [ -z "$1" ] && return 1
+  local imagebase="$1"
+  local i
+  local imagemacct
+  # get image filename from start.conf
+  for i in qcow2 cloop; do
+    if grep -i ^baseimage /start.conf | grep -q "${imagebase}.${i}"; then
+      imagemacct="${imagebase}.${i}.macct"
+      break
+    fi
+  done
+  [ -z "$imagemacct"] && return 1
   local serverip="$(grep -m1 ^linbo_server= /tmp/dhcp.log | awk -F\' '{ print $2 }')"
-  [ -z "$serverip" ] && return
-  [ -s /mnt/.linbo ] || return
-  local imagename="$(cat /mnt/.linbo)"
-  local macct
-  if grep -i ^baseimage /start.conf | grep -q "$imagename.cloop"; then
-    macct="$imagename.cloop.macct"
-  else
-    macct="$imagename.macct"
-  fi
+  [ -z "$serverip" ] && return 1
   echo "Initiating machine password update on server $serverip ..."
-  download "$serverip" "$macct"
+  download "$serverip" "$imagemacct"
 }
 
 # do_machinepw (not used)
@@ -1511,7 +1516,7 @@ start(){
     return 1
   fi
   # sets machine password on server
-  invoke_macct
+  invoke_macct "$imagebase"
   # kill torrents if any
   #killalltorrents
   sync
