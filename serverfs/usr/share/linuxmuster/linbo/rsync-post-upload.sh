@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # thomas@linuxmuster.net
-# 20210624
+# 20210706
 #
 
 # read in linuxmuster specific environment
@@ -32,7 +32,9 @@ PIDFILE="/tmp/rsync.$RSYNC_PID"
 FILE="$(<$PIDFILE)"
 rm -f "$PIDFILE"
 BACKUP="${FILE}.BAK"
-FTYPE="$(echo $FILE | grep -o '\.[^.]*$')"
+BASE="${FILE##*/}" ; EXT="$BASE"; BASE="${BASE%%.*}" ; EXT="${EXT##$BASE}"
+IMGDIR="$LINBOIMGDIR/$BASE"
+BASENAME="$(basename "$FILE")"
 
 # fetch host & domainname
 do_rsync_hostname
@@ -42,16 +44,13 @@ echo "IP: $RSYNC_HOST_ADDR"
 echo "RSYNC_REQUEST: $RSYNC_REQUEST"
 echo "FILE: $FILE"
 echo "PIDFILE: $PIDFILE"
-echo "EXT: $FTYPE"
+echo "EXT: $EXT"
 
 # Check for backup file that should have been created by pre-upload script
 if [ -s "$BACKUP" ]; then
   if [ "$RSYNC_EXIT_STATUS" = "0" ]; then
-    echo "Upload of ${FILE##*/} was successful." >&2
-    BASE="${FILE##*/}" ; EXT="$BASE"; BASE="${BASE%%.*}" ; EXT="${EXT##$BASE}"
-    IMGDIR="$LINBOIMGDIR/$BASE"
-    BASENAME="$(basename "$FILE")"
-    case "$FTYPE" in
+    echo "Upload of $BASENAME was successful." >&2
+    case "$EXT" in
       *.qcow2)
         # qcow2 is the first file of image upload, so place backup file in temporary dir
         # cause without info file we don't know the timestamp
@@ -68,7 +67,7 @@ if [ -s "$BACKUP" ]; then
         ;;
       *)
         # next is the info file, so we can get the timestamp and create the final backup dir
-        INFOFILE="$IMGDIR/$BASE".qcow2.info
+        INFOFILE="$(ls $IMGDIR/*.info)"
         eval "$(grep -i ^timestamp "$INFOFILE")" &> /dev/null
         if [ -n "$timestamp" ]; then
           BAKDIR="$IMGDIR/backups/$timestamp"
@@ -77,17 +76,19 @@ if [ -s "$BACKUP" ]; then
           mv -fv "$BACKUP" "$ARCHIVE"
           echo "$BASENAME successfully backed up." >&2
           # move backups from temporary backup dir to final backup dir
-          if [ "$FTYPE" = ".info" ]; then
-            mv -fv "$BAKTMP/$BASE"* "$BAKDIR"
+          if [ -n "$(ls -A "$BAKTMP")" ]; then
+            for i in "$BAKTMP/$BASE"*; do
+              mv -fv "$i" "$BAKDIR"
+            done
           fi
         fi
         ;;
     esac
   else
     # If upload failed, move old file back from backup.
-    echo "Upload of ${FILE##*/} failed." >&2
+    echo "Upload of $BASENAME failed." >&2
     mv -fv "$BACKUP" "$FILE"
-    echo "Recovered ${FILE##*/} from backup." >&2
+    echo "Recovered $BASENAME from backup." >&2
     # remove empty BAKDIR
     if [ -d "$BAKDIR"]; then
       [ -z "$(ls -A "$BAKDIR")" ] && rm -rf "$BAKDIR"
@@ -96,12 +97,11 @@ if [ -s "$BACKUP" ]; then
 fi
 
 # do something depending on file type
-case "$FTYPE" in
+case "$EXT" in
 
   *.qcow2)
-    image="${FILE##*/}"
     # restart multicast service if image file was uploaded.
-    echo "Image file $image detected. Restarting multicast service if enabled." >&2
+    echo "Image file $BASENAME detected. Restarting multicast service if enabled." >&2
     /etc/init.d/linbo-multicast restart >&2
 
     # save samba passwords of host we made the new image
@@ -114,9 +114,11 @@ case "$FTYPE" in
       if [ -n "$unicodepwd" ]; then
         echo "Writing samba password hash file for image $image."
         template="$LINBOTPLDIR/machineacct"
-        imagemacct="$LINBODIR/${image%.*}.macct"
+        imagemacct="$IMGDIR/${BASENAME}.macct"
         sed -e "s|@@unicodepwd@@|$unicodepwd|" -e "s|@@suppcredentials@@|$suppcredentials|" "$template" > "$imagemacct"
         chmod 600 "$imagemacct"
+        # remove obsolete macct file if present
+        rm -f "$IMGDIR/${BASE}.macct"
       else
         rm -f "$imagemacct"
       fi
@@ -125,7 +127,7 @@ case "$FTYPE" in
     # update opsi settings if host is managed
     if ([ -n "$opsiip" ] && opsimanaged "$compname"); then
       clientini="${opsiip}:$OPSICLIENTDIR/${RSYNC_HOST_NAME}.ini"
-      imageini="$LINBODIR/$image.opsi"
+      imageini="$IMGDIR/$image.opsi"
       rsync "$clientini" "$imageini" ; RC="$?"
       if [ "$RC" = "0" ]; then
         chmod 600 "$imageini"
@@ -140,8 +142,8 @@ case "$FTYPE" in
 
   *.torrent)
     # restart torrent service if torrent file was uploaded.
-    echo "Torrent file ${FILE##*/} detected. Restarting linbo-torrent service." >&2
-    linbo-torrent restart ${FILE##*/} >&2
+    echo "Torrent file $BASENAME detected. Restarting linbo-torrent service." >&2
+    linbo-torrent restart $BASENAME >&2
     ;;
 
   *.new)
