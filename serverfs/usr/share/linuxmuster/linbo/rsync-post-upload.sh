@@ -7,7 +7,6 @@
 # read in linuxmuster specific environment
 source /usr/share/linuxmuster/defaults.sh || exit 1
 source $LINBOSHAREDIR/helperfunctions.sh || exit 1
-LINBOIMGDIR="$LINBODIR/images"
 
 # where to place the temporary image backup
 BAKTMP="$LINBOIMGDIR/tmp"

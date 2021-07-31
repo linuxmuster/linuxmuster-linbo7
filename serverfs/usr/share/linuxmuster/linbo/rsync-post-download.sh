@@ -8,7 +8,6 @@
 # read in paedml specific environment
 source /usr/share/linuxmuster/defaults.sh || exit 1
 source $LINBOSHAREDIR/helperfunctions.sh || exit 1
-LINBOIMGDIR="$LINBODIR/images"
 
 # Debug
 LOGFILE="$LINBOLOGDIR/rsync-post-download.log"
