@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20210508
+# 20210731
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -602,9 +602,8 @@ network(){
     export server
     print_status "linbo_server='$server'" >> /tmp/dhcp.log
     print_status "Loading configuration files from $server ..."
-    for i in "start.conf-$macaddr" "start.conf-$ipaddr" "start.conf"; do
-      rsync -L "$server::linbo/$i" "/start.conf" &> /dev/null && break
-    done
+    # request host specific start.conf from server
+    rsync -L "$server::linbo/tmp/start.conf_$hostname" "/start.conf" &> /dev/null
     # set flag for working network connection and do additional stuff which needs
     # connection to linbo server
     if [ -s /start.conf ]; then

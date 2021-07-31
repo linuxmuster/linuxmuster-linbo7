@@ -2,12 +2,13 @@
 #
 # Post-Download script for rsync/LINBO
 # thomas@linuxmuster.net
-# 20200414
+# 20210731
 #
 
 # read in paedml specific environment
 source /usr/share/linuxmuster/defaults.sh || exit 1
 source $LINBOSHAREDIR/helperfunctions.sh || exit 1
+LINBOIMGDIR="$LINBODIR/images"
 
 # Debug
 LOGFILE="$LINBOLOGDIR/rsync-post-download.log"
@@ -27,6 +28,7 @@ PIDFILE="/tmp/rsync.$RSYNC_PID"
 # read file created by pre-upload script
 FILE="$(<$PIDFILE)"
 EXT="$(echo $FILE | grep -o '\.[^.]*$')"
+BASENAME="$(basename "$FILE")"
 
 # fetch host & domainname
 do_rsync_hostname
@@ -47,6 +49,9 @@ fi
 
 # recognize download request of local grub.cfg
 stringinstring ".grub.cfg" "$FILE" && EXT="grub-local"
+
+# recognize start.conf request
+[ "$BASENAME" = "start.conf_$compname" ] && EXT="start-conf"
 
 case $EXT in
 
@@ -69,6 +74,12 @@ case $EXT in
    rm -f "$FILE"
   fi
  ;;
+
+ # handle start.conf request
+ start-conf)
+   echo "Removing temporary $FILE."
+   rm -f "$FILE"
+   ;;
 
  # update host's opsi ini, invoked by linbo_cmd on postsync
  *.opsi)

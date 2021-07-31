@@ -2,13 +2,12 @@
 #
 # Pre-Download script for rsync/LINBO
 # thomas@linuxmuster.net
-# 20210703
+# 20210731
 #
 
 # read in linuxmuster specific environment
 source /usr/share/linuxmuster/defaults.sh || exit 1
 source $LINBOSHAREDIR/helperfunctions.sh || exit 1
-
 LINBOIMGDIR="$LINBODIR/images"
 
 # Debug
@@ -23,7 +22,6 @@ PIDFILE="/tmp/rsync.$RSYNC_PID"
 echo "$FILE" > "$PIDFILE"
 
 BASE="${FILE##*/}" ; EXT="$BASE"; BASE="${BASE%%.*}" ; EXT="${EXT##$BASE}"
-IMGDIR="$LINBOIMGDIR/$BASE"
 BASENAME="$(basename "$FILE")"
 
 # fetch host & domainname
@@ -35,6 +33,9 @@ stringinstring "winact.tar.gz.upload" "$FILE" && EXT="winact-upload"
 # recognize download request of local grub.cfg
 stringinstring ".grub.cfg" "$FILE" && EXT="grub-local"
 
+# recognize start.conf request
+[ "$BASENAME" = "start.conf_$compname" ] && EXT="start-conf"
+
 echo "HOSTNAME: $RSYNC_HOST_NAME"
 echo "IP: $RSYNC_HOST_ADDR"
 echo "RSYNC_REQUEST: $RSYNC_REQUEST"
@@ -44,7 +45,7 @@ echo "EXT: $EXT"
 
 case $EXT in
 
-    # handle machine account password
+  # handle machine account password
   *.macct)
     url="--url=/var/lib/samba/private/sam.ldb"
     LDBSEARCH="$(which ldbsearch) $url"
@@ -76,7 +77,7 @@ case $EXT in
     done
     ;;
 
-    # fetch logfiles from client
+  # fetch logfiles from client
   *.log)
     host_logfile="$(basename "$FILE")"
     echo "Upload request for $host_logfile."
@@ -92,7 +93,7 @@ case $EXT in
     touch "$FILE"
     ;;
 
-    # fetch image status from client
+  # fetch image status from client
   *.status)
     host_logfile="$(basename "$FILE")"
     echo "Upload request for $host_logfile."
@@ -111,7 +112,7 @@ case $EXT in
     touch "$FILE"
     ;;
 
-    # provide host's opsi key for download
+  # provide host's opsi key for download
   *.opsikey)
     # invoked by linbo_cmd on postsync
     # if opsi server is configured and host is opsimanaged
@@ -133,7 +134,7 @@ case $EXT in
     fi
     ;;
 
-    # patch image registry files with sambadomain if necessary
+  # patch image registry files with sambadomain if necessary
   *.reg)
     search="Domain\"=\"$sambadomain\""
     if ! grep -q "$search" "$FILE"; then
@@ -141,7 +142,7 @@ case $EXT in
     fi
     ;;
 
-    # handle windows product key request
+  # handle windows product key request
   *.winkey)
     # get key from workstations and write it to temporary file
     if [ -n "$compname" ]; then
@@ -152,7 +153,7 @@ case $EXT in
     fi
     ;;
 
-    # handle windows activation tokens archive
+  # handle windows activation tokens archive
   winact-upload)
     RC=0
     FILE="${FILE%.upload}"
@@ -193,13 +194,24 @@ case $EXT in
     rm -f "$PIDFILE"
     ;;
 
-    # prepare download of local grub.cfg
+  # prepare download of local grub.cfg
   grub-local)
     grubcfg_tpl="$LINBOTPLDIR/grub.cfg.local"
     group="$(basename "$FILE" | awk -F\. '{ print $2 }')"
     startconf="$LINBODIR/start.conf.$group"
     append="$(linbo_kopts "$startconf") localboot"
     sed -e "s|linux \$linbo_kernel .*|linux \$linbo_kernel $append|g" "$grubcfg_tpl" > "$FILE"
+    ;;
+
+  # handle start.conf request
+  start-conf)
+    group="$(get_hostgroup "$compname")"
+    startconf="$LINBODIR/start.conf.$group"
+    if [ -s "$startconf" ]; then
+      cp "$startconf" "$FILE"
+    else
+      cp -L "$LINBODIR/start.conf" "$FILE"
+    fi
     ;;
 
   *) ;;
