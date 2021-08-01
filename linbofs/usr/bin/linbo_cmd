@@ -6,7 +6,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20210624
+# 20210801
 # GPL v3
 #
 
@@ -2886,13 +2886,10 @@ update(){
   mkdir -p "$grubdir"
 
   cd /cache
-  local suffix="$(get_64)"
   # detect non pae cpu
   if [ -z "$suffix" ]; then
     grep ^flags /proc/cpuinfo | head -1 | grep -wq pae || suffix="-np"
   fi
-  local kernel="linbo${suffix}"
-  local kernelfs="linbofs${suffix}.lz"
   local md5_before
   local md5_after
   local md5_current
@@ -2905,30 +2902,40 @@ update(){
   # check for linbo/linbofs updates on server
   # download newer linbo/linbofs if applicable and check download
   echo "Looking for LINBO updates."
-  for i in "$kernel" "$kernelfs"; do
-    md5_before="" ; md5_after="" ; md5_current=""
-    [ -s "$i" ] && md5_before="$(md5sum "$i" | awk '{ print $1 }')"
-    rm -f "${i}.md5"
-    download "$server" "${i}.md5" && md5_after="$(cat "$i".md5 2> /dev/null)"
-    if [ -z "$md5_after" ]; then
-      echo "Failed to download ${i}.md5!" >&2
-      rm -f "$kernel" "$kernelfs" "${kernel}.md5" "${kernelfs}.md5"
+  # first check md5sum of linbofs
+  [ -e linbofs64.lz ] && md5_before="$(md5sum linbofs64.lz | awk '{ print $1 }')"
+  [ -e linbofs64.lz.md5 ] && mv linbofs64.lz.md5 linbofs64.lz.md5.bak
+  download "$server" linbofs64.lz.md5
+  md5_after="$(cat linbofs64.lz.md5 2> /dev/null)"
+  if [ -z "$md5_after" ]; then
+    echo "Failed to download linbofs64.lz.md5!" >&2
+    [ -e linbofs64.lz.md5.bak ] && mv linbofs64.lz.md5.bak linbofs64.lz.md5
+    return 1
+  fi
+  rm -f linbofs64.lz.md5.bak
+  # if the linbofs checksum differs, download recent versions of linbofs and linbo
+  if [ "$md5_before" != "$md5_after" ]; then
+    # first linbofs
+    download "$server" linbofs64.lz
+    # verify download
+    md5_current="$(md5sum linbofs64.lz | awk '{ print $1 }')"
+    if [ "$md5_current" != "$md5_after" ]; then
+      echo "Checksums differ, failed to download linbofs64.lz!" >&2
       return 1
     fi
-    if [ -z "$md5_before" -o "$md5_before" != "$md5_after" ]; then
-      download "$server" "$i" && md5_current="$(md5sum "$i" | awk '{ print $1 }')"
-      if [ "$md5_after" = "$md5_current" ]; then
-        echo "$i has been successfully updated."
-        reboot="yes"
-      else
-        echo "Failed to download $i!" >&2
-        rm -f "$kernel" "$kernelfs" "${kernel}.md5" "${kernelfs}.md5"
-        return 1
-      fi
-    else
-      echo "$i is up-to-date."
+    # second linbo
+    download "$server" linbo64
+    download "$server" linbo64.md5
+    # verify download
+    md5_after="$(cat linbo64.md5 2> /dev/null)"
+    md5_current="$(md5sum linbo64 | awk '{ print $1 }')"
+    if [ "$md5_current" != "$md5_after" ]; then
+      echo "Checksums differ, failed to download linbo64!" >&2
+      return 1
     fi
-  done
+  else
+    echo "LINBO is up-to-date."
+  fi
 
   # get group specific and local grub configs from server
   echo "Updating grub configuration."
