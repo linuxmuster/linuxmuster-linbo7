@@ -28,6 +28,7 @@ SRVFS_DIRS="
 /srv/linbo/boot/grub/spool
 /srv/linbo/boot/grub/x86_64-efi
 /srv/linbo/icons
+/srv/linbo/images
 /srv/linbo/linbocmd
 /srv/linbo/tmp
 /srv/linbo/winact

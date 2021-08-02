@@ -2,14 +2,12 @@
 #
 # convert cloop image to qcow2 format
 # thomas@linuxmuster.net
-# 20210622
+# 20210802
 #
 
 # read environment
 . /usr/share/linuxmuster/defaults.sh || exit 1
 . $LINBOSHAREDIR/helperfunctions.sh || exit 1
-LINBOIMGDIR="$LINBODIR/images"
-mkdir -p "$LINBOIMGDIR"
 
 usage(){
   echo
