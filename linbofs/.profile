@@ -1,13 +1,16 @@
 # busybox ash profile
 #
 # thomas@schmitt.tk
-# 20210518
+# 20210802
 
 # prompt
 export PS1='\h: \w # '
 
 # path
 export PATH='/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+
+# aliases
+alias mount="mount -i"
 
 ip="$(LANG=C ip route show | grep src | awk '{print $7}')"
 [ -n "$ip" ] && ip="| IP: $ip"
