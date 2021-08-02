@@ -1,3 +1,14 @@
+linuxmuster-linbo7 (4.0.0~0rc1) lmn7-testing; urgency=low
+
+  * changed versioning according to debian pre release versioning scheme.
+  * Removed LINBOIMGDIR environment variable (moved to linuxmuster-base7).
+  * Fix #12: Remove start.conf links in LINBODIR.
+  * Fix #13: Changes in linbofs do not trigger a client side linbo update.
+  * Fix #14: Busybox mount complains unnecessarily about an invalid ntfs filesystem.
+  * Fix #15: Image update check fails with "bad number".
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 02 Aug 2021 18:19:32 +0000
+
 linuxmuster-linbo7 (4.0.0-0beta6) lmn7-experimental; urgency=low
 
   * Fix #11: reimplement image related macct file.
