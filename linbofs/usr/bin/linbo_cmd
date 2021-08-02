@@ -6,7 +6,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20210801
+# 20210802
 # GPL v3
 #
 
@@ -2481,7 +2481,7 @@ getinfo(){
   while read line; do
     local key="${line%%=*}"
     if [ "$key" = "$2" ]; then
-      echo "${line#*=}"
+      echo ${line#*=}
       return 0
     fi
   done <"$1"
@@ -2659,30 +2659,30 @@ download_img_if_changed(){
   [ -z "$dltype" ] && dltype="$(downloadtype)"
   [ -z "$dltype" ] && dltype="rsync"
   local DOWNLOAD
-  # move info file
-  [ -e "$infofile" ] && mv -f "$infofile" "${infofile}.old"
-  # download infofile, first try from subdir
-  if ! download "$server" "${subdir}${infofile}"; then
-    download "$server" "$infofile" || return 1
-    subdir=""
-  fi
-  # compare
-  if [ -e "$infofile" -a -e "${infofile}.old" ]; then
-    diff -q "$infofile" "${infofile}.old" || DOWNLOAD="true"
-  fi
-  rm -f "${infofile}.old"
-  # check imagefile size
+  # download image if info or image file is not there
+  [ -s "$infofile" ] || DOWNLOAD="true"
+  [ -s "$imagefile" ] || DOWNLOAD="true"
+  # compare local and server image info files to know whether image download is needed
   if [ -z "$DOWNLOAD" ]; then
-    if [ ! -s "$infofile" -o ! -s "$imagefile" ]; then
+    # move info file
+    mv -f "$infofile" "${infofile}.bak"
+    # download infofile, first try from subdir
+    if ! download "$server" "${subdir}${infofile}"; then
+      download "$server" "$infofile" || return 1
+      subdir=""
+    fi
+    # compare
+    diff -q "$infofile" "${infofile}.bak" || DOWNLOAD="true"
+    rm -f "${infofile}.bak"
+  fi
+  # check imagefile size to know whether image download is needed
+  if [ -z "$DOWNLOAD" ]; then
+    local fs1="$(getinfo "$infofile" imagesize | sed 's|\"||g')"
+    local fs2="$(get_filesize "$imagefile")"
+    if [ -z "$fs1" -o -z "$fs2" ]; then
       DOWNLOAD="true"
-    else
-      local fs1="$(getinfo "$infofile" imagesize)"
-      local fs2="$(get_filesize "$imagefile")"
-      if [ -z "$fs1" -o -z "$fs2" ]; then
-        DOWNLOAD="true"
-      elif [ "$fs1" -ne "$fs2" ]; then
-        DOWNLOAD="true"
-      fi
+    elif [ "$fs1" != "$fs2" ]; then
+      DOWNLOAD="true"
     fi
   fi
   # download other supplemental files except info (done before) and torrent (doing later)
@@ -3079,12 +3079,12 @@ initcache(){
   shift; shift; shift
 
   # clean up obsolete linbofs files
-  rm -f linbofs[.a-zA-Z0-9_-]*.gz*
-  rm -f linbo*.info
+  rm -f linbofs64.lz*
+  rm -f linbo64*
 
   # clean up obsolete image files
   used_images="$(grep -i ^baseimage /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
-  used_images="$used_images $(grep -i ^image /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
+  #used_images="$used_images $(grep -i ^image /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
   for i in *.qcow2 *.cloop; do
     [ -e "$i" ] || continue
     found=0
@@ -3095,7 +3095,7 @@ initcache(){
       fi
     done
     if [ "$found" = "0" ]; then
-      echo "Entferne nicht mehr benoetigte Imagedatei $i." | tee -a /tmp/image.log
+      echo "Removing obsolete image file $i." | tee -a /tmp/image.log
       rm -f "$i" "$i".*
     fi
   done
