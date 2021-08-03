@@ -25,7 +25,8 @@
 * Change the image name in the start.conf.
 * Restart the image deployment services with `linbo-torrent|linbo-multicast restart`.
 * See the status of the image deployment services with `systemctl status linbo-torrent|linbo-multicast`.
-* Create and deploy images as usual.
+* Finally start the import script `linuxmuster-import-devices`, which will remove the obsolete start.conf links.
+* Now you can create and deploy images as usual.
 * Explore the new linbo-torrent tool:  
   ```
   Usage: /usr/sbin/linbo-torrent <start|stop|restart|reload|status|create|check> [torrent_filename|image_filename]
@@ -40,6 +41,7 @@
   ```  
   * Note:
     - Your current cloop images will be still functional and available for client restauration after migration.
+    - New images have to be in qcow2 format.
     - New uploaded images will be placed in subdirectories below `/srv/linbo/images`.
     - Backups of images will be moved to `/srv/linbo/images/<imagename>/backups/<timestamp>`.
 
