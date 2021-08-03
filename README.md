@@ -31,19 +31,18 @@
   ```
   Usage: /usr/sbin/linbo-torrent <start|stop|restart|reload|status|create|check> [torrent_filename|image_filename]
 
-  Note:
-   * The commands start, stop and restart may have optionally a torrent filename
-     as parameter. So the command is only processed to this certain file.
-     Without an explicit torrent filename the commands were processed to all
-     torrent files found recursivly below /srv/linbo.
-   * A torrent filename parameter is mandatory with the command check.
-   * An image filename parameter is mandatory with the command create.
+  * The commands start, stop and restart may have optionally a torrent filename
+    as parameter. So the command is only processed to this certain file.
+    Without an explicit torrent filename the commands were processed to all
+    torrent files found recursivly below /srv/linbo.
+  * A torrent filename parameter is mandatory with the command check.
+  * An image filename parameter is mandatory with the command create.
   ```  
-  * Note:
-    - Your current cloop images will be still functional and available for client restauration after migration.
-    - New images have to be in qcow2 format.
-    - New uploaded images will be placed in subdirectories below `/srv/linbo/images`.
-    - Backups of images will be moved to `/srv/linbo/images/<imagename>/backups/<timestamp>`.
+* Note:
+  - Your current cloop images will be still functional and available for client restauration after migration.
+  - New images have to be in qcow2 format.
+  - New uploaded images will be placed in subdirectories below `/srv/linbo/images`.
+  - Backups of images will be moved to `/srv/linbo/images/<imagename>/backups/<timestamp>`.
 
 ## Features
 * Kernel 5.10.x.
