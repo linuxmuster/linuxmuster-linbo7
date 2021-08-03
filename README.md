@@ -13,11 +13,11 @@
 * Only 64bit client hardware is supported.
 * No more support for linuxmuster.net <=6.2.
 * No differential imaging yet.
-* Packages were published in the [lmn7-experimental repository](http://archive.linuxmuster.net/lmn7-experimental/).
+* Packages were published in the [lmn7-testing repository](http://archive.linuxmuster.net/lmn7-testing/).
 
 ## Migration
 * Add following entry to `/etc/apt/sources.list.d/lmn7.list`:
-  `deb http://archive.linuxmuster.net/ lmn7-experimental/`
+  `deb http://archive.linuxmuster.net/ lmn7-testing/`
   and perform a dist-upgrade.
 * Convert your cloop images to qcow2 format with `linbo-cloop2qcow2`:
   - invoke for example `linbo-cloop2qcow2 ubuntu.cloop` and
