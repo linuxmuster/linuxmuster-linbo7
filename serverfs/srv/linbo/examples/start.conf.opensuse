@@ -18,10 +18,6 @@ DownloadType = torrent              # image download method (torrent|multicast|r
 GuiDisabled = no                    # disable gui <yes|no>
 UseMinimalLayout = no               # gui layout style <yes|no>
 Locale = de-de                      # gui locale <de-de|en-gb|fr-fr|es-es>
-BackgroundColor = 394f5e            # hex code for gui background color
-BackgroundFontColor = white         # font color of status section (default: white)
-ConsoleFontColorStdout = lightgreen # console font color (default: white)
-ConsoleFontColorStderr = orange     # console error font color (default: red)
 SystemType = bios64                 # possible values: bios|bios64|efi32|efi64 (default: bios)
 KernelOptions = quiet splash        # linbo kernel options, space separated
 #KernelOptions = acpi=noirq irqpoll # linbo kernel options example for use with acpi problems
