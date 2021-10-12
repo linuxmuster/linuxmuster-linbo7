@@ -1,14 +1,7 @@
 # default values for linbo multicast server
 # thomas@linuxmuster.net
-# 20170331
+# 20211012
 #
-
-# path to the list of files to be multicasted
-MULTICASTLIST=$LINBODIR/multicast.list
-
-# start the multicast server?
-# yes|no
-START_MULTICAST=no
 
 # variables for udpcast
 PORTBASE=9000
