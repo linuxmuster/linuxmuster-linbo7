@@ -2,7 +2,7 @@
 #
 # configure script for linuxmuster-linbo7 package
 # thomas@linuxmuster.net
-# 20210522
+# 20211013
 #
 
 # read constants & setup values
@@ -59,8 +59,10 @@ if [ -e /etc/init.d/linbo-bittorrent ]; then
   rm -f /etc/init.d/linbo-bittorrent
 fi
 
-# remove deprecated linbo-multicast
+# remove outdated linbo-multicast start script
 if [ -e /etc/init.d/linbo-multicast ]; then
+  # lookup for running udp-sender and save status
+  ps ax | grep -v grep | grep -q udp-sender && RUNMCAST="yes"
   systemctl stop linbo-multicast
   systemctl disable linbo-multicast
   rm -f /etc/init.d/linbo-multicast
@@ -92,20 +94,10 @@ if ! systemctl status linbo-torrent &> /dev/null; then
   systemctl start linbo-torrent
 fi
 
-# linbo-multicast service
-conf="/etc/default/linbo-multicast"
-if [ -e "$conf" ]; then
-  source "$conf"
-  if [ -n "$START_MULTICAST" ]; then
-    START_MULTICAST="$(echo "$START_MULTICAST" | tr A-Z a-z)"
-    sed -i 's|^START_MULTICAST|#START_MULTICAST|' "$conf"
-    if [ "$START_MULTICAST" = "yes" ]; then
-      if ! systemctl status linbo-multicast &> /dev/null; then
-        systemctl enable linbo-multicast
-        systemctl start linbo-multicast
-      fi
-    fi
-  fi
+# activate linbo-multicast service if it was running before
+if [ -n "$RUNMCAST" ]; then
+  systemctl enable linbo-multicast
+  systemctl start linbo-multicast
 fi
 
 update-linbofs || exit 1
