@@ -1,3 +1,10 @@
+linuxmuster-linbo7 (4.0.0~0rc2) lmn7-testing; urgency=low
+
+  * Fix #16: start.conf consolidation.
+  * Fix #17: remove start variable from /etc/default/linbo-multicast.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 13 Oct 2021 10:07:20 +0000
+
 linuxmuster-linbo7 (4.0.0~0rc1) lmn7-testing; urgency=low
 
   * changed versioning according to debian pre release versioning scheme.
