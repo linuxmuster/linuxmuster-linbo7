@@ -9,6 +9,8 @@
 . /usr/share/linuxmuster/defaults.sh || exit 1
 THELPER=$LINBOSHAREDIR/linbo-torrenthelper.sh
 . $LINBOSHAREDIR/helperfunctions.sh || exit 1
+LINBOIMGEXT="qcow2 qdiff cloop"
+
 
 # help message
 usage(){
@@ -34,8 +36,7 @@ if [ -n "$2" ] ; then
   extension="${filename##*.}"
 fi
 if [ "$1" = "create" ]; then
-  extensions="qcow2 qdiff cloop"
-  case "$extensions" in *$extension*) ;; *) usage ;; esac
+  stringinstring "$extension" "$LINBOIMGEXT" || usage
 else
   [ -n "$2" -a "$extension" != "torrent" ] && usage
 fi
