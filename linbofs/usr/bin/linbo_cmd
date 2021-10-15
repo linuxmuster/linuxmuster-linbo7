@@ -6,7 +6,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20210802
+# 20211015
 # GPL v3
 #
 
@@ -2779,7 +2779,7 @@ upload(){
   local pw="$3"
   local cache="$4"
   local file="$5"
-  local filetype="${file##*.}"
+  local ext="${file##*.}"
   local RC=0
   local filelist
   local imagebase
@@ -2796,10 +2796,10 @@ upload(){
   cd /cache
   if [ -s "$file" ]; then
     filelist="$file"
-    # expand filelist in case of qcow2 file
-    echo "### filetype: $filetype ###"
-    if [ "$filetype" = "qcow2" ]; then
-      imagebase="${file%.$filetype}"
+    # expand filelist in case of qcow2|qdiff file
+    #echo "### filetype: $ext ###"
+    if [ "$ext" = "qcow2" -o "$ext" = "qdiff" ]; then
+      imagebase="${file%.$ext}"
       subdir="images/$imagebase/"
       for i in info desc torrent; do
         [ -s "${file}.${i}" ] && filelist="$filelist ${file}.${i}"
