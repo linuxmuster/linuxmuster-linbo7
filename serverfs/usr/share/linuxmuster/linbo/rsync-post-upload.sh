@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # thomas@linuxmuster.net
-# 20210731
+# 20211015
 #
 
 # read in linuxmuster specific environment
@@ -49,7 +49,7 @@ if [ -s "$BACKUP" ]; then
   if [ "$RSYNC_EXIT_STATUS" = "0" ]; then
     echo "Upload of $BASENAME was successful." >&2
     case "$EXT" in
-      *.qcow2)
+      *.qcow2|*.qdiff)
         # qcow2 is the first file of image upload, so place backup file in temporary dir
         # cause without info file we don't know the timestamp
         mkdir -p "$BAKTMP"
@@ -60,6 +60,9 @@ if [ -s "$BACKUP" ]; then
         for i in macct opsi reg postsync prestart; do
           cp -f "$IMGDIR"/*."$i" "$BAKTMP" &> /dev/null
         done
+        # move differential image away if qcow2 image was uploaded
+        case "$EXT" in *.qcow2) mv -f "$IMGDIR"/*.qdiff "$BAKTMP" &> /dev/null;; esac
+        # repair permissions of certain file types
         chmod 600 "$BAKTMP"/*.macct &> /dev/null
         chmod 600 "$BAKTMP"/*.opsi &> /dev/null
         ;;
@@ -97,7 +100,7 @@ fi
 # do something depending on file type
 case "$EXT" in
 
-  *.qcow2)
+  *.qcow2|*.qdiff)
     # restart multicast service if image file was uploaded.
     echo "Image file $BASENAME detected. Restarting multicast service if enabled." >&2
     /etc/init.d/linbo-multicast restart >&2
