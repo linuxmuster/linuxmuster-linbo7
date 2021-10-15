@@ -1,9 +1,16 @@
+linuxmuster-linbo7 (4.0.1~0alpha1) lmn7-testing; urgency=low
+
+  * diffimage branch
+    - kernel 5.15.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 13 Oct 2021 12:29:07 +0000
+
 linuxmuster-linbo7 (4.0.0~0rc2) lmn7-testing; urgency=low
 
   * Fix #16: start.conf consolidation.
   * Fix #17: remove start variable from /etc/default/linbo-multicast.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 13 Oct 2021 10:07:20 +0000
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 02 Aug 2021 18:19:32 +0000
 
 linuxmuster-linbo7 (4.0.0~0rc1) lmn7-testing; urgency=low
 
