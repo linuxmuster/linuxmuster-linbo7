@@ -464,13 +464,15 @@ mountpart(){
   local options
   local mountcmd
   case "$type" in
-    ntfs) options="recover,remove_hiberfile,user_xattr,inherit,acl$ro" ;;
+    ntfs)
+      # options="recover,remove_hiberfile,user_xattr,inherit,acl$ro"
+      options="defaults" ;;
     vfat) options="defaults$ro" ;;
     *) options="acl,user_xattr$ro" ;;
   esac
   # create mount command
   if [ "$type" = "ntfs" ]; then
-    mountcmd="ntfs-3g -o $options $partition $destdir"
+    mountcmd="mount -t ntfs3 -o $options $partition $destdir"
   else
     mountcmd="mount -i -t $type -o $options $partition $destdir"
   fi
