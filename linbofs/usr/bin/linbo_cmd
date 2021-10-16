@@ -471,21 +471,16 @@ mountpart(){
   local destdir="$2"
   local ro
   [ "$3" = "-r" ] && ro=",ro"
-  local options="noatime$ro"
-  local mountcmd="mount -i -t $type"
+  local options
   case "$type" in
-    ntfs)
-      options="$options,recover,remove_hiberfile,user_xattr,inherit,acl"
-      mountcmd="mount.ntfs-3g"
-      ;;
-    vfat) ;;
-    *) options="$options,acl,user_xattr" ;;
+    ntfs) options="-t ntfs3 -o defaults$ro" ;;
+    vfat) options="-i -t $type -o defaults$ro" ;;
+    *) options="-i -t $type -o acl,user_xattr$ro" ;;
   esac
   # umount partition first if it is already mounted
-  if grep -q ^"$partition $destdir" /proc/mounts; then
-    umount $destdir
-  fi
-  $mountcmd -o $options $partition $destdir
+  grep -q ^"$partition $destdir" /proc/mounts && umount $destdir
+  # mount partition
+  mount $options $partition $destdir
   # check success
   local RC="1"
   grep -q ^"$partition $destdir" /proc/mounts && RC="0"
@@ -495,10 +490,10 @@ mountpart(){
       echo "Windows partition seems in bad shape. Try ntfsfix to solve this issue."
       ntfsfix "$partition"
     fi
-    $mountcmd -o $options $partition $destdir
+    mount $options $partition $destdir
   # second try with default options for other filesystems
   elif [ "$RC" != "0" ]; then
-    $mountcmd $partition $destdir
+    mount $partition $destdir
   fi
   # check success again
   grep -q ^"$partition $destdir" /proc/mounts && RC="0"
