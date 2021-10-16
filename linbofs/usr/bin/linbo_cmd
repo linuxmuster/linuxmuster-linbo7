@@ -2517,9 +2517,19 @@ imagesize="$imagesize"
 partition="$rootdev"
 partitionsize="$partsize"
 EOF
-# save timestamp of backingfile to info file of differential image
-local backingfile="$(qemu-img info --output=json "$imagefile" | grep full-backing-filename | awk -F\" '{print $4}')"
-[ -n "$backingfile" ] && grep ^timestamp "$backingfile".info | sed 's|^timestamp|backingfile_timestamp|' >> "$imagefile".info
+  # save timestamp of backingfile to info file of differential image
+  local backingfile="$(qemu-img info --output=json "$imagefile" | grep full-backing-filename | awk -F\" '{print $4}')"
+  if [ -n "$backingfile" ]; then
+    local backingfile_timestamp="$(grep ^timestamp "$backingfile".info | awk -F\" '{print $2}')"
+    if [ -n "$backingfile_timestamp" ]; then
+      cat <<EOF >> "$imagefile".info
+backingfile_timestamp="$backingfile_timestamp"
+EOF
+    else
+      echo "Cannot get backingfile timestamp!"
+      return 1
+    fi
+  if
 }
 
 # get_multicast_server file
