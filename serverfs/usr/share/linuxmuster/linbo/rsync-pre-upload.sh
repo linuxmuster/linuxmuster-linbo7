@@ -6,7 +6,7 @@
 # and installs a new version.
 #
 # thomas@linuxmuster.net
-# 20210623
+# 20211016
 # GPL v3
 #
 
@@ -44,9 +44,9 @@ echo "PIDFILE: $PIDFILE"
 echo "EXT: $EXT"
 
 if [ "$EXT" = ".new" ]; then
- [ -e "$PIDFILE" ] && rm -f "$PIDFILE"
- echo "$FILE" > "$PIDFILE"
- exit 0
+  [ -e "$PIDFILE" ] && rm -f "$PIDFILE"
+  echo "$FILE" > "$PIDFILE"
+  exit 0
 fi
 
 # create image directory in case of qcow2
@@ -54,35 +54,35 @@ fi
 
 # Bailout with error if backup file exists (another process is uploading)
 if [ -e "$BACKUP" ]; then
- # check if there is another upload for the same file
- TMPFILE="$(ls -t ${DIRNAME}/.${BASENAME}.* 2> /dev/null | head -1)"
- if [ -n "$TMPFILE" ]; then
-  # check if file grows
-  size1="$(ls -l $TMPFILE | awk '{ print $5 }')"
-  sleep 5
-  size2="$(ls -l $TMPFILE | awk '{ print $5 }')"
-  # if file is not growing remove it
-  if [ "$size1" = "$size2" ]; then
-   echo "Removing stale temp file $TMPFILE!"
-   rm -f "$TMPFILE"
-  else
-   echo "Backup file exists for ${FILE##*/}, another upload in progress?" >&2
-   exit 1
+  # check if there is another upload for the same file
+  TMPFILE="$(ls -t ${DIRNAME}/.${BASENAME}.* 2> /dev/null | head -1)"
+  if [ -n "$TMPFILE" ]; then
+    # check if file grows
+    size1="$(ls -l $TMPFILE | awk '{ print $5 }')"
+    sleep 5
+    size2="$(ls -l $TMPFILE | awk '{ print $5 }')"
+    # if file is not growing remove it
+    if [ "$size1" = "$size2" ]; then
+      echo "Removing stale temp file $TMPFILE!"
+      rm -f "$TMPFILE"
+    else
+      echo "Backup file exists for ${FILE##*/}, another upload in progress?" >&2
+      exit 1
+    fi
   fi
- fi
 fi
 if [ -e "$BACKUP" ]; then
- echo "Removing stale backup file $BACKUP!"
- rm -f "$BACKUP"
+  echo "Removing stale backup file $BACKUP!"
+  rm -f "$BACKUP"
 fi
 
 # Create backups, if file exists, otherwise save only the filename.
 [ -d "$FILE" ] && exit 0
 if [ -e "$FILE" ]; then
- # Move file out of the way
- mv -fv "$FILE" "$BACKUP" ; RC="$?"
+  # Move file out of the way
+  mv -fv "$FILE" "$BACKUP" ; RC="$?"
 else
- RC=0
+  RC=0
 fi
 
 # Save filename for post-script and exit
