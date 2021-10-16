@@ -2512,7 +2512,7 @@ EOF
       echo "Cannot get backingfile timestamp!"
       return 1
     fi
-  if
+  fi
 }
 
 # get_multicast_server file
