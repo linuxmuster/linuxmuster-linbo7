@@ -2485,6 +2485,7 @@ log_image_status(){
 
 # mk_info imagefile rootdev - creates timestamp file
 mk_info(){
+  echo "### mk_info $1 $2"
   local imagefile="$1"
   local rootdev="$2"
   local partsize="$(get_partition_size "$rootdev")"
@@ -2499,6 +2500,9 @@ imagesize="$imagesize"
 partition="$rootdev"
 partitionsize="$partsize"
 EOF
+# save timestamp of backingfile to info file of differential image
+local backingfile="$(qemu-img info --output=json "$imagefile" | grep full-backing-filename | awk -F\" '{print $4}')"
+[ -n "$backingfile" ] && grep ^timestamp "$backingfile".info | sed 's|^timestamp|backingfile_timestamp|' >> "$imagefile".info
 }
 
 # get_multicast_server file
