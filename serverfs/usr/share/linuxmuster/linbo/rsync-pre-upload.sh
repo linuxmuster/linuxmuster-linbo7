@@ -49,7 +49,7 @@ if [ "$EXT" = ".new" ]; then
 fi
 
 # create image directory in case of qcow2
-[ "$EXT" = ".qcow2" ] && mkdir -p "$DIRNAME"
+[ "$EXT" = ".qcow2" -o "$EXT" = ".qdiff" ] && mkdir -p "$DIRNAME"
 
 # Bailout with error if backup file exists (another process is uploading)
 if [ -e "$BACKUP" ]; then
