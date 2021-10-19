@@ -1393,7 +1393,7 @@ invoke_macct(){
       break
     fi
   done
-  [ -z "$imagemacct"] && return 1
+  [ -z "$imagemacct" ] && return 1
   local serverip="$(grep -m1 ^linbo_server= /tmp/dhcp.log | awk -F\' '{ print $2 }')"
   [ -z "$serverip" ] && return 1
   echo "Initiating machine password update on server $serverip ..."
