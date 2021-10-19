@@ -6,7 +6,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20211018
+# 20211020
 # GPL v3
 #
 
@@ -919,7 +919,8 @@ print_grubpart(){
       disknr=$(( $disknr - 1 ))
       ;;
     *)
-      local ord="$(printf "$(echo $partition | sed 's|/dev/*[hsv]d\([a-z]\)[0-9]|\1|')" | od -A n -t d1)"
+      local diskchr="$(printf "$(echo $partition | sed 's|/dev/*[hsv]d\([a-z]\)[0-9]|\1|')")"
+      local ord="$(LC_CTYPE=C printf '%d' "'$diskchr")"
       local disknr=$(( $ord - 97 ))
       ;;
   esac
