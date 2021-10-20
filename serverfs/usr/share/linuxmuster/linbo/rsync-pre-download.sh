@@ -2,7 +2,7 @@
 #
 # Pre-Download script for rsync/LINBO
 # thomas@linuxmuster.net
-# 20211019
+# 20211020
 #
 
 # read in linuxmuster specific environment
@@ -22,8 +22,8 @@ echo "$FILE" > "$PIDFILE"
 
 BASE="${FILE##*/}" ; EXT="$BASE"; BASE="${BASE%%.*}" ; EXT="${EXT##$BASE}"
 case "$FILE" in
-  *.cloop*) IMGDIR="$LINBODIR" ;;
-  *.qcow2*) IMGDIR="$LINBOIMGDIR/$BASE" ;;
+  *.qcow2*|*.qdiff*) IMGDIR="$LINBOIMGDIR/$BASE" ;;
+  *) IMGDIR="$LINBODIR" ;;
 esac
 BASENAME="$(basename "$FILE")"
 
