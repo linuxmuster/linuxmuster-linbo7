@@ -1,0 +1,3 @@
+# kexec
+
+file /sbin/kexec /sbin/kexec 755 0 0
