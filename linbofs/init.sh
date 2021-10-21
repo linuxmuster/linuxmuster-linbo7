@@ -493,14 +493,12 @@ do_linbo_update(){
   local cachedev="$(printcache)"
   # start linbo update
   linbo_cmd update "$server" "$cachedev" 2>&1 | tee /cache/update.log
-  # do not reboot, if onboot commands were given or if linbo was booted over pxe
-  if [ -z "$linbocmd" -a -n "$localboot" -a -e "$rebootflag" ]; then
-    echo "Local LINBO/GRUB configuration was updated. Rebooting ..."
+  # initiate warm start
+  if [ -e "$rebootflag" ]; then
+    echo "Local LINBO/GRUB configuration was updated. Initiating warm restart ..."
     cd /
-    umount -a &> /dev/null
-    /sbin/reboot -f
+    /usr/bin/linbo_warmstart
   fi
-  [ -e /cache/update.log ] && cat /cache/update.log >> /tmp/linbo.log
 }
 
 # disable auto functions from cmdline
@@ -609,6 +607,9 @@ network(){
     if [ -s /start.conf ]; then
       print_status "Network connection to $server established successfully."
       grep ^[a-z] /tmp/dhcp.log | sed -e 's|^|local |g' > /tmp/network.ok
+      # first do linbo update & grub installation
+      do_linbo_update "$server"
+      # time sync
       print_status "Starting time sync ..."
       #( ntpd -n -q -p "$server" && hwclock --systohc ) &
       ntpd -n -q -p "$server" &
@@ -624,8 +625,6 @@ network(){
         # strip leading and trailing spaces and escapes
         export linbocmd="$(awk '{$1=$1}1' /linbocmd | sed -e 's|\\||g')"
       fi
-      # linbo update & grub installation
-      do_linbo_update "$server"
       # also look for other needed files
       for i in "torrent-client.conf" "multicast.list"; do
         rsync -L "$server::linbo/$i" "/$i" &> /dev/null
