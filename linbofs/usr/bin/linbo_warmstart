@@ -28,7 +28,7 @@ if [ ! -s "$INITRD" ]; then
 fi
 
 # load linbo kernel
-if ! $KEXEC --reuse-cmdline --initrd= $INITRD -l $KERNEL; then
+if ! $KEXEC --reuse-cmdline --initrd=$INITRD -l $KERNEL; then
   echo "Failed to load linbo kernel!"
   exit 1
 fi
