@@ -1,0 +1,42 @@
+#!/bin/sh
+#
+# linbo_warmstart <kernel> <initrd>
+# thomas@linuxmuster.net
+# 20211020
+#
+
+# test if cache is mounted
+if ! mount | awk '{print $3}' | grep -q ^/cache; then
+  echo "Cache not mounted!"
+  exit 2
+fi
+
+KEXEC="/sbin/kexec"
+
+KERNEL="$1"
+[ -z "$KERNEL" ] && KERNEL="/cache/linbo64"
+if [ ! -s "$KERNEL" ]; then
+  echo "Kernel $KERNEL not found!"
+  exit 1
+fi
+
+INITRD="$2"
+[ -z "$INITRD" ] && INITRD="/cache/linbofs64.lz"
+if [ ! -s "$INITRD" ]; then
+  echo "Initrd $INITRD not found!"
+  exit 1
+fi
+
+# load linbo kernel
+if ! $KEXEC --reuse-cmdline --initrd= $INITRD -l $KERNEL; then
+  echo "Failed to load linbo kernel!"
+  exit 1
+fi
+
+# execute linbo kernel
+if ! $KEXEC -e; then
+  echo "Failed to execute linbo kernel!"
+  exit 1
+fi
+
+exit 0
