@@ -2935,6 +2935,7 @@ update(){
       echo "Checksums differ, failed to download linbo64!" >&2
       return 1
     fi
+    reboot="yes"
   else
     echo "LINBO is up-to-date."
   fi
@@ -2991,28 +2992,28 @@ update(){
     mv "$myname.$group.grub.cfg" "$grubdir/grub.cfg" || RC=1
   fi
   if [ "$RC" = "1" ]; then
-    echo "Fehler beim Schreiben der GRUB-Konfigurationsdateien!" >&2
+    echo "Failed to write grub configration!" >&2
     return 1
   fi
 
   # keep grub themes also updated
-  echo -n "Aktualisiere GRUB-Themes ... "
+  echo -n "Updating grub themes ... "
   themesdir="/boot/grub/themes"
   mkdir -p "/cache$themesdir"
   rsync -a --delete "${server}::linbo${themesdir}/" "/cache${themesdir}/" || RC=1
   if [ "$RC" = "1" ]; then
-    echo "Fehler!" >&2
+    echo "Failed!" >&2
     return 1
   else
     echo "OK!"
   fi
 
   # fetch also current linuxmuster-win scripts
-  echo -n "Aktualisiere linuxmuster-win ... "
+  echo -n "Updating linuxmuster-win ... "
   [ -d /cache/linuxmuster-win ] || mkdir -p /cache/linuxmuster-win
   rsync -a --exclude=*.ex --delete --delete-excluded "$server::linbo/linuxmuster-win/" /cache/linuxmuster-win/ || RC=1
   if [ "$RC" = "1" ]; then
-    echo "Fehler!" >&2
+    echo "Failed!" >&2
     return 1
   else
     echo "OK!"
@@ -3026,13 +3027,13 @@ update(){
 
     # remove for old legacy grub stuff
     if [ -e "$grubdir/stage1" -o -e "$grubdir/menu.lst" ]; then
-      echo "Entferne GRUB legacy, Reboot wird notwendig."
+      echo "Remove grub legacy, reboot is necessary."
       rm -f "$grubdir"/*stage* "$grubdir"/menu.lst gpxe.krn
       if [ -e /cache/update.log ]; then
         cat /cache/update.log >> /tmp/linbo.log
         sendlog
       fi
-      ( umount -a ; /sbin/reboot -f )
+      reboot="yes"
     fi
 
   else
@@ -3040,11 +3041,11 @@ update(){
   fi
 
   if [ "$RC" = "0" ]; then
-    echo "LINBO/GRUB update fertig."
+    echo "Linbo & grub update successfully finished."
     touch "$doneflag"
     [ -n "$reboot" ] && touch "$rebootflag"
   else
-    echo "Fehler!" >&2
+    echo "Linbo & grub update failed!" >&2
   fi
 
   sendlog
