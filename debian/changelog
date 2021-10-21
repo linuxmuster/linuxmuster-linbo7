@@ -1,7 +1,10 @@
 linuxmuster-linbo7 (4.0.1~0alpha1) lmn7-testing; urgency=low
 
-  * diffimage branch
-    - kernel 5.15.
+  * Fix #18: linbo_cmd: get grub disk number from partition fails.
+  * Fix #19: linbo_cmd: Missing space before closing ] in function invoke_macct().
+  * Fix #20: machine password hash not being restored.
+  * Fix #21: FR: client side warm start after linbo update.
+  * implemented differential imaging.
 
  -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 13 Oct 2021 12:29:07 +0000
 
