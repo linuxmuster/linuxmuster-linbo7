@@ -6,11 +6,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-<<<<<<< HEAD
-# 20211019
-=======
 # 20211023
->>>>>>> 857f58d (fix linbo_cmd trying to mount a partition that is already mounted.)
 # GPL v3
 #
 
