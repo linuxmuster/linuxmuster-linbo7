@@ -4,7 +4,7 @@
 # (C) Klaus Knopper 2007
 # License: GPL V2
 # thomas@linuxmuster.net
-# 20210204
+# 20211023
 #
 
 # Reset fb color mode
@@ -204,7 +204,7 @@ if ! get_linbo_gui; then
       ;;
     *)
       echo -e "\nPress [1] to reboot or [2] to shutdown."
-      local answer="0"
+      answer="0"
       while [ "$answer" != "1" -a "$answer" != "2" ]; do
         read answer
         case "$answer" in
