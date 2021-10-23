@@ -6,7 +6,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20211020
+# 20211023
 # GPL v3
 #
 
@@ -462,7 +462,6 @@ mountpart(){
   local ro
   [ "$3" = "-r" ] && ro=",ro"
   local options
-  local mountcmd
   case "$type" in
     ntfs)
       # options="recover,remove_hiberfile,user_xattr,inherit,acl$ro"
@@ -470,14 +469,12 @@ mountpart(){
     vfat) options="defaults$ro" ;;
     *) options="acl,user_xattr$ro" ;;
   esac
-  # create mount command
-  if [ "$type" = "ntfs" ]; then
-    mountcmd="mount -t ntfs3 -o $options $partition $destdir"
+  # mount partition, remount if partition is already mounted
+  if grep -q ^"$partition $destdir" /proc/mounts; then
+    mount -i -t $type -o remount,$options $partition $destdir
   else
-    mountcmd="mount -i -t $type -o $options $partition $destdir"
+    mount -i -t $type -o $options $partition $destdir
   fi
-  # mount partition
-  $mountcmd
   # check success
   local RC="1"
   grep -q ^"$partition $destdir" /proc/mounts && RC="0"
@@ -487,7 +484,7 @@ mountpart(){
       echo "Windows partition seems in bad shape. Try ntfsfix to solve this issue."
       ntfsfix "$partition"
     fi
-    $mountcmd
+    mount -i -t $type -o $options $partition $destdir
   # second try with default options for other filesystems
   elif [ "$RC" != "0" ]; then
     mount -i -t $type $partition $destdir
