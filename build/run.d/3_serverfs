@@ -9,7 +9,6 @@ for i in build/conf.d/*; do source "$i" || exit 1; done
 cp -a "$SERVERFS"/* "$PKGBUILDROOT" || exit 1
 
 # make certain files executable
-chmod 755 "$SRVFS_INITD"/*
 chmod 755 "$SRVFS_SHAREDIR"/*.sh
 
 # print two items in a line

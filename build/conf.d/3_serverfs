@@ -2,7 +2,6 @@
 
 # note: copy and link actions are applied in PKGBUILDROOT
 
-SRVFS_INITD="$PKGBUILDROOT/etc/init.d"
 SRVFS_SHAREDIR="$PKGBUILDROOT/usr/share/linuxmuster/linbo"
 
 # extra files that have to be copied to server filesystem (source and destination pairs per line)
