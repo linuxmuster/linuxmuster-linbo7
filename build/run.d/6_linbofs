@@ -14,6 +14,7 @@ echo "Adding static initramfs stuff ..."
 echo "# static entries" > "$INITRAMFS_BUILD"
 for i in "$BUILDINITD"/*; do
   sed -e "s|@@BBBIN@@|$BBBIN|g
+          s|@@KXBIN@@|$KXBIN|g
           s|@@LINBOFS@@|$LINBOFS|g
           s|@@SERVERFS@@|$SERVERFS|g" "$i" >> "$INITRAMFS_BUILD" || exit 1
 done
