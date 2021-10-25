@@ -1,0 +1,25 @@
+#!/bin/bash
+#
+# download and build kexec-tools
+
+# read build environment
+for i in build/conf.d/*; do source "$i" || exit 1; done
+
+# check for binary
+if [ -s "$KXBIN" -a -x "$KXBIN" ]; then
+  echo "Kexec binary exists, skipping build."
+
+else
+  # download
+  echo "Cloning $KXNAME source ..."
+  [ -d "$KXSRCDIR" ] && rm -rf "$KXSRCDIR"
+  cd "$SRC"
+  git clone "$KXURL" || exit 1
+  # compile
+  echo "Compiling $KXNAME ..."
+  cd "$KXSRCDIR" || exit 1
+  ./bootstrap || exit 1
+  ./configure --prefix=/usr || exit 1
+  make || exit 1
+  strip "$KXBIN" || exit 1
+fi
