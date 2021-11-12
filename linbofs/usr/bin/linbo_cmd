@@ -6,7 +6,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20211023
+# 20211112
 # GPL v3
 #
 
@@ -461,18 +461,21 @@ mountpart(){
   local destdir="$2"
   local ro
   [ "$3" = "-r" ] && ro=",ro"
-  local options
+  local options="noatime$ro"
+  local mountcmd="mount -i -t $type"
   case "$type" in
-    ntfs) options="recover,remove_hiberfile,user_xattr,inherit,acl$ro" ;;
-    vfat) options="defaults$ro" ;;
-    *) options="acl,user_xattr$ro" ;;
+    ntfs)
+      options="$options,recover,remove_hiberfile,user_xattr,inherit,acl"
+      mountcmd="mount.ntfs-3g"
+      ;;
+    vfat) ;;
+    *) options="$options,acl,user_xattr" ;;
   esac
-  # mount partition, remount if partition is already mounted
+  # umount partition first if it is already mounted
   if grep -q ^"$partition $destdir" /proc/mounts; then
-    mount -i -t $type -o remount,$options $partition $destdir
-  else
-    mount -i -t $type -o $options $partition $destdir
+    umount $destdir
   fi
+  $mountcmd -o $options $partition $destdir
   # check success
   local RC="1"
   grep -q ^"$partition $destdir" /proc/mounts && RC="0"
@@ -482,10 +485,10 @@ mountpart(){
       echo "Windows partition seems in bad shape. Try ntfsfix to solve this issue."
       ntfsfix "$partition"
     fi
-    mount -i -t $type -o $options $partition $destdir
+    $mountcmd -o $options $partition $destdir
   # second try with default options for other filesystems
   elif [ "$RC" != "0" ]; then
-    mount -i -t $type $partition $destdir
+    $mountcmd $partition $destdir
   fi
   # check success again
   grep -q ^"$partition $destdir" /proc/mounts && RC="0"
