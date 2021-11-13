@@ -6,7 +6,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20211112
+# 20211113
 # GPL v3
 #
 
@@ -2896,6 +2896,7 @@ update(){
   local md5_current
   local i
   local myname="$(clientname)"
+  local cfgfile
 
   # local restore of start.conf in cache (necessary if cache partition was formatted before)
   [ -s start.conf ] || cp /start.conf .
@@ -2939,61 +2940,49 @@ update(){
     echo "LINBO is up-to-date."
   fi
 
-  # get group specific and local grub configs from server
+  # get ipxe files from server
+  echo "Updating ipxe file."
+  case "$(systemtype)" in
+    efi*) download "$server" boot/grub/ipxe.efi ;;
+    *) download "$server" boot/grub/ipxe.lkrn ;;
+  esac
+
+  # get common grub config from server
   echo "Updating grub configuration."
-  for i in boot/grub/ipxe.lkrn "boot/grub/hostcfg/$myname.cfg" "boot/grub/$group.cfg" "boot/grub/spool/$myname.$group.grub.cfg"; do
-    # collect md5 sums before download
-    if [ "$i" = "boot/grub/hostcfg/$myname.cfg" ]; then
-      md5_before="$(md5sum "$grubdir/custom.cfg" 2> /dev/null | awk '{ print $1 }')"
-      hostcfg="yes"
-    elif [ "$i" = "boot/grub/$group.cfg" -a -n "$hostcfg" ]; then
-      # if download of hostcfg was successful skip download of groupcfg
-      continue
-    elif [ "$i" = "boot/grub/$group.cfg" -a -z "$hostcfg" ]; then
-      md5_before="$(md5sum "$grubdir/custom.cfg" 2> /dev/null | awk '{ print $1 }')"
-    elif [ "$i" = "boot/grub/spool/$myname.$group.grub.cfg" ]; then
-      md5_before="$(md5sum "$grubdir/grub.cfg" 2> /dev/null | awk '{ print $1 }')"
-    else
-      md5_before="$(md5sum "$(basename "$i")" 2> /dev/null | awk '{ print $1 }')"
-    fi
-    RC=0
-    download "$server" "$i" || RC=1
-    if [ "$RC" = "1" ]; then
-      # reset hostcfg if download failed
-      #if echo "$i" | grep -q hostcfg; then
-      #  hostcfg=""
-      #  rm -f "$i"
-      #  continue
-      #fi
-      echo "Download of $i failed!" >&2
-      rm -f "$i"
-      continue
-      #return 1
-    fi
+  # get md5sum before download
+  md5_before="$(md5sum "$grubdir/grub.cfg" 2> /dev/null | awk '{ print $1 }')"
+  cfgfile="$myname.$group.grub.cfg"
+  if download "$server" "boot/grub/spool/$cfgfile"; then
     # collect md5 after download
-    md5_after="$(md5sum "$(basename "$i")" 2> /dev/null | awk '{ print $1 }')"
+    md5_after="$(md5sum "$cfgfile" 2> /dev/null | awk '{ print $1 }')"
     # if md5 differ, reboot
     if [ "$md5_before" != "$md5_after" ]; then
-      echo "$(basename "$i") was updated."
+      echo "$cfgfile was updated."
       reboot="yes"
     fi
-  done
+    # move downloaded cfgfile in place
+    mv "$cfgfile" "$grubdir/grub.cfg"
+    break
+  fi
 
-  # move downloads in place
-  if [ -e "$myname.cfg" ]; then
-    mv "$myname.cfg" "$grubdir/custom.cfg" || RC=1
-    rm -f "$group.cfg"
-  fi
-  if [ -e "$group.cfg" ]; then
-    mv "$group.cfg" "$grubdir/custom.cfg" || RC=1
-  fi
-  if [ -e "$myname.$group.grub.cfg" ]; then
-    mv "$myname.$group.grub.cfg" "$grubdir/grub.cfg" || RC=1
-  fi
-  if [ "$RC" = "1" ]; then
-    echo "Failed to write grub configration!" >&2
-    return 1
-  fi
+  # get host or group specific grub config from server
+  md5_before="$(md5sum "$grubdir/custom.cfg" 2> /dev/null | awk '{ print $1 }')"
+  for i in "boot/grub/hostcfg/$myname.cfg" "boot/grub/$group.cfg"; do
+    echo "### download $i ###"
+    if download "$server" "$i"; then
+      cfgfile="$(basename "$i")"
+      # collect md5 after download
+      md5_after="$(md5sum "$cfgfile" 2> /dev/null | awk '{ print $1 }')"
+      # if md5 differ, reboot
+      if [ "$md5_before" != "$md5_after" ]; then
+        echo "$cfgfile was updated."
+        reboot="yes"
+      fi
+      # move downloaded cfgfile in place
+      mv "$cfgfile" "$grubdir/custom.cfg"
+      break
+    fi
+  done
 
   # keep grub themes also updated
   echo -n "Updating grub themes ... "
