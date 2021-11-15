@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20210731
+# 20211115
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -488,14 +488,13 @@ do_housekeeping(){
 # update linbo and install it locally
 do_linbo_update(){
   local server="$1"
-  #local customcfg="/cache/boot/grub/custom.cfg"
   local rebootflag="/tmp/.linbo.reboot"
   local cachedev="$(printcache)"
   # start linbo update
   linbo_cmd update "$server" "$cachedev" 2>&1 | tee /cache/update.log
   # initiate warm start
-  if [ -e "$rebootflag" ]; then
-    echo "Local LINBO/GRUB configuration was updated. Initiating warm restart ..."
+  if [ -e "$rebootflag" -a "$warmstart" != "no" ]; then
+    echo -n "Local LINBO/GRUB configuration was updated. Initiating warmstart ..."
     cd /
     /usr/bin/linbo_warmstart
   fi
