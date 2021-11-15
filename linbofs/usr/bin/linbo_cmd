@@ -6,7 +6,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20211113
+# 20211115
 # GPL v3
 #
 
@@ -2935,7 +2935,8 @@ update(){
       echo "Checksums differ, failed to download linbo64!" >&2
       return 1
     fi
-    reboot="yes"
+    # flag a reboot if linbo was not booted over network
+    grep -q localboot /proc/cmdline && reboot="yes"
   else
     echo "LINBO is up-to-date."
   fi
@@ -2947,39 +2948,23 @@ update(){
     *) download "$server" boot/grub/ipxe.lkrn ;;
   esac
 
-  # get common grub config from server
-  echo "Updating grub configuration."
-  # get md5sum before download
-  md5_before="$(md5sum "$grubdir/grub.cfg" 2> /dev/null | awk '{ print $1 }')"
+  # get grub configs from server
+  echo "Updating common grub configuration."
   cfgfile="$myname.$group.grub.cfg"
   if download "$server" "boot/grub/spool/$cfgfile"; then
-    # collect md5 after download
-    md5_after="$(md5sum "$cfgfile" 2> /dev/null | awk '{ print $1 }')"
-    # if md5 differ, reboot
-    if [ "$md5_before" != "$md5_after" ]; then
-      echo "$cfgfile was updated."
-      reboot="yes"
-    fi
     # move downloaded cfgfile in place
     mv "$cfgfile" "$grubdir/grub.cfg"
-    break
+    echo "grub.cfg was updated."
   fi
 
   # get host or group specific grub config from server
-  md5_before="$(md5sum "$grubdir/custom.cfg" 2> /dev/null | awk '{ print $1 }')"
+  echo "Updating host and group specific grub configuration."
   for i in "boot/grub/hostcfg/$myname.cfg" "boot/grub/$group.cfg"; do
-    echo "### download $i ###"
     if download "$server" "$i"; then
       cfgfile="$(basename "$i")"
-      # collect md5 after download
-      md5_after="$(md5sum "$cfgfile" 2> /dev/null | awk '{ print $1 }')"
-      # if md5 differ, reboot
-      if [ "$md5_before" != "$md5_after" ]; then
-        echo "$cfgfile was updated."
-        reboot="yes"
-      fi
       # move downloaded cfgfile in place
       mv "$cfgfile" "$grubdir/custom.cfg"
+      echo "custom.cfg was updated."
       break
     fi
   done
