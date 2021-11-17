@@ -1,3 +1,17 @@
+linuxmuster-linbo7 (4.0.0~0rc5) lmn7-testing; urgency=low
+
+  * Fix #23: Printerdriver permissions for windows users.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 19 Oct 2021 17:08:42 +0000
+
+linuxmuster-linbo7 (4.0.0~0rc4) lmn7-testing; urgency=low
+
+  * Fix linbo_cmd trying to mount a partition that is already mounted.
+  * Fix #21: client side warm start after linbo update.
+  * Fix #22: grub configuration is not transferred to linbo client.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 19 Oct 2021 17:08:42 +0000
+
 linuxmuster-linbo7 (4.0.0~0rc3) lmn7-testing; urgency=low
 
   * Fix #18: linbo_cmd: get grub disk number from partition fails.
