@@ -105,12 +105,26 @@ Linbo's torrent and multicast services are controlled by systemd:
 
 #### linbo-multicast
 
-Can be used to controle linbo's multicast service directly:
+Can be used to control linbo's multicast service directly:
 ```
 root@server:~# linbo-multicast --help
 Usage: /usr/sbin/linbo-multicast {start|stop|restart|status}
 ```
 
 #### linbo-torrent
+
+offers possibilities beyond the control of the service:
+```
+root@server:~# linbo-torrent --help
+Usage: /usr/sbin/linbo-torrent <start|stop|restart|reload|status|create|check> [torrent_filename|image_filename]
+
+Note:
+ * The commands start, stop and restart may have optionally a torrent filename
+   as parameter. So the command is only processed to this certain file.
+   Without an explicit torrent filename the commands were processed to all
+   torrent files found recursivly below /srv/linbo.
+ * A torrent filename parameter is mandatory with the command check.
+ * An image filename parameter is mandatory with the command create.
+```
 
 #### linbo-remote
