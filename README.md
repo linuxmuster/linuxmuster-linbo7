@@ -90,6 +90,13 @@ are defined in the start.conf file (see [examples](https://github.com/linuxmuste
 The command `linuxmuster-import-devices` writes the parameters into the grub configuration of the hardware group.
 Option  |  Description
 --|--
-forcegrub  |  forces grub boot on uefi systems (in case of uefi boot issues)
-  |  
-  |  
+forcegrub  |  Forces grub boot on uefi systems (in case of uefi boot issues).
+quiet  |  Suppresses kernel boot messages.
+splash  |  Displays graphical splash screen at boot time. Without this parameter, only text is displayed on the console at boot time.
+warmstart=no  |  Suppresses linbo warmstart after downloading a new linbo kernel from the server (in case this causes problems).
+
+### Linbo services
+
+Linbo's torrent and multicast services are controlled by systemd:  
+`systemctl start|stop|restart|status linbo-multicast`
+`systemctl start|stop|restart|status linbo-torrent`
