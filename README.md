@@ -105,6 +105,12 @@ Linbo's torrent and multicast services are controlled by systemd:
 
 #### linbo-multicast
 
+Can be used to controle linbo's multicast service directly:
+```
+root@server:~# linbo-multicast --help
+Usage: /usr/sbin/linbo-multicast {start|stop|restart|status}
+```
+
 #### linbo-torrent
 
 #### linbo-remote
