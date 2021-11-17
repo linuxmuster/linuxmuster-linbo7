@@ -54,8 +54,11 @@
 * start.conf in yaml format.
 * step by step changeover of the scripting to python.
 * differential imaging.
+* secure boot support.
 
-## Source tree structure
+## Build environment
+
+### Source tree structure
 * build: all files, which are used to build the package.
   - bin: helper scripts (only get kernel archive script at the moment).
   - conf.d: environment variables definition for the various build components.
@@ -67,7 +70,7 @@
 * linbofs: files, which are installed to the initramfs file system.
 * serverfs: files, which are installed to the server root file system.
 
-## Build instructions:
+### Build instructions:
 * Install 64bit Ubuntu 18.04
 * If you are using Ubuntu server or minimal:
   `sudo apt install dpkg-dev`
@@ -77,3 +80,16 @@
   `./buildpackage.sh`  
 
 Or for better convenience use the new [linbo-build-docker](https://github.com/linuxmuster/linbo-build-docker) environment.
+
+## Usage infos
+
+### Kernel parameters
+
+are defined in the start.conf file (see [examples](https://github.com/linuxmuster/linuxmuster-linbo7/tree/main/serverfs/srv/linbo/examples)) of the hardware group:  
+`KernelOptions = quiet splash`
+The command `linuxmuster-import-devices` writes the parameters into the grub configuration of the hardware group.
+Option  |  Description
+--|--
+forcegrub  |  forces grub boot on uefi systems (in case of uefi boot issues)
+  |  
+  |  
