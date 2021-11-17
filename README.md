@@ -117,6 +117,7 @@ offers possibilities beyond the control of the service:
 ```
 root@server:~# linbo-torrent --help
 Usage: /usr/sbin/linbo-torrent <start|stop|restart|reload|status|create|check> [torrent_filename|image_filename]
+```
 
 Note:
  * The commands start, stop and restart may have optionally a torrent filename
@@ -125,6 +126,5 @@ Note:
    torrent files found recursivly below /srv/linbo.
  * A torrent filename parameter is mandatory with the command check.
  * An image filename parameter is mandatory with the command create.
-```
 
 #### linbo-remote
