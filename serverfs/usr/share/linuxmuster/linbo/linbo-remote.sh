@@ -3,7 +3,7 @@
 # exec linbo commands remote per ssh
 #
 # thomas@linuxmuster.net
-# 20210514
+# 2021117
 # GPL V3
 #
 
@@ -70,9 +70,7 @@ usage(){
   echo "sync:<#>                 : Syncs the operating system on position nr <#>."
   echo "start:<#>                : Starts the operating system on pos. nr <#>."
   echo "create_image:<#>:<\"msg\"> : Creates a image image from operating system nr <#>."
-  echo "create_rsync:<#>:<\"msg\"> : Creates a rsync image from operating system nr <#>."
   echo "upload_image:<#>         : Uploads the image image from operating system nr <#>."
-  echo "upload_rsync:<#>         : Uploads the rsync image from operating system nr <#>."
   echo "reboot                   : Reboots the client."
   echo "halt                     : Shuts the client down."
   echo
