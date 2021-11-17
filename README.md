@@ -86,7 +86,7 @@ Or for better convenience use the new [linbo-build-docker](https://github.com/li
 ### Kernel parameters
 
 are defined in the start.conf file (see [examples](https://github.com/linuxmuster/linuxmuster-linbo7/tree/main/serverfs/srv/linbo/examples)) of the hardware group:  
-`KernelOptions = quiet splash`
+`KernelOptions = quiet splash`  
 The command `linuxmuster-import-devices` writes the parameters into the grub configuration of the hardware group.
 Option  |  Description
 --|--
@@ -98,5 +98,13 @@ warmstart=no  |  Suppresses linbo warmstart after downloading a new linbo kernel
 ### Linbo services
 
 Linbo's torrent and multicast services are controlled by systemd:  
-`systemctl start|stop|restart|status linbo-multicast`
-`systemctl start|stop|restart|status linbo-torrent`
+`systemctl start|stop|restart|status|disable|enable linbo-multicast`  
+`systemctl start|stop|restart|status|disable|enable linbo-torrent`
+
+### Linbo commands
+
+#### linbo-multicast
+
+#### linbo-torrent
+
+#### linbo-remote
