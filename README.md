@@ -128,3 +128,66 @@ Note:
  * An image filename parameter is mandatory with the command create.
 
 #### linbo-remote
+
+is used to remote control linbo actions on the client. Note that the `create_cloop` and `upload_cloop` options have changed to `create_image` and `upload_image`:
+
+```
+root@server:~# linbo-remote -h
+
+Usage: linbo-remote <options>
+
+Options:
+
+ -h                 Show this help.
+ -b <sec>           Wait <sec> second(s) between sending wake-on-lan magic
+                    packets to the particular hosts. Must be used in
+                    conjunction with "-w".
+ -c <cmd1,cmd2,...> Comma separated list of linbo commands transfered
+                    per ssh direct to the client(s).
+ -d                 Disables gui. To be used only together with option -c.
+ -g <group>         All hosts of this hostgroup will be processed.
+ -i <i1,i2,...>     Single ip or hostname or comma separated list of ips
+                    or hostnames of clients to be processed.
+ -l                 List current linbo-remote screens.
+ -n                 Bypasses start.conf configured auto functions
+                    (partition, format, initcache, start) on next boot.
+                    To be used only together with options -p
+                    or -c in conjunction with -w.
+ -r <room>          All hosts of this room will be processed.
+ -p <cmd1,cmd2,...> Create an onboot command file executed automatically
+                    once next time the client boots.
+ -w <sec>           Send wake-on-lan magic packets to the client(s)
+                    and wait <sec> seconds before executing the
+                    commands given with "-c" or in case of "-p" after
+                    the creation of the pxe boot files.
+ -u                 Use broadcast address with wol.
+
+Important: * Options "-r", "-g" and "-i" exclude each other, "-c" and
+             "-p" as well.
+
+Supported commands for -c or -p options are:
+
+partition                : Writes the partition table.
+label                    : Labels all partitions defined in start.conf.
+                           Note: Partitions have to be formatted.
+format                   : Writes the partition table and formats all
+                           partitions.
+format:<#>               : Writes the partition table and formats only
+                           partition nr <#>.
+initcache:<dltype>       : Updates local cache. <dltype> is one of
+                           rsync|multicast|torrent.
+                           If dltype is not specified it is read from
+                           start.conf.
+sync:<#>                 : Syncs the operating system on position nr <#>.
+start:<#>                : Starts the operating system on pos. nr <#>.
+create_image:<#>:<"msg"> : Creates a image image from operating system nr <#>.
+upload_image:<#>         : Uploads the image image from operating system nr <#>.
+reboot                   : Reboots the client.
+halt                     : Shuts the client down.
+
+<"msg"> is an optional image comment.
+The position numbers are related to the position in start.conf.
+The commands were sent per ssh to the linbo_wrapper on the client and processed
+in the order given on the commandline.
+create_* and upload_* commands cannot be used with hostlists, -r and -g options.
+```
