@@ -129,7 +129,7 @@ Note:
 
 #### linbo-remote
 
-is used to remote control linbo actions on the client. Note that the `create_cloop` and `upload_cloop` options have changed to `create_image` and `upload_image`:
+is used to remote control linbo actions on the client. Note that the `create_cloop` and `upload_cloop` commands have changed to `create_image` and `upload_image`:
 
 ```
 root@server:~# linbo-remote -h
