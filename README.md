@@ -98,8 +98,10 @@ warmstart=no  |  Suppresses linbo warmstart after downloading a new linbo kernel
 ### Linbo services
 
 Linbo's torrent and multicast services are controlled by systemd:  
-`systemctl start|stop|restart|status|disable|enable linbo-multicast`  
-`systemctl start|stop|restart|status|disable|enable linbo-torrent`
+```
+systemctl start|stop|restart|status|disable|enable linbo-multicast
+systemctl start|stop|restart|status|disable|enable linbo-torrent
+```
 
 ### Linbo commands
 
