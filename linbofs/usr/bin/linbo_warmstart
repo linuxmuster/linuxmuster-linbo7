@@ -7,7 +7,10 @@
 
 # test warmstart boot parameter
 for i in `cat /proc/cmdline`; do case "$i" in warmstart=*) eval $i ;; esac; done
-[ "$warmstart" = "no" ] && exit 0
+if [ "$warmstart" = "no" ]; then
+  echo "Kernel warmstart is disabled by boot parameter."
+  exit 0
+fi
 
 KEXEC="/sbin/kexec"
 LINBO="/cache/linbo64"
