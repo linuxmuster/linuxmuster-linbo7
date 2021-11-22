@@ -493,8 +493,8 @@ do_linbo_update(){
   # start linbo update
   linbo_cmd update "$server" "$cachedev" 2>&1 | tee /cache/update.log
   # initiate warm start
-  if [ -e "$rebootflag" ]; then
-    echo -n "Local LINBO/GRUB configuration was updated. Initiating warmstart ..."
+  if [ -e "$rebootflag" -a "$warmstart" != "no" ]; then
+    echo -n "Local LINBO/GRUB configuration was updated. Initiating linbo warmstart ..."
     cd /
     /usr/bin/linbo_warmstart
   fi
