@@ -6,7 +6,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20211115
+# 20211122
 # GPL v3
 #
 
@@ -1462,7 +1462,7 @@ start(){
   echo -n "start " ;  printargs "$@"
   # if no kernel is given, do not start
   if [ -z "$3" ]; then
-    echo "Nichts zu starten!"
+    echo "There is nothing to start!"
     return 0
   fi
   local INITRD
@@ -1476,7 +1476,7 @@ start(){
   touch "$startflag"
   if mountpart "$partition" /mnt -w 2>> /tmp/linbo.log; then
     if [ -e "/mnt/$KERNEL" ]; then
-      echo "Kernel $KERNEL auf Partition $partition gefunden."
+      echo "Found kernel $KERNEL on partition $partition."
       INITRD="${4#/}"
       APPEND="$5"
       # add root to append string
@@ -1486,7 +1486,7 @@ start(){
         APPEND="root=$partition $APPEND"
       fi
     else
-      echo "Kernel $KERNEL auf Partition $partition nicht vorhanden. Setze auf \"auto\"."
+      echo "No kernel $KERNEL on partition $partition. Using \"auto\"."
       KERNEL="auto"
     fi
     if mountcache "$cachedev"; then
@@ -1511,7 +1511,7 @@ start(){
       [ -s "/cache/$prestart" ] && source "/cache/$prestart"
     fi
   else
-    echo "Konnte Betriebssystem-Partition $partition nicht mounten." >&2
+    echo "Unable to mount operating system partition $partition." >&2
     umount /mnt 2>> /tmp/linbo.log
     mountcache "$cachedev" -r
     return 1
