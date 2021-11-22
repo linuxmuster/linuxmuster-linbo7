@@ -2,40 +2,49 @@
 #
 # linbo_warmstart <kernel> <initrd>
 # thomas@linuxmuster.net
-# 20211020
+# 20211122
 #
 
-# test if cache is mounted
-if ! mount | awk '{print $3}' | grep -q ^/cache; then
-  echo "Cache not mounted!"
-  exit 2
-fi
+# test warmstart boot parameter
+for i in `cat /proc/cmdline`; do case "$i" in warmstart=*) eval $i ;; esac; done
+[ "$warmstart" = "no" ] && exit 0
 
 KEXEC="/sbin/kexec"
+LINBO="/cache/linbo64"
+LINBOFS="/cache/linbofs64.lz"
 
 KERNEL="$1"
-[ -z "$KERNEL" ] && KERNEL="/cache/linbo64"
+[ -z "$KERNEL" ] && KERNEL="$LINBO"
 if [ ! -s "$KERNEL" ]; then
   echo "Kernel $KERNEL not found!"
   exit 1
 fi
 
 INITRD="$2"
-[ -z "$INITRD" ] && INITRD="/cache/linbofs64.lz"
+[ -z "$INITRD" ] && INITRD="$LINBOFS"
 if [ ! -s "$INITRD" ]; then
   echo "Initrd $INITRD not found!"
   exit 1
 fi
 
+APPEND="$3"
+if [ -z "$APPEND" -a "$KERNEL" = "$LINBO" -a "$INITRD" = "$LINBOFS" ]; then
+  APPEND="$(cat /proc/cmdline)"
+fi
+if [ -z "$APPEND" ]; then
+  echo "Kernel append string is empty. Check your parameters!"
+  exit 1
+fi
+
 # load linbo kernel
-if ! $KEXEC --reuse-cmdline --initrd=$INITRD -l $KERNEL; then
-  echo "Failed to load linbo kernel!"
+if ! $KEXEC --type="bzImage" --append="$APPEND" --initrd="$INITRD" --load "$KERNEL"; then
+  echo "Failed to load kernel!"
   exit 1
 fi
 
 # execute linbo kernel
 if ! $KEXEC -e; then
-  echo "Failed to execute linbo kernel!"
+  echo "Failed to execute kernel!"
   exit 1
 fi
 
