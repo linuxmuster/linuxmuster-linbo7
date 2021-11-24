@@ -6,7 +6,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20211122
+# 20211123
 # GPL v3
 #
 
@@ -281,7 +281,7 @@ get_64(){
 # get_disk_from_partition partition
 get_disk_from_partition(){
   local p="$1"
-  local disk=
+  local disk
   expr "$p" : ".*p[[:digit:]][[:digit:]]*" >/dev/null && disk=${p%%p[0-9]*}
   expr "$p" : ".*[hsv]d[[:alpha:]][[:digit:]][[:digit:]]*" >/dev/null && disk=${p%%[0-9]*}
   if [ -n "$disk" ]; then
@@ -1591,28 +1591,71 @@ save_efi_bcd(){
   return "$RC"
 }
 
-# print_guid partition
-# print gpt uuid of a partition (works only with efi)
+# print_guid device
+# print uuid of a partition or a disk
 print_guid(){
-  local partition="$1"
-  local disk="$(get_disk_from_partition "${partition}")"
-  local partnr="$(echo "$partition" | sed "s|$disk||")"
-  echo -e "i\n$partnr\nq\n" | gdisk "$disk" | grep -i "partition unique guid" | awk -F\: '{ print $2 }' | awk '{ print $1 }' 2> /dev/null
+  if [ ! -b "$1" ]; then
+    echo "$1 is not a block device!"
+    return 1
+  fi
+  local i
+  # get uuid with blkid
+  for i in `blkid "$1"`; do
+    case "$i" in
+      PARTUUID=*|PTUUID=*)
+        echo "$i" | awk -F\" '{print $2}' | tr a-z A-Z
+        break
+      ;;
+    esac
+  done
 }
 
-# set_guid partition guid flag
+# set_guid device guid
 # sets gpt uuid of a partition (works only with efi)
 set_guid(){
-  local partition="$1"
-  local guid="$2"
-  local RC="0"
-  [ -z "$partition" -a -z "$guid" ] && return 1
-  echo "Restoring partition guid of $partition."
-  local disk="$(get_disk_from_partition "${partition}")"
-  local partnr="$(echo "$partition" | sed "s|$disk||")"
-  echo -e "x\nc\n$partnr\n$guid\nw\nY\n" | gdisk "$disk" 2>&1 | tee -a /tmp/image.log
-  blkid "$partition" | grep -qi "$guid" || RC="1"
-  return "$RC"
+  [ -z "$1" -a -z "$2" ] && return 1
+  if [ ! -b "$1" ]; then
+    echo "$1 is not a block device!"
+    return 1
+  fi
+  # get device data
+  local i
+  local PARTUUID
+  local PTUUID
+  local device
+  local guid
+  # get current guid and check if it matches already
+  for i in `blkid "$1"`; do
+    case "$i" in
+      PARTUUID=*|PTUUID=*)
+        guid="$(echo "$i" | awk -F \" '{print $2}')"
+        if [ "$(echo $guid | tr A-Z a-z)" = "$(echo $2 | tr A-Z a-z)" ]; then
+          echo "Guid of $1 matches already. Doing nothing."
+          return 0
+        fi
+        eval $i
+        device="$1"
+        guid="$2"
+        break
+      ;;
+    esac
+  done
+  # disk or a partition
+  if [ -n "$PARTUUID" ]; then
+    # partition
+    echo "Restoring partition guid of $device."
+    local disk="$(get_disk_from_partition "${device}")"
+    local partnr="$(echo "$device" | sed "s|$disk||")"
+    echo -e "x\nc\n$partnr\n$guid\nw\nY\n" | gdisk "$disk" 2>&1 | tee -a /tmp/image.log
+  elif [ -n "$PTUUID" ]; then
+    # disk
+    echo "Restoring disk guid of $device."
+    echo -e "x\ng\n$guid\nw\nY\n" | gdisk "$device" 2>&1 | tee -a /tmp/image.log
+  else
+    echo "Unknown device $device!"
+    return 1
+  fi
+  blkid "$device" | grep -qi "$guid" || return 1
 }
 
 # prepare_fs directory partition
@@ -1634,10 +1677,12 @@ prepare_fs(){
     # in case of efi save the windows efi files
     local efipart="$(print_efipart)"
     if [ -n "$efipart" ]; then
-      # save partition uuids
-#      echo "Saving partition guids."
-#      print_guid "$efipart" > /mnt/.guid.efi
-#      print_guid "$2" > /mnt/.guid."$(basename "$2")"
+      # save partition & disk uuids
+      echo "Saving partition guids."
+      print_guid "$efipart" > /mnt/.guid.efi
+      print_guid "$2" > /mnt/.guid.part
+      local disk="$(get_disk_from_partition "$2")"
+      print_guid "$disk" > /mnt/.guid.disk
       if [ "$(fstype $2)" = "ntfs" ]; then
         targetdir="$(ls -d [Ee][Ff][Ii]/[Mm][Ii][Cc][Rr][Oo][Ss][Oo][Ff][Tt]/[[Bb][Oo][Oo][Tt] 2> /dev/null)"
         [ -z "$targetdir" ] && targetdir="EFI/Microsoft/Boot"
@@ -2198,6 +2243,14 @@ syncl(){
   local bootdir
   local image="$2"
   local force="$9"
+  local HOSTNAME
+  local FQDN
+  local efipart="$(print_efipart)"
+  local partname="$(basename "$rootdev")"
+  local sysname
+  local guidfile
+  local device
+  local i
 
   # don't sync in that case
   if [ "$1" = "$rootdev" ]; then
@@ -2239,8 +2292,6 @@ syncl(){
   [ -e /mnt/[Nn][Tt][Ll][Dd][Rr] -o -e /mnt/[Bb][Oo][Oo][Tt][Mm][Gg][Rr] -o -d /mnt/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Ss][Yy][Ss][Tt][Ee][Mm]32 ] && local is_win="yes"
 
   # get hostname
-  local HOSTNAME
-  local FQDN
   if [ -s /tmp/network.ok ]; then
     source /tmp/network.ok
     FQDN="${hostname}.${domain}"
@@ -2252,33 +2303,27 @@ syncl(){
   fi
   [ -z "$HOSTNAME" ] && HOSTNAME="$(hostname)"
 
-  # detect efi system if efi partition exists
-  local efipart="$(print_efipart)"
-
   ## Prepare os filesystem, apply patches etc.
 
-  # restore guids in case of efi/gpt partitions (deprecated)
-#  local sysname
-#  if [ -n "$efipart" ]; then
-#    sysname="EFI"
-#    # restore partition guids
-#    local partname="$(basename "$rootdev")"
-#    # get guids with old method
-#    [ -s /mnt/.guids ] && source /mnt/.guids
-#    if [ -s /mnt/.guid.efi ]; then
-#      set_guid "$efipart" "$(cat /mnt/.guid.efi)"
-#    else
-#      [ -n "$guid_efi" ] && set_guid "$efipart" "$guid_efi"
-#    fi
-#    if [ -s "/mnt/.guid.$partname" ]; then
-#      set_guid "$rootdev" "$(cat /mnt/.guid."$partname")"
-#    else
-#      [ -n "$guid_os" ] && set_guid "$rootdev" "$guid_os"
-#    fi
-#  else
-#    sysname="BIOS"
-#  fi # efipart
-#  echo "$sysname system found."
+  # restore guids in case of efi/gpt partitions
+  if [ -n "$efipart" ]; then
+    sysname="EFI"
+    # move old guid file for os partition in place
+    [ ! -s /mnt/.guid.part -a -s "/mnt/.guid.$partname" ] && mv "/mnt/.guid.$partname" /mnt/.guid.part
+    # restore partition & disk guids from according files
+    for i in disk efi part; do
+      case "$i" in
+        disk) device="$disk" ;;
+        efi) device="$efipart" ;;
+        part) device="$rootdev" ;;
+      esac
+      guidfile="/mnt/.guid.$i"
+      [ -s "$guidfile" ] && set_guid "$device" "$(cat "$guidfile")"
+    done
+  else
+    sysname="BIOS"
+  fi # efipart
+  echo "$sysname system found."
 
   # windows stuff begin
   if [ -n "$is_win" ]; then
