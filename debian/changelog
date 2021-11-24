@@ -1,3 +1,9 @@
+linuxmuster-linbo7 (4.0.0-1) lmn71; urgency=low
+
+  * added libiodbc2 to package dependencies.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 19 Oct 2021 17:08:42 +0000
+
 linuxmuster-linbo7 (4.0.0-0) lmn71; urgency=low
 
   * Fix #24: kexec'd warmstart of linux clients.
