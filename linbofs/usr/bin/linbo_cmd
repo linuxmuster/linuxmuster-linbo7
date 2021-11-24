@@ -6,7 +6,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20211123
+# 20211124
 # GPL v3
 #
 
@@ -1710,12 +1710,12 @@ prepare_fs(){
         # save bootloader sectors
         echo "Saving bootloader sectors for group $group."
         dd if="$disk" of="$bsmbr" bs=446 count=1 2>> /tmp/linbo.log
-        # in case of gpt partition label
-        if fdisk -l "$disk" | grep -q "GPT"; then
-          echo "Saving gpt label for group $group."
-          local gptlabel="$targetdir/gptlabel.$group"
-          dd if="$disk" of="$gptlabel" bs=512 count=34 2>> /tmp/linbo.log
-        fi
+        # in case of gpt partition label (deprecated, see #25 & #26)
+#        if fdisk -l "$disk" | grep -q "GPT"; then
+#          echo "Saving gpt label for group $group."
+#          local gptlabel="$targetdir/gptlabel.$group"
+#          dd if="$disk" of="$gptlabel" bs=512 count=34 2>> /tmp/linbo.log
+#        fi
         # ntfs partition id
         echo "Saving ntfs id."
         local ntfsid="$targetdir/ntfs.id"
@@ -2392,14 +2392,14 @@ syncl(){
           ;;
       esac
     fi
-    # restore gpt label
-    if fdisk -l "$disk" | grep -q "GPT"; then
-      local gptlabel="$bootdir"/gptlabel."$group"
-      if [ -s "$gptlabel" ]; then
-        echo "Restoring gpt label from $(basename "$gptlabel")." | tee -a /tmp/linbo.log
-        dd if="$gptlabel" of="$disk" bs=512 count=34 2>> /tmp/linbo.log
-      fi
-    fi
+    # restore gpt label (deprecated, see #25 & #26)
+#    if fdisk -l "$disk" | grep -q "GPT"; then
+#      local gptlabel="$bootdir"/gptlabel."$group"
+#      if [ -s "$gptlabel" ]; then
+#        echo "Restoring gpt label from $(basename "$gptlabel")." | tee -a /tmp/linbo.log
+#        dd if="$gptlabel" of="$disk" bs=512 count=34 2>> /tmp/linbo.log
+#      fi
+#    fi
 
     # restore ntfs id
     [ -e "$bootdir"/ntfs.id ] && local ntfsid="$(ls "$bootdir"/ntfs.id 2> /dev/null)"
