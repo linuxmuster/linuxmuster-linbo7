@@ -1,3 +1,9 @@
+linuxmuster-linbo7 (4.0.0-3) lmn71; urgency=low
+
+  * git workflow fix.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 25 Nov 2021 12:35:00 +0001
+
 linuxmuster-linbo7 (4.0.0-2) lmn71; urgency=low
 
   * releasename update.
