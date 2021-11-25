@@ -58,8 +58,8 @@ jobs:
         uses: haya14busa/action-cond@v1
         with:
           cond: ${{ env.DISTRIBUTION == 'lmn71' }}
-          if_true: "true"
-          if_false: "false"
+          if_true: "false"
+          if_false: "true"
 
       - name: Create Release
         id: create_release
