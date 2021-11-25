@@ -58,8 +58,8 @@ jobs:
         uses: haya14busa/action-cond@v1
         with:
           cond: ${{ env.DISTRIBUTION == 'lmn71' }}
-          if_true: "true"
-          if_false: "false"
+          if_true: "false"
+          if_false: "true"
 
       - name: Create Release
         id: create_release
@@ -77,7 +77,6 @@ jobs:
         run: rm ./current-changes
 
       - name: Upload Release Assets
-        if: env.DISTRIBUTION == 'lmn70'
         id: upload-release-assets
         uses: dwenegar/upload-release-assets@v1
         env:
