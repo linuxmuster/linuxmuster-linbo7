@@ -6,7 +6,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20211124
+# 20211125
 # GPL v3
 #
 
@@ -2743,8 +2743,9 @@ download_img_if_changed(){
       DOWNLOAD="true"
     fi
   fi
-  # download other supplemental files except info (done before) and torrent (doing later)
+  # download other supplemental files
   download_all "$server" "${subdir}${imagefile}.desc" \
+    "${subdir}${imagefile}.info" \
     "${subdir}${imagefile}.reg" \
     "${subdir}${imagefile}.postsync" \
     "${subdir}${imagebase}.reg" \
