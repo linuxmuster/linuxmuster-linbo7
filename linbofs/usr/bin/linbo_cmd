@@ -6,7 +6,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20211125
+# 20211128
 # GPL v3
 #
 
@@ -1933,7 +1933,7 @@ cp_image(){
     echo "Trying to resize filesystem on $targetdev." | tee -a /tmp/image.log
     local fstype="$(fstype_startconf "$targetdev")"
     case "$fstype" in
-      ntfs) ntfsresize -x "$targetdev" | tee -a /tmp/image.log ;;
+      ntfs) echo -e "y\ņ" | ntfsresize "$targetdev" | tee -a /tmp/image.log ;;
       ext4)
         e2fsck -f "$targetdev" | tee -a /tmp/image.log
         resize2fs -f "$targetdev" | tee -a /tmp/image.log
