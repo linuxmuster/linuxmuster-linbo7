@@ -3,25 +3,25 @@ linuxmuster-linbo7 (4.0.1-0) lmn71; urgency=low
   * Fix #27: opentracker start fails because of missing dependency.
   * Fix #28: missing info file causes redownload of current image.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 26 Nov 2021 16:28:00 +0001
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 26 Nov 2021 16:28:00 +0100
 
 linuxmuster-linbo7 (4.0.0-4) lmn71; urgency=low
 
   * another git workflow fix.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 25 Nov 2021 13:31:00 +0001
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 25 Nov 2021 13:31:00 +0100
 
 linuxmuster-linbo7 (4.0.0-3) lmn71; urgency=low
 
   * git workflow fix.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 25 Nov 2021 12:35:00 +0001
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 25 Nov 2021 12:35:00 +0100
 
 linuxmuster-linbo7 (4.0.0-2) lmn71; urgency=low
 
   * releasename update.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 25 Nov 2021 11:18:00 +0001
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 25 Nov 2021 11:18:00 +0100
 
 linuxmuster-linbo7 (4.0.0-1) lmn71; urgency=low
 
