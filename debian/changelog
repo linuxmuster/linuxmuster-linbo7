@@ -1,3 +1,11 @@
+linuxmuster-linbo7 (4.0.2-0) lmn71; urgency=low
+
+  * linbo warmstart improvements (#24).
+  * Finally fix #25: ntfsresize seems to not work anymore.
+  * Restore old gptlabel if disk uuid has not been saved yet (#26).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 29 Nov 2021 20:42:00 +0100
+
 linuxmuster-linbo7 (4.0.1-0) lmn71; urgency=low
 
   * Fix #27: opentracker start fails because of missing dependency.
