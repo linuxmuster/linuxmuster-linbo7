@@ -6,7 +6,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20211128
+# 20211129
 # GPL v3
 #
 
@@ -1630,7 +1630,7 @@ set_guid(){
       PARTUUID=*|PTUUID=*)
         guid="$(echo "$i" | awk -F \" '{print $2}')"
         if [ "$(echo $guid | tr A-Z a-z)" = "$(echo $2 | tr A-Z a-z)" ]; then
-          echo "Guid of $1 matches already. Doing nothing."
+          echo "UUID of $1 matches already. Doing nothing."
           return 0
         fi
         eval $i
@@ -1643,13 +1643,13 @@ set_guid(){
   # disk or a partition
   if [ -n "$PARTUUID" ]; then
     # partition
-    echo "Restoring partition guid of $device."
+    echo "Restoring UUID of $device."
     local disk="$(get_disk_from_partition "${device}")"
     local partnr="$(echo "$device" | sed "s|$disk||")"
     echo -e "x\nc\n$partnr\n$guid\nw\nY\n" | gdisk "$disk" 2>&1 | tee -a /tmp/image.log
   elif [ -n "$PTUUID" ]; then
     # disk
-    echo "Restoring disk guid of $device."
+    echo "Restoring UUID of $device."
     echo -e "x\ng\n$guid\nw\nY\n" | gdisk "$device" 2>&1 | tee -a /tmp/image.log
   else
     echo "Unknown device $device!"
@@ -2247,7 +2247,6 @@ syncl(){
   local FQDN
   local efipart="$(print_efipart)"
   local partname="$(basename "$rootdev")"
-  local sysname
   local guidfile
   local device
   local i
@@ -2307,23 +2306,10 @@ syncl(){
 
   # restore guids in case of efi/gpt partitions
   if [ -n "$efipart" ]; then
-    sysname="EFI"
-    # move old guid file for os partition in place
-    [ ! -s /mnt/.guid.part -a -s "/mnt/.guid.$partname" ] && mv "/mnt/.guid.$partname" /mnt/.guid.part
-    # restore partition & disk guids from according files
-    for i in disk efi part; do
-      case "$i" in
-        disk) device="$disk" ;;
-        efi) device="$efipart" ;;
-        part) device="$rootdev" ;;
-      esac
-      guidfile="/mnt/.guid.$i"
-      [ -s "$guidfile" ] && set_guid "$device" "$(cat "$guidfile")"
-    done
+    echo "UEFI system found."
   else
-    sysname="BIOS"
-  fi # efipart
-  echo "$sysname system found."
+    echo "BIOS system found."
+  fi
 
   # windows stuff begin
   if [ -n "$is_win" ]; then
@@ -2339,10 +2325,9 @@ syncl(){
       rm -f "$TMP"
     fi # reg patch
 
-    # restore windows boot files
+    # manage windows boot files
     local bcd_backup
 
-    # get boot files
     # efi
     if [ -n "$efipart" ]; then
       # detect efi boot dir backup
@@ -2359,8 +2344,8 @@ syncl(){
         [ -n "$srcdir" ] && cp -r "$srcdir"/* "$bootdir/"
       fi
       bcd_backup="$bootdir"/BCD."$group"."$partname"
-      # bios
     else
+      # bios
       bootdir="$(ls -d /mnt/[Bb][Oo][Oo][Tt])"
       bcd_backup="$bootdir"/BCD."$group"
     fi
@@ -2392,14 +2377,39 @@ syncl(){
           ;;
       esac
     fi
-    # restore gpt label (deprecated, see #25 & #26)
-#    if fdisk -l "$disk" | grep -q "GPT"; then
-#      local gptlabel="$bootdir"/gptlabel."$group"
-#      if [ -s "$gptlabel" ]; then
-#        echo "Restoring gpt label from $(basename "$gptlabel")." | tee -a /tmp/linbo.log
-#        dd if="$gptlabel" of="$disk" bs=512 count=34 2>> /tmp/linbo.log
-#      fi
-#    fi
+
+    # restore disk & partition uuids on efi systems
+    if [ -n "$efipart" ]; then
+      # restore old gptlabel
+      local gptlabel="$bootdir"/gptlabel."$group"
+      # only if no disk guid file exists
+      if [ -s "$gptlabel" -a ! -s /mnt/.guid.disk ]; then
+        echo "Saving current gpt label."
+        local gptcurrent="/tmp/gptlabel.current"
+        dd if="$disk" of="$gptcurrent" bs=512 count=34 2>> /tmp/linbo.log
+        echo "Restoring old gpt label from $(basename "$gptlabel")." | tee -a /tmp/linbo.log
+        dd if="$gptlabel" of="$disk" bs=512 count=34 2>> /tmp/linbo.log
+        # get disk uuid from old gpt label
+        print_guid "$disk" > /mnt/.guid.disk
+        echo "Restoring current gpt label." | tee -a /tmp/linbo.log
+        dd if="$gptcurrent" of="$disk" bs=512 count=34 2>> /tmp/linbo.log
+      fi
+      # move old guid file for os partition in place
+      [ ! -s /mnt/.guid.part -a -s "/mnt/.guid.$partname" ] && mv "/mnt/.guid.$partname" /mnt/.guid.part
+      # restore partition & disk guids from according files
+      for i in disk efi part; do
+        case "$i" in
+          disk) device="$disk" ;;
+          efi) device="$efipart" ;;
+          part) device="$rootdev" ;;
+        esac
+        guidfile="/mnt/.guid.$i"
+        if [ -s "$guidfile" ]; then
+          echo "Restoring UUID of $device."
+          set_guid "$device" "$(cat "$guidfile")"
+        fi
+      done
+    fi
 
     # restore ntfs id
     [ -e "$bootdir"/ntfs.id ] && local ntfsid="$(ls "$bootdir"/ntfs.id 2> /dev/null)"
