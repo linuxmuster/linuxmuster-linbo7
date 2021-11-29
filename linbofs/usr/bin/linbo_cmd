@@ -1468,15 +1468,18 @@ start(){
   local INITRD
   local APPEND
   local KERNEL="${3#/}"
-  local warmstart
+  local warmstart="no"
   local i
   local partition="$2"
   local label="$(print_partlabel "$partition")"
   local cachedev="$6"
+  local mntpnt="/mnt"
+  [ "$partition" = "$cachedev" ] && mntpnt="/cache"
+  [ -d /sys/firmware/efi/efivars ] && local efi="true"
   local startflag="/tmp/.start"
   touch "$startflag"
-  if mountpart "$partition" /mnt -w 2>> /tmp/linbo.log; then
-    if [ -e "/mnt/$KERNEL" ]; then
+  if mountpart "$partition" "$mntpnt" 2>> /tmp/linbo.log; then
+    if [ -e "$mntpnt/$KERNEL" ]; then
       echo "Found kernel $KERNEL on partition $partition."
       INITRD="${4#/}"
       APPEND="$5"
@@ -1486,8 +1489,11 @@ start(){
       else
         APPEND="root=$partition $APPEND"
       fi
-      # test for warmstart boot parameter
-      for i in `cat /proc/cmdline`; do case "$i" in warmstart=*) eval $i ;; esac; done
+      # test for warmstart boot parameter, if not linbo reboot and not efi
+      if [ "$partition" != "$cachedev" -a -z "$efi" ]; then
+        warmstart="yes"
+        for i in `cat /proc/cmdline`; do case "$i" in warmstart=*) eval $i ;; esac; done
+      fi
       # load kernel for later warmstart
       if [ "$warmstart" != "no" ]; then
         kexec --type="bzImage" --append="$APPEND" --initrd="/mnt/$INITRD" --load "/mnt/$KERNEL" && warmstart="yes"
@@ -1499,7 +1505,7 @@ start(){
     # install/update grub/efi stuff if cache is mounted
     if mountcache "$cachedev"; then
       # prepare reboot if no warmstart
-      [ "$warmstart" != "yes" ] && mk_boot "$partition" "$KERNEL" "$INITRD" "$APPEND" | tee -a /tmp/linbo.log
+      [ "$warmstart" = "no" ] && mk_boot "$partition" "$KERNEL" "$INITRD" "$APPEND" | tee -a /tmp/linbo.log
       # update linuxmuster-win scripts and install start tasks
       [ "$(fstype "$partition")" = "ntfs" -a -d /cache/linuxmuster-win ] && update_win "$partition" | tee -a /tmp/linbo.log
     fi
@@ -1532,7 +1538,7 @@ start(){
   umount /mnt 2>> /tmp/linbo.log
   sendlog
   # start os directly or reboot into it
-  if [ "$warmstart" = "yes" ]; then
+  if [ "$warmstart" != "no" ]; then
     kexec -e
   else
     reboot -f

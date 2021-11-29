@@ -1,47 +1,57 @@
 #!/bin/sh
 #
-# linbo_warmstart <kernel> <initrd>
+# linbo_warmstart <device>
 # thomas@linuxmuster.net
-# 20211122
+# 20211129
 #
 
+if [ -n "$1" ]; then
+  CACHE="$1"
+else
+  CACHE="$(grep -iw ^cache /start.conf | tail -1 | awk -F\= '{print $2}' | awk '{print $1}' | awk -F\# '{print $1}' | awk '{print $1}')"
+fi
+
+if [ ! -b "$CACHE" ]; then
+  [ -z "$CACHE" ] && CACHE="<None>"
+  echo "Cache $CACHE is not a blockdevice!"
+  exit 1
+fi
+
 KEXEC="/sbin/kexec"
-LINBO="/cache/linbo64"
-LINBOFS="/cache/linbofs64.lz"
+KERNEL="linbo64"
+INITRD="linbofs64.lz"
+APPEND="$(cat /proc/cmdline)"
+CFG="/cache/boot/grub/custom.cfg"
+TPL="/usr/share/linbo/warmstart.cfg"
+[ -d /sys/firmware/efi/efivars ] && EFI="true"
 
-KERNEL="$1"
-[ -z "$KERNEL" ] && KERNEL="$LINBO"
-if [ ! -s "$KERNEL" ]; then
-  echo "Kernel $KERNEL not found!"
-  exit 1
+# test for warmstart boot parameter
+warmstart="yes"
+for i in $APPEND; do case "$i" in warmstart=*) eval $i ;; esac; done
+if [ "$warmstart" = "no" ]; then
+  echo "Skipping kexec'd linbo warmstart, rebooting instead."
 fi
 
-INITRD="$2"
-[ -z "$INITRD" ] && INITRD="$LINBOFS"
-if [ ! -s "$INITRD" ]; then
-  echo "Initrd $INITRD not found!"
-  exit 1
-fi
+cd /
+linbo_cmd mount "$CACHE" /cache
 
-APPEND="$3"
-if [ -z "$APPEND" -a "$KERNEL" = "$LINBO" -a "$INITRD" = "$LINBOFS" ]; then
-  APPEND="$(cat /proc/cmdline)"
-fi
-if [ -z "$APPEND" ]; then
-  echo "Kernel append string is empty. Check your parameters!"
-  exit 1
-fi
-
-# load linbo kernel
-if ! $KEXEC --type="bzImage" --append="$APPEND" --initrd="$INITRD" --load "$KERNEL"; then
-  echo "Failed to load kernel!"
-  exit 1
-fi
-
-# execute linbo kernel
-if ! $KEXEC -e; then
-  echo "Failed to execute kernel!"
-  exit 1
+# cold reboot
+if [ -n "$EFI" -o "$warmstart" = "no" ]; then
+  mv "$CFG" "$CFG".reboot || exit 1
+  sed -e "s|@@kopts@@|$APPEND|" "$TPL" > "$CFG" || exit 1
+  linbo_cmd start "" "$CACHE" "$KERNEL" "$INITRD" "$APPEND" "$CACHE"
+# kexec boot
+else
+  # load linbo kernel
+  if ! $KEXEC --type="bzImage" --append="$APPEND" --initrd="/cache/$INITRD" --load "/cache/$KERNEL"; then
+    echo "Failed to load kernel!"
+    exit 1
+  fi
+  # execute linbo kernel
+  if ! $KEXEC -e; then
+    echo "Failed to execute kernel!"
+    exit 1
+  fi
 fi
 
 exit 0
