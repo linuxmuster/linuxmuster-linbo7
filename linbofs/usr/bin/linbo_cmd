@@ -1676,18 +1676,21 @@ prepare_fs(){
     local targetdir
     # in case of efi save the windows efi files
     local efipart="$(print_efipart)"
-    # save partition & disk uuids
-    echo "Saving partition guids."
-    [ -n "$efipart" ] && print_guid "$efipart" > /mnt/.guid.efi
-    print_guid "$2" > /mnt/.guid.part
-    local disk="$(get_disk_from_partition "$2")"
-    print_guid "$disk" > /mnt/.guid.disk
-    if [ "$(fstype $2)" = "ntfs" ]; then
-      targetdir="$(ls -d [Ee][Ff][Ii]/[Mm][Ii][Cc][Rr][Oo][Ss][Oo][Ff][Tt]/[[Bb][Oo][Oo][Tt] 2> /dev/null)"
-      [ -z "$targetdir" ] && targetdir="EFI/Microsoft/Boot"
-      save_efi_bcd "$targetdir" "$efipart" | tee -a /tmp/linbo_image.log
+    if [ -n "$efipart" ]; then
+      # save partition & disk uuids
+      echo "Saving partition guids."
+      print_guid "$efipart" > /mnt/.guid.efi
+      print_guid "$2" > /mnt/.guid.part
+      local disk="$(get_disk_from_partition "$2")"
+      print_guid "$disk" > /mnt/.guid.disk
+      if [ "$(fstype $2)" = "ntfs" ]; then
+        targetdir="$(ls -d [Ee][Ff][Ii]/[Mm][Ii][Cc][Rr][Oo][Ss][Oo][Ff][Tt]/[[Bb][Oo][Oo][Tt] 2> /dev/null)"
+        [ -z "$targetdir" ] && targetdir="EFI/Microsoft/Boot"
+        save_efi_bcd "$targetdir" "$efipart" | tee -a /tmp/linbo_image.log
+      fi
+    else
+      targetdir="$(ls -d [Bb][Oo][Oo][Tt] 2> /dev/null)"
     fi
-    targetdir="$(ls -d [Bb][Oo][Oo][Tt] 2> /dev/null)"
     if [ -n "$targetdir" ]; then
       local bcd="$(ls $targetdir/[Bb][Cc][Dd] 2> /dev/null)"
       local group="$(hostgroup)"
@@ -2302,25 +2305,24 @@ syncl(){
 
   ## Prepare os filesystem, apply patches etc.
 
-  # restore guids
+  # restore guids in case of efi/gpt partitions
   if [ -n "$efipart" ]; then
     sysname="EFI"
-    guidfile="/mnt/.guid.efi"
-    [ -s "$guidfile" ] && set_guid "$efipart" "$(cat "$guidfile")"
+    # move old guid file for os partition in place
+    [ ! -s /mnt/.guid.part -a -s "/mnt/.guid.$partname" ] && mv "/mnt/.guid.$partname" /mnt/.guid.part
+    # restore partition & disk guids from according files
+    for i in disk efi part; do
+      case "$i" in
+        disk) device="$disk" ;;
+        efi) device="$efipart" ;;
+        part) device="$rootdev" ;;
+      esac
+      guidfile="/mnt/.guid.$i"
+      [ -s "$guidfile" ] && set_guid "$device" "$(cat "$guidfile")"
+    done
   else
     sysname="BIOS"
   fi # efipart
-  # move old guid file for os partition in place
-  [ ! -s /mnt/.guid.part -a -s "/mnt/.guid.$partname" ] && mv "/mnt/.guid.$partname" /mnt/.guid.part
-  # restore partition & disk guids from according files
-  for i in disk part; do
-    case "$i" in
-      disk) device="$disk" ;;
-      part) device="$rootdev" ;;
-    esac
-    guidfile="/mnt/.guid.$i"
-    [ -s "$guidfile" ] && set_guid "$device" "$(cat "$guidfile")"
-  done
   echo "$sysname system found."
 
   # windows stuff begin
