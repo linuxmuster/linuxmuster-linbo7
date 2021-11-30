@@ -22,7 +22,7 @@
 * Convert your cloop images to qcow2 format with `linbo-cloop2qcow2`:
   - invoke for example `linbo-cloop2qcow2 ubuntu.cloop` and
   - the converted image will be created in `/srv/linbo/images/ubuntu/ubuntu.qcow2`.
-  - Note that for images of Windows systems used with multiple hardware groups, it may be necessary to create a new image.
+  - Note: Images of Windows systems may not function as expected (especially UEFI). In this case it is necessary to create a new image.
 * Change the image name in the start.conf.
 * Restart the image deployment services with `linbo-torrent|linbo-multicast restart`.
 * See the status of the image deployment services with `systemctl status linbo-torrent|linbo-multicast`.
