@@ -26,6 +26,7 @@
 * Change the image name in the start.conf.
 * Restart the image deployment services with `linbo-torrent|linbo-multicast restart`.
 * See the status of the image deployment services with `systemctl status linbo-torrent|linbo-multicast`.
+* Important: Start all clients 2 times to ensure Linbo v2 was updated to v4.
 * Finally start the import script `linuxmuster-import-devices`, which will remove the obsolete start.conf links.
 * Now you can create and deploy images as usual.
 * Explore the new linbo-torrent tool:  
