@@ -1,0 +1,31 @@
+# Postsync script example, that syncs a second partition additionally.
+# To be placed as /srv/linbo/images/<imagename>/<imagename>.postsync.
+# Example, according image file is win10.qcow2:
+# /srv/linbo/images/win10/win10.postsync
+
+echo "##### POSTSYNC BEGIN #####"
+
+# server ip, stolen from dhcp.log
+myserverip="$(grep ^linbo_server /tmp/dhcp.log | tail -1 | awk -F\' '{ print $2 }')"
+
+# image filename, must be adapted
+mybaseimage=maverick.qcow2
+
+# target partition, which will be synced, must be adapted
+myrootpartition=/dev/sda2
+
+# linbo console output
+echo "cachepartition:  $1"
+echo "myserverip:      $myserverip"
+echo "mybaseimage:     $mybaseimage"
+echo "myrsyncimage:    $myrsyncimage"
+echo "myrootpartition: $myrootpartition"
+
+# command to sync the second partition
+/usr/bin/linbo_cmd synconly "$myserverip" "$1" "$mybaseimage" "" "" "$myrootpartition"
+
+# syntax for linbo_cmd synconly:
+# /usr/bin/linbo_cmd synconly "<serverip>" "<cachepartition>" "<imagefile>" "" "" "<rootpartition>"
+# cachepartition is variable $1 in the LINBO environment.
+
+echo "##### POSTSYNC END #####"
