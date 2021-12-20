@@ -1,8 +1,13 @@
 linuxmuster-linbo7 (4.0.3-0) lmn71; urgency=low
 
+  * Fix #32: Add global.reg to linuxmuster-win.
+  * Fix #33: /dev/nbd0 disconnected Report.
+  * Fix #34: fullsync with ext4 Filesystems changed behavior.
+  * Fix #35: Change ntpd Parameter.
   * Fix #36: Use qcow2 in examples.
+  * Fix #37: remove all deprecated opsi code.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 20 Dec 2021 10:56:00 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 20 Dec 2021 15:00:00 +0100
 
 linuxmuster-linbo7 (4.0.2-0) lmn71; urgency=low
 
