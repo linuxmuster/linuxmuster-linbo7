@@ -2,7 +2,7 @@
 #
 # Post-Download script for rsync/LINBO
 # thomas@linuxmuster.net
-# 20210731
+# 20211220
 #
 
 # read in paedml specific environment
@@ -79,61 +79,6 @@ case $EXT in
    echo "Removing temporary $FILE."
    rm -f "$FILE"
    ;;
-
- # update host's opsi ini, invoked by linbo_cmd on postsync
- *.opsi)
-  # take requested file from pre-download script
-  imageini="$FILE"
-  # if opsi server is configured and host is opsimanaged
-  if ([ -n "$opsiip" -a -s "$imageini" ] && opsimanaged "$compname"); then
-   # get host's inifile from opsi server
-   clientini_local="$OPSICLIENTDIR/${RSYNC_HOST_NAME}.ini"
-   clientini="${opsiip}:$clientini_local"
-   origini="/var/tmp/$(basename "$clientini")"
-   newini="/var/tmp/$(basename "$clientini").new"
-   echo "clientini: $clientini"
-   echo "origini: $origini"
-   echo "newini: $newini"
-   rsync "$clientini" "$origini"
-   # if download of inifile was successful
-   if [ -s "$origini" ]; then
-    echo "$origini successfully downloaded!"
-    # get windows keys from file if any
-    licensekey="$(grep ^poolid-or-licensekey "$origini" | awk -F\" '{ print $2 }')"
-    productkey="$(grep ^productkey "$origini" | awk -F\" '{ print $2 }')"
-    # copy header from original ini to new ini
-    sed -n '/^\[info\]/,/^\[localboot_product_states\]/p' "$origini" | sed -n '/^\[localboot_product_states\]/!p' > "$newini"
-    # take opsi product states from image ini
-    sed -n '/^\[localboot_product_states\]/,$p' "$imageini" >> "$newini"
-    # patch license keys
-    [ -n "$licensekey" ] && sed -e "s|^poolid-or-licensekey.*|poolid-or-licensekey = \[\"$licensekey\"\]|" -i "$newini"
-    [ -n "$productkey" ] && sed -e "s|^productkey.*|productkey = \[\"$productkey\"\]|" -i "$newini"
-    # should opsi products be restored after sync?
-    restoreopsistate_res="$(restoreopsistate "$compname" "$(basename "$imageini")")"
-    forceopsisetup_res="$(forceopsisetup "$compname" "$(basename "$imageini")")"
-    # backup current inifile
-    [ "$restoreopsistate_res" = "yes" ] && ssh "$opsiip" cp "$clientini_local" "$clientini_local".bak
-    # upload the new inifile
-    rsync "$newini" "$clientini" ; RC="$?"
-    [ "$RC" = "0" ] || echo "Upload of $(basename "$newini") to opsi failed!"
-    # restore opsi product status
-    if [ "$restoreopsistate_res" = "yes" ]; then
-      ssh "$opsiip" /usr/share/linuxmuster-opsi/opsiSetup.py "$RSYNC_HOST_NAME" "$forceopsisetup_res"
-    else
-      # repair opsi's file permissions
-      [ -z "$opsisetrights" ] && ssh "$opsiip" opsi-setup --set-rights "$OPSICLIENTDIR"
-    fi
-   fi
-   rm -f "$origini" "$newini"
-  fi
- ;;
-
- *.opsikey)
-  if [ -e "$FILE" ]; then
-   echo "Removing opsi key file $FILE."
-   rm -f "$FILE"
-  fi
- ;;
 
  *.winkey)
   if [ -e "$FILE" ]; then
