@@ -1868,7 +1868,7 @@ sync_image(){
   set +o pipefail
   if [ "$RC" != "0" ]; then
     echo "Connection to $imagefile failed!" | tee -a /tmp/image.log
-    qemu-nbd --disconnect /dev/nbd0 | tee -a /tmp/image.log
+    qemu-nbd --disconnect /dev/nbd0 >> /tmp/image.log
     return "$RC"
   fi
   # wait a few seconds after qemu-nbd connect attempt
@@ -1876,7 +1876,7 @@ sync_image(){
   mkdir -p /image
   if ! mountpart /dev/nbd0 /image -r; then
     echo "Mounting $imagefile failed!" | tee -a /tmp/image.log
-    qemu-nbd --disconnect /dev/nbd0 | tee -a /tmp/image.log
+    qemu-nbd --disconnect /dev/nbd0 >> /tmp/image.log
     return "$RC"
   fi
   # sync image
@@ -1888,7 +1888,7 @@ sync_image(){
   if [ "$RC" != "0" ]; then
     echo "Image sync of $imagefile to $targetdev failed!" | tee -a /tmp/image.log
   fi
-  qemu-nbd --disconnect /dev/nbd0 | tee -a /tmp/image.log
+  qemu-nbd --disconnect /dev/nbd0 >> /tmp/image.log
   sync; sync; sleep 1
   umount /mnt || umount -l /mnt
   [ "$RC" = "0" ] && update_status "$2" "$1"
@@ -1921,11 +1921,11 @@ cp_image(){
   local s2="$(get_partition_size $targetdev)"
   if [ "$s1" -gt "$s2" ] 2>/dev/null; then
     echo "Error: $imagefile (${s1}K) is bigger than partition $targetdev (${s2}K)" >&2 | tee -a /tmp/image.log
-    qemu-nbd --disconnect /dev/nbd0 | tee -a /tmp/image.log
+    qemu-nbd --disconnect /dev/nbd0 >> /tmp/image.log
     return 1
   fi
   # restore
-  qemu-nbd --disconnect /dev/nbd0 | tee -a /tmp/image.log
+  qemu-nbd --disconnect /dev/nbd0 >> /tmp/image.log
   set -o pipefail
   interruptible qemu-img convert -p -f "$imagetype" -O raw "$imagefile" "$targetdev" | tee -a /tmp/image.log
   RC="$?"
