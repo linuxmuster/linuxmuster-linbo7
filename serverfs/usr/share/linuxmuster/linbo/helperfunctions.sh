@@ -2,7 +2,7 @@
 # helperfunctions for linbo scripts
 #
 # thomas@linuxmuster.net
-# 20210517
+# 20211220
 #
 
 # converting string to lower chars
@@ -210,69 +210,4 @@ validmac() {
   else
     return 1
   fi
-}
-
-# test if host is opsimanaged: opsimanaged ip|host
-opsimanaged() {
- local res="$(get_pxe "$1")"
- local i
- for i in $res; do
-  isinteger "$i" || continue
-  [ "$i" = "2" -o "$i" = "3" ] && return 0
- done
- return 1
-}
-
-# return value of RestoreOpsiState from start.conf: restoreopsistate clientname imagename.opsi
-restoreopsistate() {
-  local clientname="$(echo "$1" | awk -F \. '{ print $1 }' | tr A-Z a-z)"
-  local imagename="$(echo "$2" | sed -e 's|.opsi||')"
-  local hostgroup="$(get_hostgroup "$clientname")"
-  local startconf="$LINBODIR/start.conf.$hostgroup"
-  local line
-  local imagefound="no"
-  local result
-  local ocount=0
-  local icount=0
-  grep -v ^# "$startconf" | grep -i ^[br][ae][s][et][io][mr][ae][go][ep] | while read line; do
-    if echo "$line" | grep -qi ^baseimage; then
-      icount=$((icount + 1))
-      echo "$line" | grep -qw "$imagename" && imagefound="yes"
-    fi
-    if echo "$line" | grep -qi ^restoreopsistate; then
-      ocount=$((ocount + 1))
-      result="$(echo "$line" | awk -F\= '{ print $2 }' | awk -F\# '{ print $1 }' | awk '{ print $1 }' | tr A-Z a-z)"
-    fi
-    if [ $ocount -eq $icount -a "$imagefound" = "yes" ]; then
-      echo -n "$result"
-      return
-    fi
-  done
-}
-
-# return list of of productids from start.conf: forceopsisetup clientname imagename.opsi
-forceopsisetup() {
-  local clientname="$(echo "$1" | awk -F \. '{ print $1 }' | tr A-Z a-z)"
-  local imagename="$(echo "$2" | sed -e 's|.opsi||')"
-  local hostgroup="$(get_hostgroup "$clientname")"
-  local startconf="$LINBODIR/start.conf.$hostgroup"
-  local line
-  local imagefound="no"
-  local result
-  local ocount=0
-  local icount=0
-  grep -v ^# "$startconf" | grep -i ^[bf][ao][sr][ec][ie][mo][ap][gs][ei] | while read line; do
-    if echo "$line" | grep -qi ^baseimage; then
-      icount=$((icount + 1))
-      echo "$line" | grep -qw "$imagename" && imagefound="yes"
-    fi
-    if echo "$line" | grep -qi ^forceopsisetup; then
-      ocount=$((ocount + 1))
-      result="$(echo "$line" | awk -F\= '{ print $2 }' | awk -F\# '{ print $1 }' | awk '{ print $1 }' | tr A-Z a-z)"
-    fi
-    if [ $ocount -eq $icount -a "$imagefound" = "yes" ]; then
-      echo -n "$result"
-      return
-    fi
-  done
 }
