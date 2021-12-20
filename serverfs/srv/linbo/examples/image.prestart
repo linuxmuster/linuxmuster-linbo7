@@ -1,9 +1,9 @@
 # prestart script example, sourced by linbo_cmd on the client before the os is started
 # to be placed in LINBODIR
-# if the image is named ubuntu.cloop, the corresponding prestart script name is ubuntu.prestart
+# if the image is named ubuntu.qcow2, the corresponding prestart script name is ubuntu.prestart
 #
 # thomas@linuxmuster.net
-# 20210207
+# 20211220
 #
 
 echo "# prestart script example"

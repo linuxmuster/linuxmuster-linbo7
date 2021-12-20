@@ -1,6 +1,8 @@
 Windows Registry Editor Version 5.00
 
-; linuxmuster.net 7 version
+; linuxmuster.net 7
+
+; to be applied once before domain join and image creation
 
 ; machine account password may not expire
 [HKEY_LOCAL_MACHINE\System\CurrentControlSet\services\Netlogon\Parameters]
@@ -23,3 +25,12 @@ Windows Registry Editor Version 5.00
 ; allow users to install printer drivers
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows NT\Printers\PointAndPrint]
 "RestrictDriverInstallationToAdministrators"=dword:00000000
+
+; samba domain, to be adapted
+[HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Policies\System\]
+"DefaultLogonDomain"="SAMBADOMAIN"
+[HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Services\Tcpip\Parameters]
+"Domain"="SAMBADOMAIN"
+"NV Domain"="SAMBADOMAIN"
+
+; add your custom registry patches below

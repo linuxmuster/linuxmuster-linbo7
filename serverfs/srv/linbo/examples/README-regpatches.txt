@@ -1,27 +1,22 @@
-Registry-Patches fuer LINBO
+Registry patches for LINBO
 ---------------------------------------
 
-* Für jedes Windows-Image muss unter /var/linbo eine Patch-Datei nach diesen
-  Mustern bereitgestellt werden:
-  <ImageName>.cloop.reg
-  <ImageName>.rsync.reg
+* For every Windows image there has to be a registry patch file in
+  /srv/linbo/images/<imagename> according to this naming scheme:
+  <imagename>.reg, e.g. win10.reg for image win10.qcow2.
 
-* In den Image-Patch-Dateien muss ggf. der Domaenenname angepasst werden
-  (winxp.reg, win[7|10].image.reg).
+* Inside the registry patch file the samba domainname has to be modified.
 
-* Die Patch-Dateien können mit eigenen Registry-Einträgen ergänzt werden.
+* The patch files may contain custom registry entries.
 
-Es gibt drei Vorlagen für Registry-Patches:
-* win[7|10].image.reg: Registry-Patch für Hostname und Domaene, der dem Image
-  beigelegt wird (s.o.).
-* win[7|10].global.reg: Notwendige und optionale Registry-Einträge (siehe
-  Kommentare in der Datei), die jeweils vor Domaenenbeitritt und Image-
-  erstellung eingespielt werden müssen (Doppelklick auf die Datei).
-* win7.storage.reg: Wird zum Zwecke der Imagevereinheitlichung bei unter-
-  schiedlicher Hardware vor der Erstellung des Images eingespielt. Der Patch
-  aktiviert beim Betriebssystemstart das Laden diverser Kontroller-Treiber.
-  (Nur Windows 7).
+There are two templates:
+* win10.image.reg: Registry patch for hostname and custom entries,
+  which accompanies the image file.
+* win10.global.reg: Necessary and optional registry entries (see
+  comments in the file), which must be imported once before joining the domain
+  and creating the image.
+  Note: SAMBADOMAIN has to be adapted!
 
 ---
 thomas@linuxmuster.net
-21.10.2016
+20.12.2021
