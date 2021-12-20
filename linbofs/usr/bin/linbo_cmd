@@ -1966,7 +1966,6 @@ restore(){
   echo "Unpacking: $imagefile -> $targetdev"
   check_status "$targetdev" "$imagefile" || force="force"
   if [ "$force" = "force" ]; then
-    echo "Forcing partition clone ..."
     set -o pipefail
     format "$targetdev" "$fstype" "$label" | tee -a /tmp/linbo.log ; RC="$?"
     set +o pipefail
@@ -1974,12 +1973,14 @@ restore(){
       echo "Formatting of $targetdev failed!"
       return "$RC"
     fi
-  else
-    echo "File sync ..."
+    # do file sync in case of ext4 filesytem
+    [ "$fstype" = "ext4" ] && force=""
   fi
   if [ "$force" = "force" ]; then
+    echo "Forcing partition clone ..."
     cp_image "$imagefile" "$targetdev" ; RC="$?"
   else
+    echo "File sync ..."
     sync_image "$imagefile" "$targetdev" ; RC="$?"
   fi
   if [ "$RC" = "0" ]; then
