@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # thomas@linuxmuster.net
-# 20210731
+# 20211220
 #
 
 # read in linuxmuster specific environment
@@ -57,11 +57,10 @@ if [ -s "$BACKUP" ]; then
         mv -fv "$BACKUP" "$ARCHIVE"
         echo "$BASENAME successfully backed up." >&2
         # backup supplemental image files that reside on server
-        for i in macct opsi reg postsync prestart; do
+        for i in macct reg postsync prestart; do
           cp -f "$IMGDIR"/*."$i" "$BAKTMP" &> /dev/null
         done
         chmod 600 "$BAKTMP"/*.macct &> /dev/null
-        chmod 600 "$BAKTMP"/*.opsi &> /dev/null
         ;;
       *)
         # next is the info file, so we can get the timestamp and create the final backup dir
@@ -119,20 +118,6 @@ case "$EXT" in
         rm -f "$IMGDIR/${BASE}.macct"
       else
         rm -f "$imagemacct"
-      fi
-    fi
-
-    # update opsi settings if host is managed
-    if ([ -n "$opsiip" ] && opsimanaged "$compname"); then
-      clientini="${opsiip}:$OPSICLIENTDIR/${RSYNC_HOST_NAME}.ini"
-      imageini="$IMGDIR/$image.opsi"
-      rsync "$clientini" "$imageini" ; RC="$?"
-      if [ "$RC" = "0" ]; then
-        chmod 600 "$imageini"
-        echo "$(basename "$clientini") successfully downloaded to $(basename "$imageini")."
-      else
-        rm -f "$imageini"
-        echo "Download of $(basename "$clientini") to $(basename "$imageini") failed!"
       fi
     fi
 
