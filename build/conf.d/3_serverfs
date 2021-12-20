@@ -7,6 +7,7 @@ SRVFS_SHAREDIR="$PKGBUILDROOT/usr/share/linuxmuster/linbo"
 # extra files that have to be copied to server filesystem (source and destination pairs per line)
 SRVFS_FILES="
 usr/share/linuxmuster/linbo/templates/grub.cfg.pxe srv/linbo/boot/grub/grub.cfg
+srv/linbo/examples/win10.global.reg srv/linbo/linuxmuster-win/win10.global.reg
 "
 
 # directories to be created on server filesystem
