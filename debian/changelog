@@ -1,3 +1,9 @@
+linuxmuster-linbo7 (4.0.3-0) lmn71; urgency=low
+
+  * Fix #36: Use qcow2 in examples.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 20 Dec 2021 10:56:00 +0100
+
 linuxmuster-linbo7 (4.0.2-0) lmn71; urgency=low
 
   * linbo warmstart improvements (#24).

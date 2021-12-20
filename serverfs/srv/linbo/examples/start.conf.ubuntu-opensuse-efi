@@ -91,8 +91,6 @@ NewEnabled = yes              # show new+start button
 Autostart = no                # automatic start of os (yes|no)
 AutostartTimeout = 5          # timeout in secs for user to cancel automatic start
 DefaultAction = sync          # default action on automatic start: start|sync|new
-RestoreOpsiState = no         # restore opsi product state after sync (yes|no)
-ForceOpsiSetup =              # comma separated list of opsi product ids, which are forced
                               # to setup after sync (e.g. mozilla.firefox,mozilla.thunderbird)
 Hidden = yes                  # hide os tab (unused option, leave it at yes)
 
@@ -114,7 +112,5 @@ NewEnabled = yes              # show new+start button
 Autostart = no                # automatic start of os (yes|no)
 AutostartTimeout = 5          # timeout in secs for user to cancel automatic start
 DefaultAction = sync          # default action on automatic start: start|sync|new
-RestoreOpsiState = no         # restore opsi product state after sync (yes|no)
-ForceOpsiSetup =              # comma separated list of opsi product ids, which are forced
                               # to setup after sync (e.g. mozilla.firefox,mozilla.thunderbird)
 Hidden = yes                  # hide os tab (unused option, leave it at yes)
