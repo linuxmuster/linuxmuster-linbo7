@@ -16,9 +16,8 @@
 * Packages were published in the [lmn7-testing repository](http://archive.linuxmuster.net/lmn7-testing/).
 
 ## Migration
-* Add following entry to `/etc/apt/sources.list.d/lmn7.list`:
-  `deb http://archive.linuxmuster.net/ lmn7-testing/`
-  and perform a dist-upgrade.
+* Add the new lmn71 repo according to this instruction https://github.com/linuxmuster/deb/blob/main/README.md#setup
+* Perform a dist-upgrade subsequently.
 * Convert your cloop images to qcow2 format with `linbo-cloop2qcow2`:
   - invoke for example `linbo-cloop2qcow2 ubuntu.cloop` and
   - the converted image will be created in `/srv/linbo/images/ubuntu/ubuntu.qcow2`.
