@@ -4,7 +4,7 @@
 # (C) Klaus Knopper 2007
 # License: GPL V2
 # thomas@linuxmuster.net
-# 20211023
+# 20211228
 #
 
 # Reset fb color mode
@@ -95,7 +95,7 @@ get_linbo_gui(){
     print_status "Successfully mounted cache partition." | tee -a /cache/linbo.log
   fi
   # get network infos
-  [ -s /tmp/network.ok ] && source /tmp/network.ok
+  [ -s /tmp/dhcp.log ] && source /tmp/dhcp.log &> /dev/null
   if [ -z "$linbo_server" ]; then
     print_status "Fatal: Cannot read network infos. Continuing offline." | tee -a /cache/linbo.log
     offline="yes"
