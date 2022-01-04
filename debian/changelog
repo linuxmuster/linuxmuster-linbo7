@@ -1,3 +1,9 @@
+linuxmuster-linbo7 (4.0.5-0) lmn71; urgency=low
+
+  * kernel 5.10.89.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 4 Jan 2021 17:16:00 +0100
+
 linuxmuster-linbo7 (4.0.4-0) lmn71; urgency=low
 
   * Fix #40: linbo_gui not downloaded on unregistered clients.
