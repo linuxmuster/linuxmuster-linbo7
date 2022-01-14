@@ -2,7 +2,7 @@
 #
 # Pre-Download script for rsync/LINBO
 # thomas@linuxmuster.net
-# 20211220
+# 20220113
 #
 
 # read in linuxmuster specific environment
@@ -188,7 +188,7 @@ case $EXT in
   start-conf)
     group="$(get_hostgroup "$compname")"
     startconf="$LINBODIR/start.conf.$group"
-    if [ -s "$startconf" ]; then
+    if [ -n "$group" -a -s "$startconf" ]; then
       cp "$startconf" "$FILE"
     else
       cp -L "$LINBODIR/start.conf" "$FILE"

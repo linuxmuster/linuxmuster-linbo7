@@ -2,7 +2,7 @@
 # helperfunctions for linbo scripts
 #
 # thomas@linuxmuster.net
-# 20211220
+# 20220113
 #
 
 # converting string to lower chars
@@ -107,9 +107,12 @@ get_mac() {
 }
 
 # return hostgroup of device from devices.csv
+# get_hostgroup hostname
 get_hostgroup(){
-  local clientname="$1"
-  grep -v ^# "$WIMPORTDATA" | grep -wi "$clientname" | awk -F\; '{ print $2 " " $3 }' | grep -wi "$clientname" | awk '{ print $2 }'
+  tolower "$1"
+  ldbsearch -H /var/lib/samba/private/sam.ldb "(sophomorixDnsNodename="$RET")" memberOf | grep ,OU=device-groups, | awk -F= '{print $2}' | awk -F, '{print $1}' | sed 's|^d_||'
+  #local clientname="$1"
+  #grep -v ^# "$WIMPORTDATA" | grep -wi "$clientname" | awk -F\; '{ print $2 " " $3 }' | grep -wi "$clientname" | awk '{ print $2 }'
 }
 
 # return mac address from dhcp leases
