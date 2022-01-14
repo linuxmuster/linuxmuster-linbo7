@@ -1,3 +1,11 @@
+linuxmuster-linbo7 (4.0.6-0) lmn71; urgency=low
+
+  * Fix #44: Hyphen in hostname prevents loading the correct start.conf.
+  * Fix #46: Windows BSOD after image sync to nvme partition.
+  * Fix #47: get host data from ad instead of devices.csv.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 14 Jan 2022 17:04:18 +0000
+
 linuxmuster-linbo7 (4.0.5-0) lmn71; urgency=low
 
   * kernel 5.10.89.
