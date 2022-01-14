@@ -1,16 +1,15 @@
 #! /bin/bash
 #
 # thomas@linuxmuster.net
-# 20211012
+# 20220114
 #
 
 DESC="Multicast session for"
 
 # lmn7 specific paths
-. /usr/share/linuxmuster/defaults.sh || exit 1
+source /usr/share/linuxmuster/linbo/helperfunctions.sh || exit 1
 INTERFACE="$(LANG=C ip route show | grep ^default | awk '{ print $5 }')"
 SERVERIP="$serverip"
-. $LINBOSHAREDIR/helperfunctions.sh || exit 1
 DAEMON=$LINBOSHAREDIR/linbo-mcasthelper.sh
 
 # Gracefully exit if the package has been removed.

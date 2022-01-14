@@ -2,13 +2,12 @@
 #
 # starts screen process for each valid torrent in LINBODIR
 # thomas@linuxmuster.net
-# 20210802
+# 20220114
 #
 
 # read environment
-. /usr/share/linuxmuster/defaults.sh || exit 1
+source /usr/share/linuxmuster/linbo/helperfunctions.sh || exit 1
 THELPER=$LINBOSHAREDIR/linbo-torrenthelper.sh
-. $LINBOSHAREDIR/helperfunctions.sh || exit 1
 
 # help message
 usage(){

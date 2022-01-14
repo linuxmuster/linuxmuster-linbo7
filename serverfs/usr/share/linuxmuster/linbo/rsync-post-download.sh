@@ -2,12 +2,11 @@
 #
 # Post-Download script for rsync/LINBO
 # thomas@linuxmuster.net
-# 20211220
+# 20220114
 #
 
 # read in paedml specific environment
-source /usr/share/linuxmuster/defaults.sh || exit 1
-source $LINBOSHAREDIR/helperfunctions.sh || exit 1
+source /usr/share/linuxmuster/linbo/helperfunctions.sh || exit 1
 
 # Debug
 LOGFILE="$LINBOLOGDIR/rsync-post-download.log"

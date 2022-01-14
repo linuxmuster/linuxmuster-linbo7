@@ -3,13 +3,12 @@
 # exec linbo commands remote per ssh
 #
 # thomas@linuxmuster.net
-# 2021117
+# 20220114
 # GPL V3
 #
 
 # read linuxmuster environment
-source /usr/share/linuxmuster/defaults.sh || exit 1
-source $LINBOSHAREDIR/helperfunctions.sh || exit 1
+source /usr/share/linuxmuster/linbo/helperfunctions.sh || exit 1
 
 KNOWNCMDS="label partition format initcache sync start create_image create_rsync upload_image upload_rsync reboot halt"
 DLTYPES="multicast rsync torrent"

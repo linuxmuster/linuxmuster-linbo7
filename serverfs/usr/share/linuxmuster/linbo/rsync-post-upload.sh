@@ -1,12 +1,11 @@
 #!/bin/bash
 #
 # thomas@linuxmuster.net
-# 20211220
+# 20220114
 #
 
 # read in linuxmuster specific environment
-source /usr/share/linuxmuster/defaults.sh || exit 1
-source $LINBOSHAREDIR/helperfunctions.sh || exit 1
+source /usr/share/linuxmuster/linbo/helperfunctions.sh || exit 1
 
 # where to place the temporary image backup
 BAKTMP="$LINBOIMGDIR/tmp"

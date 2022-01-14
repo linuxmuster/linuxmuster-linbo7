@@ -6,11 +6,10 @@
 #
 # thomas@linuxmuster.net
 # GPL V3
-# 20210227
+# 20220114
 #
 
 # read linuxmuster environment
-source /usr/share/linuxmuster/defaults.sh || exit 1
 source /usr/share/linuxmuster/linbo/helperfunctions.sh || exit 1
 
 if [ ! -e "$SETUPINI" ]; then
