@@ -64,7 +64,7 @@ get_hostname(){
   if validip "$1"; then
     $LDBSEARCH "(sophomorixComputerIP=$1)" $attr | grep ^$attr | awk '{print $2}'
   elif validmac "$1"; then
-    $LDBSEARCH "(sophomorixComputerMAC=$(toupper $1)" $attr | grep ^$attr | awk '{print $2}'
+    $LDBSEARCH "(sophomorixComputerMAC=$(toupper $1))" $attr | grep ^$attr | awk '{print $2}'
   elif validhostname "$1"; then
     $LDBSEARCH "($attr=$(tolower $1))" $attr | grep ^$attr | awk '{print $2}'
   else
@@ -79,7 +79,7 @@ get_mac(){
   if validip "$1"; then
     $LDBSEARCH "(sophomorixComputerIP=$1)" $attr | grep ^$attr | awk '{print $2}'
   elif validhostname "$1"; then
-    $LDBSEARCH "(sophomorixDnsNodename=$(tolower $1)" $attr | grep ^$attr | awk '{print $2}'
+    $LDBSEARCH "(sophomorixDnsNodename=$(tolower $1))" $attr | grep ^$attr | awk '{print $2}'
   elif validmac "$1"; then
     $LDBSEARCH "($attr=$(toupper $1))" $attr | grep ^$attr | awk '{print $2}'
   else

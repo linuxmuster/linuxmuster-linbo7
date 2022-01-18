@@ -1,3 +1,9 @@
+linuxmuster-linbo7 (4.0.7-0) lmn71; urgency=low
+
+  * Fix #48: syntax error in hostname and mac address queries.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 18 Jan 2022 12:34:00 +0100
+
 linuxmuster-linbo7 (4.0.6-0) lmn71; urgency=low
 
   * Fix #44: Hyphen in hostname prevents loading the correct start.conf.
