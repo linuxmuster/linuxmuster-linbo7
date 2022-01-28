@@ -2,7 +2,7 @@
 #
 # Pre-Download script for rsync/LINBO
 # thomas@linuxmuster.net
-# 20220114
+# 20220128
 #
 
 # read in linuxmuster specific environment
@@ -34,9 +34,6 @@ stringinstring "winact.tar.gz.upload" "$FILE" && EXT="winact-upload"
 
 # recognize download request of local grub.cfg
 stringinstring ".grub.cfg" "$FILE" && EXT="grub-local"
-
-# recognize start.conf request
-[ "$BASENAME" = "start.conf_$compname" ] && EXT="start-conf"
 
 echo "HOSTNAME: $RSYNC_HOST_NAME"
 echo "IP: $RSYNC_HOST_ADDR"
@@ -184,7 +181,7 @@ case $EXT in
     ;;
 
   # handle start.conf request
-  start-conf)
+  .conf_*)
     group="$(get_hostgroup "$compname")"
     startconf="$LINBODIR/start.conf.$group"
     if [ -n "$group" -a -s "$startconf" ]; then
