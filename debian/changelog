@@ -1,8 +1,8 @@
-linuxmuster-linbo7 (4.0.7-0) lmn71; urgency=low
+linuxmuster-linbo7 (4.0.8-0) lmn71; urgency=low
 
   * Fix #49: Group specific start.conf is not downloaded on linbo client with capitalized name.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 28 Jan 2022 16:48:00 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 28 Jan 2022 15:53:59 +0000
 
 linuxmuster-linbo7 (4.0.7-0) lmn71; urgency=low
 
