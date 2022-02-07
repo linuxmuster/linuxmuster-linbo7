@@ -190,8 +190,24 @@ create_command() {
 # remove carriage returns
 dos2unix $1
 
+# define append variable
+append=false
+
 # read patch file
 while read -r line; do
+ # join value lines ending in backslash
+ if [ "${line##*,}" = "\\" ]; then
+  append=true
+  append_line="${append_line}${line%,*},"
+  continue
+ else
+  if [ "$append"=true ]; then
+   line="${append_line}$line"
+   append_line=
+   append=false
+  fi
+ fi
+
  [ -n "$DEBUG" ] && echo "$line $((count++))" | tee -a $logfile
 
  # select hive for patching
