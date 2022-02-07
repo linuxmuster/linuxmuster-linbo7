@@ -187,6 +187,9 @@ create_command() {
  exec_command "$command"
 }
 
+# remove carriage returns
+dos2unix $1
+
 # read patch file
 while read -r line; do
  [ -n "$DEBUG" ] && echo "$line $((count++))" | tee -a $logfile
