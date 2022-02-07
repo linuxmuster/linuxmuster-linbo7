@@ -71,7 +71,7 @@ create_fullkey() {
 
  [ -n "$DEBUG" ] && echo " 5 key=$key" | tee -a $logfile
  # remove right end and replace it with a backslash
- key=`rightchopend "$key"`
+ key=$(rightchopend "$key")
  local fullpath="$key"
 
  [ -n "$DEBUG" ] && echo " 6 fullpath=$fullpath" | tee -a $logfile
@@ -125,7 +125,7 @@ create_command() {
 
  local key="$1"
  local change="$2"
- local fullpath=`rightchopend "$key"`
+ local fullpath=$(rightchopend "$key")
 
  [ -n "$DEBUG" ] && echo " 7 change=$change" | tee -a $logfile
 
@@ -197,12 +197,12 @@ while read -r line; do
    tkey="$(leftchop "$line")"
    [ -n "$DEBUG" ] && echo " 1 tkey=$tkey" | tee -a $logfile
 
-   case `leftget "$tkey"` in
+   case "$(leftget "$tkey")" in
     [Ss][Yy][Ss][Tt][Ee][Mm]*) 
      hive="$(ls -1d $2/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Ss][Yy][Ss][Tt][Ee][Mm]32/[Cc][Oo][Nn][Ff][Ii][Gg]/[Ss][Yy][Ss][Tt][Ee][Mm] 2>/dev/null | tail -1)"
      [ -z "$hive" ] && hive="$(ls -1d $2/[Ww][Ii][Nn][Nn][Tt]/[Ss][Yy][Ss][Tt][Ee][Mm]32/[Cc][Oo][Nn][Ff][Ii][Gg]/[Ss][Yy][Ss][Tt][Ee][Mm] 2>/dev/null | tail -1)"
      # strip hive
-     key=`leftchop "$tkey"`
+     key="$(leftchop "$tkey")"
      [ -n "$DEBUG" ] && echo " 2 key=$key" | tee -a $logfile
 
      # change "CurrentControlSet" to "ControlSet001"
@@ -213,7 +213,7 @@ while read -r line; do
      hive="$(ls -1d $2/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Ss][Yy][Ss][Tt][Ee][Mm]32/[Cc][Oo][Nn][Ff][Ii][Gg]/[Ss][Oo][Ff][Tt][Ww][Aa][Rr][Ee] 2>/dev/null | tail -1)"
      [ -z "$hive" ] && hive="$(ls -1d $2/[Ww][Ii][Nn][Nn][Tt]/[Ss][Yy][Ss][Tt][Ee][Mm]32/[Cc][Oo][Nn][Ff][Ii][Gg]/[Ss][Oo][Ff][Tt][Ww][Aa][Rr][Ee] 2>/dev/null | tail -1)"
      # strip hive
-     key=`leftchop "$tkey"`
+     key="$(leftchop "$tkey")"
      [ -n "$DEBUG" ] && echo " 4 key=$key" | tee -a $logfile
      ;;
     *) key="" ;;
@@ -251,7 +251,7 @@ while read -r line; do
    for i in ControlSet002 ControlSet003; do
     echo "### Checking $i ..."
 	   if [ -n "$(test_key "" "$i")" ]; then
-	    key_new=`echo "$key" | sed -e "s|ControlSet001|$i|"`
+	    key_new="$(echo "$key" | sed -e "s|ControlSet001|$i|")"
 	    [ -n "$DEBUG" ] && echo "### Patching $i ..." | tee -a $logfile
      create_command "$key_new" "$line"
 	   fi
