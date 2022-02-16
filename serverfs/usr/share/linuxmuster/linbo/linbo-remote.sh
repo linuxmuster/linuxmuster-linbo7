@@ -17,6 +17,7 @@ SCP=/usr/sbin/linbo-scp
 WRAPPER=/usr/bin/linbo_wrapper
 WOL="$(which wakeonlan)"
 TMPDIR=/var/tmp
+SCHOOL="default-school"
 
 # usage info
 usage(){
@@ -49,6 +50,7 @@ usage(){
   echo "                    commands given with \"-c\" or in case of \"-p\" after"
   echo "                    the creation of the pxe boot files."
   echo " -u                 Use broadcast address with wol."
+  echo " -s                 Select a school other than default-school"
   echo
   echo "Important: * Options \"-r\", \"-g\" and \"-i\" exclude each other, \"-c\" and"
   echo "             \"-p\" as well."
@@ -101,7 +103,7 @@ list(){
 }
 
 # process cmdline
-while getopts ":b:c:dg:hi:lnp:r:uw:" opt; do
+while getopts ":b:c:dg:hi:lnp:r:uw:s:" opt; do
 
   # debug
   #echo "### opt: $opt $OPTARG"
@@ -121,7 +123,7 @@ while getopts ":b:c:dg:hi:lnp:r:uw:" opt; do
           validip "$i" && IP="$i"
           HOSTNAME=""
         fi
-        [ -n "$IP" ] && HOSTNAME="$(nslookup "$IP" 2> /dev/null | head -1 | awk '{ print $4 }' | awk -F\. '{ print $1 }')"
+        [ -n "$IP" ] && HOSTNAME="$(nslookup "$IP" 2> /dev/null | head -1 | awk '{ print $4 }' | awk -F\. '{ print $1 }' | sed "s/^$SCHOOL-//g")"
         if [ -n "$HOSTNAME" ]; then
           # check for pxe flag, only use linbo related pxe flags 1 & 2
           pxe="$(grep -i ^[a-z0-9] $WIMPORTDATA | grep ";$HOSTNAME;" | awk -F\; '{ print $11 }')"
@@ -147,6 +149,14 @@ while getopts ":b:c:dg:hi:lnp:r:uw:" opt; do
     w) WAIT=$OPTARG
       isinteger "$WAIT" || usage ;;
     n) NOAUTO=yes ;;
+    s) SCHOOL=$OPTARG
+      # calculate path of devices.csv
+      if [ "$SCHOOL" != "default-school" ]; then
+        WIMPORTDATA="$SOPHOSYSDIR/$SCHOOL/$SCHOOL.devices.csv"
+      else
+        WIMPORTDATA="$SOPHOSYSDIR/$SCHOOL/devices.csv"
+      fi
+      ;;
     h) usage ;;
     \?) echo "Invalid option: -$OPTARG" >&2
       usage ;;
@@ -154,6 +164,7 @@ while getopts ":b:c:dg:hi:lnp:r:uw:" opt; do
       usage ;;
   esac
 done
+
 
 # check options
 [ -z "$GROUP" -a -z "$HOSTS" -a -z "$ROOM" ] && usage "No hosts, no group, no room defined!"
@@ -321,6 +332,7 @@ NR_OF_CMDS=$c
 ## evaluate commands string - end
 
 
+
 # get ips of group or room if given on cl
 if [ -n "$GROUP" ]; then # hosts in group with pxe flag set
   HOSTS="$(grep -i ^[a-z0-9] $WIMPORTDATA | awk -F\; '{ print $3, $2, $11 }' | grep ^"$GROUP " | grep " [1-2]" | awk '{ print $2 }')"
@@ -331,6 +343,18 @@ elif [ -n "$ROOM" ]; then # hosts in room with pxe flag set
 fi
 [ -z "$HOSTS" ] && usage "No hosts in $msg!"
 
+# add prefix to hosts if necessary
+if [ "$SCHOOL" != "default-school" ]; then
+  for i in $HOSTS; do
+    PREFIXED_HOSTNAME="$SCHOOL-$i"
+    if [ -n "$PREFIXED_HOSTS" ]; then
+      PREFIXED_HOSTS="$PREFIXED_HOSTS $PREFIXED_HOSTNAME"
+    else
+      PREFIXED_HOSTS="$PREFIXED_HOSTNAME"
+    fi
+  done
+  HOSTS=$PREFIXED_HOSTS
+fi
 
 # script header info
 echo "###"
@@ -388,7 +412,8 @@ if [ -n "$WAIT" ]; then
     [ -n "$BETWEEN" -a "$c" != "0" ] && do_wait between
     echo -n " $i ... "
     # get mac address of client from devices.csv
-    macaddr="$(get_mac "$i")"
+    macaddr="$(get_mac "$(echo $i | sed "s/^$SCHOOL-//g")")"
+    ipaddr="$(get_ip "$(echo $i | sed "s/^$SCHOOL-//g")")"
     # use broadcast address
     if [ -n "$USEBCADDR" ]; then
       if validip "$i"; then
