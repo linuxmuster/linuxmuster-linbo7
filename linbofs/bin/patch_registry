@@ -6,7 +6,7 @@
 # $2 is the path to the windows system root
 #
 # thomas@linuxmuster.net
-# 28.09.2015
+# 20220221
 #
 
 # trust in this code
@@ -24,7 +24,7 @@ logfile="/tmp/output"
 
 leftchop(){
   echo "$1" | cut -d \\ -f 2-
-} 
+}
 
 leftget(){
   echo "$1" | cut -d \\ -f 1
@@ -114,7 +114,7 @@ create_key() {
     if [ -n "$(test_key "" "$i")" ]; then
      key_new=`echo "$key" | sed -e "s|ControlSet001|$i|")`
      create_fullkey "$key_new"
-    fi 
+    fi
    done
   ;;
  esac
@@ -211,13 +211,13 @@ while read -r line; do
  [ -n "$DEBUG" ] && echo "$line $((count++))" | tee -a $logfile
 
  # select hive for patching
- case "$line" in 
-  \[HKEY_LOCAL_MACHINE*) 
+ case "$line" in
+  \[HKEY_LOCAL_MACHINE*)
    tkey="$(leftchop "$line")"
    [ -n "$DEBUG" ] && echo " 1 tkey=$tkey" | tee -a $logfile
 
    case "$(leftget "$tkey")" in
-    [Ss][Yy][Ss][Tt][Ee][Mm]*) 
+    [Ss][Yy][Ss][Tt][Ee][Mm]*)
      hive="$(ls -1d $2/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Ss][Yy][Ss][Tt][Ee][Mm]32/[Cc][Oo][Nn][Ff][Ii][Gg]/[Ss][Yy][Ss][Tt][Ee][Mm] 2>/dev/null | tail -1)"
      [ -z "$hive" ] && hive="$(ls -1d $2/[Ww][Ii][Nn][Nn][Tt]/[Ss][Yy][Ss][Tt][Ee][Mm]32/[Cc][Oo][Nn][Ff][Ii][Gg]/[Ss][Yy][Ss][Tt][Ee][Mm] 2>/dev/null | tail -1)"
      # strip hive
@@ -228,7 +228,7 @@ while read -r line; do
      key="$(echo "$key" | sed 's,CurrentControlSet,ControlSet001,')"
      [ -n "$DEBUG" ] && echo " 3 key=$key" | tee -a $logfile
      ;;
-    [Ss][Oo][Ff][Tt][Ww][Aa][Rr][Ee]*) 
+    [Ss][Oo][Ff][Tt][Ww][Aa][Rr][Ee]*)
      hive="$(ls -1d $2/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Ss][Yy][Ss][Tt][Ee][Mm]32/[Cc][Oo][Nn][Ff][Ii][Gg]/[Ss][Oo][Ff][Tt][Ww][Aa][Rr][Ee] 2>/dev/null | tail -1)"
      [ -z "$hive" ] && hive="$(ls -1d $2/[Ww][Ii][Nn][Nn][Tt]/[Ss][Yy][Ss][Tt][Ee][Mm]32/[Cc][Oo][Nn][Ff][Ii][Gg]/[Ss][Oo][Ff][Tt][Ww][Aa][Rr][Ee] 2>/dev/null | tail -1)"
      # strip hive
@@ -279,4 +279,3 @@ while read -r line; do
  esac
 
 done < "$1" # while read -r line
-
