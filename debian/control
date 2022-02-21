@@ -8,10 +8,10 @@ Build-Depends: acl, bc, binutils, bison, build-essential, coreutils, ctorrent,
   gdisk, gettext, git, gnupg2, gpgv2, grep, grub-common, grub-ipxe,
   grub-efi-amd64-bin, grub2-common, grub-pc-bin, gzip, hdparm, kmod,
   libacl1-dev, libattr1-dev, libdevmapper-dev, libelf-dev, libfuse-dev,
-  libncurses5-dev, libowfat-dev, linux-libc-dev, nasm, ncurses-base, netpbm,
-  ntfs-3g, parted, patchutils, perl, plymouth-label, qemu-utils, rsync, systemd,
-  sysvinit-utils, tar, udev, udpcast, unzip, util-linux, uuid-runtime, wget,
-  zlib1g-dev, xz-utils, uuid-dev
+  libncurses5-dev, libnih-dbus1, libowfat-dev, linux-libc-dev, nasm,
+  ncurses-base, netpbm, ntfs-3g, parted, patchutils, perl, plymouth-label,
+  qemu-utils, rsync, systemd, sysvinit-utils, tar, udev, udpcast, unzip,
+  util-linux, uuid-runtime, wget, zlib1g-dev, xz-utils, uuid-dev
 
 Package: linuxmuster-linbo7
 Architecture: all
