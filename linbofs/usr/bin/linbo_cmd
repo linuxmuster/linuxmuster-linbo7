@@ -3171,9 +3171,9 @@ register(){
     echo "Rechnernamen duerfen nur Buchstaben [a-z0-9-] enthalten." >&2
     return 1
   fi
-  if echo "$group" | grep -qi '[^a-z0-9_]'; then
+  if echo "$group" | grep -qi '[^a-z0-9_-]'; then
     echo "Falscher Gruppenname: '$group'," >&2
-    echo "Rechnergruppen duerfen nur Buchstaben [a-z0-9_] enthalten." >&2
+    echo "Rechnergruppen duerfen nur Buchstaben [a-z0-9_-] enthalten." >&2
     return 1
   fi
   cd /tmp
