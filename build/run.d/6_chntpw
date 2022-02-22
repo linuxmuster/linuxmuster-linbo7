@@ -1,0 +1,24 @@
+#!/bin/bash
+#
+# download and build chntpw
+
+# read build environment
+for i in build/conf.d/*; do source "$i" || exit 1; done
+
+# check for binary
+if [ -s "$CHNTPWBIN" -a -x "$CHNTPWBIN" ]; then
+  echo "Reged binary exists, skipping build."
+
+else
+  # download
+  echo "Cloning $CHNTPWNAME source ..."
+  [ -d "$CHNTPWSRCDIR" ] && rm -rf "$CHNTPWSRCDIR"
+  cd "$SRC"
+  git clone "$CHNTPWURL" || exit 1
+  # compile
+  echo "Compiling $CHNTPWNAME ..."
+  cd "$CHNTPWSRCDIR" || exit 1
+  git checkout "$CHNTPWBRANCH" || exit 1
+  make || exit 1
+  strip "$CHNTPWBIN" || exit 1
+fi
