@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20211220
+# 20220221
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -620,9 +620,10 @@ network(){
         rsync -L "$server::linbo/linbocmd/$i.cmd" "/linbocmd" &> /dev/null
         [ -s /linbocmd ] && break
       done
-      # read linbo-remote noauto command into variable
+      # handle linbo-remote noauto/disablegui triggers
       if [ -s /linbocmd ]; then
-        grep -q noauto /linbocmd && noauto="yes" && sed -e "s|noauto||" -i /linbocmd
+        grep -q noauto /linbocmd && noauto="yes" && sed -i "s|noauto||" /linbocmd
+        grep -q disablegui /linbocmd && disablegui="yes" && sed -i "s|disablegui||" /linbocmd
         # strip leading and trailing spaces and escapes
         export linbocmd="$(awk '{$1=$1}1' /linbocmd | sed -e 's|\\||g')"
       fi
@@ -658,6 +659,8 @@ network(){
     autostart=0
     disable_auto
   fi
+  # disable gui if it is given in linbocmd
+  [ -n "$disablegui" ] && gui_ctl disable
   # start.conf: set autostart if given on cmdline
   isinteger "$autostart" && set_autostart
   # sets flag if no default route
