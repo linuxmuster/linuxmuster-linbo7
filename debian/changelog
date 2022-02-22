@@ -1,3 +1,12 @@
+linuxmuster-linbo7 (4.0.9-0) lmn71-testing; urgency=low
+
+  * Fix #52: linbo_cmd: add minus in regex for group name check.
+  * Fix #53: fix parts of the patch_registry script, use chntpw forked by SlrG (see #50).
+  * Fix #54: linbo-remote: allow to use -n without -c or -p.
+  * Fix #55: linbo-remote: readded multischool support.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 22 Feb 2022 19:53:00 +0100
+
 linuxmuster-linbo7 (4.0.8-0) lmn71; urgency=low
 
   * Fix #49: Group specific start.conf is not downloaded on linbo client with capitalized name.
