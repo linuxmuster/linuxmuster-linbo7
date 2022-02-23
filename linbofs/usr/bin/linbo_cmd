@@ -6,7 +6,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20220221
+# 20220223
 # GPL v3
 #
 
@@ -2928,6 +2928,9 @@ update(){
   else
     echo "LINBO is up-to-date."
   fi
+
+  # linbo_gui update
+  linbo_update_gui
 
   # get ipxe files from server
   echo "Updating ipxe file."

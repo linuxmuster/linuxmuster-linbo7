@@ -1,3 +1,9 @@
+linuxmuster-linbo7 (4.0.10-0) lmn71-testing; urgency=low
+
+  * Fix #56: Gui will not be downloaded after cache partition was formatted.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 23 Feb 2022 10:50:00 +0100
+
 linuxmuster-linbo7 (4.0.9-0) lmn71-testing; urgency=low
 
   * Fix #52: linbo_cmd: add minus in regex for group name check.
