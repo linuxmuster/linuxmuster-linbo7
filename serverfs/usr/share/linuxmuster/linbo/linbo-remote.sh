@@ -3,7 +3,7 @@
 # exec linbo commands remote per ssh
 #
 # thomas@linuxmuster.net
-# 20220221
+# 20220114
 # GPL V3
 #
 
@@ -33,13 +33,15 @@ usage(){
   echo "                    conjunction with \"-w\"."
   echo " -c <cmd1,cmd2,...> Comma separated list of linbo commands transfered"
   echo "                    per ssh direct to the client(s)."
-  echo " -d                 Disables gui. Works with options -c and -d."
+  echo " -d                 Disables gui. To be used only together with option -c."
   echo " -g <group>         All hosts of this hostgroup will be processed."
   echo " -i <i1,i2,...>     Single ip or hostname or comma separated list of ips"
   echo "                    or hostnames of clients to be processed."
   echo " -l                 List current linbo-remote screens."
   echo " -n                 Bypasses start.conf configured auto functions"
   echo "                    (partition, format, initcache, start) on next boot."
+  echo "                    To be used only together with options -p"
+  echo "                    or -c in conjunction with -w."
   echo " -r <room>          All hosts of this room will be processed."
   echo " -p <cmd1,cmd2,...> Create an onboot command file executed automatically"
   echo "                    once next time the client boots."
@@ -181,6 +183,12 @@ if [ -n "$BETWEEN" ]; then
   [ -z "$WAIT" ] && usage "Option -b can only be used with -w!"
   isinteger "$BETWEEN" || usage "$BETWEEN is not an integer variable!"
 fi
+
+if [ -n "$NOAUTO" -a -z "$ONBOOT" ]; then
+  [ -n "$DIRECT" -a -n "$WAIT" ] || usage "Option -n can only be used with -p or with -c and -w together!"
+fi
+
+[ -n "$DISABLEGUI" -a -z "$DIRECT" ] && usage "Option -d can only be used with -c!"
 
 if [ -n "$DIRECT" ]; then
   CMDS="$DIRECT"
@@ -371,24 +379,21 @@ if [ -n "$ONBOOT" ]; then
     c=$(( $c + 1 ))
   done
 
+  # add noauto triggers
+  [ -n "$NOAUTO" ] && onbootcmds="$onbootcmds noauto"
+
 fi # onboot command string
 
 
-# add noauto/disablegui triggers
-[ -n "$NOAUTO" ] && onbootcmds="$onbootcmds noauto"
-[ -n "$DISABLEGUI" -a -n "$ONBOOT" ] && onbootcmds="$onbootcmds disablegui"
-# strip leading & trailing whitespace
-onbootcmds="$(echo "$onbootcmds" | awk '{$1=$1};1')"
-
-
 # create linbocmd files for onboot tasks, if -p or -w is given
-if [ -n "$onbootcmds" ]; then
+if [ -n "$ONBOOT" ] || [ -n "$WAIT" -a -n "$DIRECT" -a -n "$NOAUTO" ]; then
 
   echo
   echo "Preparing onboot linbo tasks:"
   for i in $HOSTS; do
     echo -n " $i ... "
-    echo "$onbootcmds" > "$(onbootcmdfile "$i")"
+    [ -n "$DIRECT" ] && echo "noauto" > "$(onbootcmdfile "$i")"
+    [ -n "$ONBOOT" ] && echo "$onbootcmds" > "$(onbootcmdfile "$i")"
     echo "Done."
   done
 
