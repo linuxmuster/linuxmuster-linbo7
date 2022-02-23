@@ -2,6 +2,5 @@
 
 CHNTPWNAME="chntpw"
 CHNTPWURL="https://github.com/SlrG/$CHNTPWNAME"
-CHNTPWBRANCH="fixlongstrings"
 CHNTPWSRCDIR="$SRC/$CHNTPWNAME"
 CHNTPWBIN="$CHNTPWSRCDIR/build/reged.static"

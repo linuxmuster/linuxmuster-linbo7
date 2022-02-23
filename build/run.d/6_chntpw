@@ -18,7 +18,6 @@ else
   # compile
   echo "Compiling $CHNTPWNAME ..."
   cd "$CHNTPWSRCDIR" || exit 1
-  git checkout "$CHNTPWBRANCH" || exit 1
   make || exit 1
   strip "$CHNTPWBIN" || exit 1
 fi
