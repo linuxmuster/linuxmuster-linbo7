@@ -26,6 +26,9 @@ if [ -x "/sbin/plymouthd" -a -n "$SPLASH" ]; then
   fi
 fi
 
+# update & extract linbo_gui
+linbo_update_gui
+
 # DEBUG mode
 case "$CMDLINE" in *\ debug*)
   plymouth quit

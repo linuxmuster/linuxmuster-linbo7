@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20220221
+# 20220223
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -245,11 +245,6 @@ copytocache(){
       if [ -s /start.conf ]; then
         echo "Saving start.conf in cache."
         cp -a /start.conf /cache
-      fi
-      if [ -d /icons ]; then
-        echo "Saving icons in cache."
-        mkdir -p /cache/icons
-        rsync /icons/* /cache/icons
       fi
       # save hostname for offline use
       if [ -s /tmp/network.ok ]; then
@@ -626,14 +621,6 @@ network(){
         # strip leading and trailing spaces and escapes
         export linbocmd="$(awk '{$1=$1}1' /linbocmd | sed -e 's|\\||g')"
       fi
-      # also look for other needed files
-      for i in "torrent-client.conf" "multicast.list"; do
-        rsync -L "$server::linbo/$i" "/$i" &> /dev/null
-      done
-      # and (optional) the GUI icons
-      for i in linbo_wallpaper.png $(grep -i ^iconname /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }'); do
-        rsync -L "$server::linbo/icons/$i" /icons &> /dev/null
-      done
       # save downloaded stuff to cache
       copytocache
     fi

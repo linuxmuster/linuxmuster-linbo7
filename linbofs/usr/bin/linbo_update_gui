@@ -6,6 +6,10 @@
 # 20220223
 #
 
+if [ -e /tmp/.gui.done ]; then
+  echo "linbo_gui is up-tp-date."
+  exit 0
+fi
 
 # is boot splash active?
 grep -qw splash /proc/cmdline && SPLASH="yes"
@@ -42,6 +46,7 @@ if cat /proc/cmdline | grep -wq isoboot; then
     fi
     if [ -n "$isoboot" ]; then
       print_status "Successfully installed linbo_gui from removable media." | tee -a /cache/linbo.log
+      touch /tmp/.gui.done
       exit 0
     fi
   done
@@ -139,6 +144,7 @@ fi
 [ -z "$cache_mounted" ] && umount /cache
 if [ -s /usr/bin/linbo_gui ]; then
   print_status "Successfully installed linbo_gui from cache."
+  touch /tmp/.gui.done
   exit 0
 else
   print_status "Failed to install linbo_gui from cache."

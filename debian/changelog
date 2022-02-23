@@ -1,3 +1,11 @@
+linuxmuster-linbo7 (4.0.11-0) lmn71-testing; urgency=low
+
+  * Fix #56: Gui will not be downloaded after cache partition was formatted (final attempt).
+  * Reverted commits for #54.
+  * Refactored gui_ctl.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 23 Feb 2022 16:22:00 +0100
+
 linuxmuster-linbo7 (4.0.10-0) lmn71-testing; urgency=low
 
   * Fix #56: Gui will not be downloaded after cache partition was formatted.

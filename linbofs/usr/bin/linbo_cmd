@@ -565,10 +565,12 @@ format(){
     # install linbo and grub in cache
     local cachedev="$(cachedev)"
     if [ "$cachedev" = "$partition" ]; then
+      rm -f /tmp/.gui.done
       rm -f /tmp/.update.done
       rm -f /tmp/.grub-install
       rm -f /tmp/.prepare_grub
       update "$(serverip)" "$cachedev"
+      linbo_update_gui
       mk_boot
       if mountcache "$cachedev"; then
         echo "Saving start.conf in cache."
@@ -887,6 +889,7 @@ partition(){
     grep ^"$disk" "$table" | sort > "/tmp/$diskname"
     mk_parted "/tmp/$diskname" || RC="1"
   done
+  rm -f /tmp/.gui.done
   rm -f /tmp/.update.done
   rm -f /tmp/.grub-install
   rm -f /tmp/.prepare_grub
@@ -2839,6 +2842,7 @@ syncr(){
     [ "$RC" = "1" ] && return 1
     # Also update LINBO, while we are here.
     update "$1" "$2"
+    linbo_update_gui
   fi
   shift
   syncl "$@"
@@ -2929,8 +2933,18 @@ update(){
     echo "LINBO is up-to-date."
   fi
 
-  # linbo_gui update
-  linbo_update_gui
+  # also look for other needed files
+  for i in "torrent-client.conf" "multicast.list"; do
+    echo "Downloading $i."
+    rsync -L "$server::linbo/$i" "/$i" &> /dev/null
+  done
+
+  # GUI icons
+  for i in linbo_wallpaper.png $(grep -i ^iconname /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }'); do
+    echo "Downloading $i."
+    rsync -L "$server::linbo/icons/$i" /icons &> /dev/null
+  done
+  rsync /icons/* /cache/icons
 
   # get ipxe files from server
   echo "Updating ipxe file."
@@ -3073,10 +3087,10 @@ initcache(){
       download_img_if_changed "$server" "$i" "$download_type"
     fi
   done
-  # obsolete, done in update() anyway
-  #sendlog
-  #cd / ; mountcache "$cachedev" -r
+
+  # linbo & gui update
   update "$server" "$cachedev"
+  linbo_update_gui
 }
 
 ### Main ###
