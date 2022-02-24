@@ -3,7 +3,7 @@
 # download linbo_gui from server
 #
 # thomas@linuxmuster.net
-# 20220223
+# 20220224
 #
 
 if [ -e /tmp/.gui.done ]; then
@@ -105,16 +105,24 @@ if [ -z "$offline" ]; then
     md5sum_local="$(md5sum "$gui_archive" | awk '{print $1}')"
     # get md5sum from server
     print_status "Downloading ${gui_archive}.md5 from $linbo_server." | tee -a /cache/linbo.log
-    rm -f "${gui_archive}.md5"
+    # save md5 file
+    mv "${gui_archive}.md5" "${gui_archive}.md5.bak"
+    # download md5 file
     linbo_cmd download "$linbo_server" "${gui_archive}.md5" 2>&1 | tee -a /cache/linbo.log
-    [ -s "${gui_archive}.md5" ] && md5sum_server="$(cat "${gui_archive}.md5")"
-    # md5sums match, no download needed
-    if [ "$md5sum_local" = "$md5sum_server" ]; then
-      print_status "$a is up-to-date. No need to download." | tee -a /cache/linbo.log
+    if [ -s "${gui_archive}.md5" ]; then
+      md5sum_server="$(cat "${gui_archive}.md5")"
+      # md5sums match, no download needed
+      if [ "$md5sum_local" = "$md5sum_server" ]; then
+        print_status "$a is up-to-date. No need to download." | tee -a /cache/linbo.log
+        download="no"
+      else
+        # md5sums differ, need to download archive
+        download="yes"
+      fi
+    else # download of md5 file failed
+      echo "linbo_gui download is not possible (foreign network?)."
+      mv "${gui_archive}.md5.bak" "${gui_archive}.md5"
       download="no"
-    else
-      # md5sums differ, need to download archive
-      download="yes"
     fi
   fi
 
