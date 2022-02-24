@@ -1,9 +1,3 @@
-linuxmuster-linbo7 (4.0.12-0) lmn71-testing; urgency=low
-
-  * Fix #57: No gui in foreign network.
-
- -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 24 Feb 2022 19:56:00 +0100
-
 linuxmuster-linbo7 (4.0.11-0) lmn71-testing; urgency=low
 
   * Fix #56: Gui will not be downloaded after cache partition was formatted (final attempt).
