@@ -14,8 +14,4 @@ Windows Registry Editor Version 5.00
 "Hostname"="{$HostName$}"
 "NV Hostname"="{$HostName$}"
 
-[HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Services\Tcpip\Parameters]
-"NV Hostname"="{$HostName$}"
-"Hostname"="{$HostName$}"
-
 ; add your custom registry patches below
