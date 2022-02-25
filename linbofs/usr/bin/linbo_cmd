@@ -6,7 +6,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20220223
+# 20220224
 # GPL v3
 #
 
@@ -2244,15 +2244,7 @@ syncl(){
   if [ -n "$is_win" ]; then
 
     # do registry patching for windows systems
-    if [ -s "$patchfile" ]; then
-      echo "Patching windows registry with $patchfile." | tee /tmp/patch.log
-      sed 's|{\$HostName\$}|'"$HOSTNAME"'|g' "$patchfile" > "$TMP"
-      dos2unix "$TMP"
-      cat "$TMP" >>/tmp/patch.log
-      patch_registry "$TMP" /mnt 2>&1 >>/tmp/patch.log
-      [ -e /tmp/output ] && cat /tmp/output >>/tmp/patch.log
-      rm -f "$TMP"
-    fi # reg patch
+    [ -s "$patchfile" ] && linbo_patch_registry "$patchfile" "$HOSTNAME" | tee /tmp/patch.log
 
     # manage windows boot files
     local bcd_backup

@@ -1,3 +1,9 @@
+linuxmuster-linbo7 (4.0.13-0) lmn71-testing; urgency=low
+
+  * Completely refactored registry patching (#53).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 25 Feb 2022 17:38:00 +0100
+
 linuxmuster-linbo7 (4.0.12-0) lmn71-testing; urgency=low
 
   * Fix #57: No gui in foreign network.

@@ -1,0 +1,50 @@
+#!/bin/sh
+#
+# linbo_patch_registry
+# thomas@linuxmuster.net
+# 20220224
+#
+
+usage(){
+  echo "Usage: $0 <regfile> [hostname]"
+  exit 1
+}
+
+# registryfile to process
+regfile="$1"
+[ -s "$regfile" ] || usage
+
+# hostname
+myname="$2"
+if [ -z "$myname" ]; then
+  myname="$(hostname)"
+  [ -z "$myname" ] && usage
+  echo "Hostname parameter ommitted, using ${myname}."
+fi
+
+# registry file header
+header="Windows Registry Editor Version 5.00"
+
+# prefix for the created regfiles
+prefix="/tmp/reg-"
+
+# hive directory
+hive_dir="/mnt/Windows/System32/config"
+
+# strip unwanted lines, replace hostname and split regfile into handy parts
+grep ^"[\[\"]" "$regfile" | \
+  sed -e 's|{\$HostName\$}|'"$myname"'|g' | \
+  csplit -s -z -f "$prefix" - '/^\[/' '{*}'
+
+# iterate over regfiles
+for i in ${prefix}*; do
+  sed -i "1s/^/$header\n\n/" "$i"
+  branch="$(grep -i ^'\[HKEY' "$i" | awk -F \\\\ '{print $1}' | awk -F \[ '{print $2}')"
+  hive="$(grep -i ^'\[HKEY' "$i" | awk -F \\\\ '{print $2}')"
+  hive_file="$hive_dir/$(echo "$hive" | tr a-z A-Z)"
+  if [ ! -s "$hive_file" ]; then
+    echo "Skipping invalid hive $(grep -i ^'\[HKEY' "$i")."
+    continue
+  fi
+  reged -I -C "$hive_file" "$branch\\$hive" "$i"
+done
