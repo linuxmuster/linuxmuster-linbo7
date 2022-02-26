@@ -2,7 +2,7 @@
 #
 # linbo_patch_registry
 # thomas@linuxmuster.net
-# 20220224
+# 20220226
 #
 
 usage(){
@@ -26,7 +26,7 @@ fi
 header="Windows Registry Editor Version 5.00"
 
 # prefix for the created regfiles
-prefix="/tmp/reg-"
+prefix="/tmp/reg.$$."
 
 # hive directory
 hive_dir="/mnt/Windows/System32/config"
