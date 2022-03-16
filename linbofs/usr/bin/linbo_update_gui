@@ -3,11 +3,11 @@
 # download linbo_gui from server
 #
 # thomas@linuxmuster.net
-# 20220224
+# 20220316
 #
 
 if [ -e /tmp/.gui.done ]; then
-  echo "linbo_gui is up-tp-date."
+  echo "linbo_gui is up-to-date."
   exit 0
 fi
 
@@ -54,15 +54,15 @@ fi
 
 
 print_status "Trying to download linbo_gui from server to cache."
-mount | grep -q /cache && cache_mounted="yes"
-if [ -z "$cache_mounted" ]; then
-  cachedev="$(cat /tmp/linbo-cache.done)"
+mount | grep -qw /cache && cache_mounted="yes"
+if [ -n "$cache_mounted" ]; then
+  # ensure cache is mounted writeable
+  mount -o remount,rw /cache
+else
+  nocache="yes"
+  [ -e /tmp/linbo-cache.done ] && cachedev="$(cat /tmp/linbo-cache.done)"
   if [ -n "$cachedev" ]; then
-    if ! linbo_cmd mount "$cachedev" /cache; then
-      nocache="yes"
-    fi
-  else
-    nocache="yes"
+    linbo_cmd mount "$cachedev" && nocache=""
   fi
 fi
 if [ -n "$nocache" ]; then
