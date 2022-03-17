@@ -1,0 +1,30 @@
+# default values for linbo-torrenthelper service provided by ctorrent
+# thomas@linuxmuster.net
+# 20220317
+#
+# note: you have to invoke 'linbo-torrent restart' after you have changed any values
+#
+
+# Exit while seed <SEEDHOURS> hours later (default 72 hours)
+SEEDHOURS="100000"
+
+# Max peers count (default 100)
+MAXPEERS="100"
+
+# Min peers count (default 1)
+MINPEERS="1"
+
+# Download slice/block size, unit KB (default 16, max 128)
+SLICESIZE="128"
+
+# Max bandwidth down (unit KB/s, default unlimited)
+MAXDOWN=""
+
+# Max bandwidth up (unit KB/s, default unlimited)
+MAXUP=""
+
+# Supplemental ctorrent options, separated by space (-v: Verbose output for debugging)
+#OPTIONS="-v"
+
+# Timeout in seconds until rsync fallback (client only)
+TIMEOUT="300"

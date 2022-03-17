@@ -1,18 +1,28 @@
-#!/bin/sh
+#!/bin/bash
 #
 # thomas@linuxmuster.net
 # GPL v3
-# 20210513
+# 20220317
 #
 # linbo ctorrent helper script, started in a screen session by init script
 #
 
 torrent="$1"
 [ -s "$torrent" ] || exit 1
-options="-e 100000 $torrent"
+
+# get ctorrent options from file
+[ -e /etc/default/linbo-torrent ] && source /etc/default/linbo-torrent
+
+[ -n "$SEEDHOURS" ] &&  OPTIONS="$OPTIONS -e $SEEDHOURS"
+[ -n "$MAXPEERS" ] &&  OPTIONS="$OPTIONS -M $MAXPEERS"
+[ -n "$MINPEERS" ] &&  OPTIONS="$OPTIONS -m $MINPEERS"
+[ -n "$SLICESIZE" ] &&  OPTIONS="$OPTIONS -z $SLICESIZE"
+[ -n "$MAXDOWN" ] &&  OPTIONS="$OPTIONS -D $MAXDOWN"
+[ -n "$MAXUP" ] &&  OPTIONS="$OPTIONS -U $MAXUP"
+OPTIONS="$OPTIONS $torrent"
 
 while true; do
- /usr/bin/ctorrent $options || exit 1
+ /usr/bin/ctorrent $OPTIONS || exit 1
  # hash check only on initial start, add -f parameter
- echo "$options" | grep -q ^"-f " || options="-f $options"
+ echo "$OPTIONS" | grep -q ^"-f " || OPTIONS="-f $OPTIONS"
 done

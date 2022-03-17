@@ -2,7 +2,7 @@
 #
 # configure script for linuxmuster-linbo7 package
 # thomas@linuxmuster.net
-# 20211013
+# 20220317
 #
 
 # read constants & setup values
@@ -89,7 +89,9 @@ fi
 done
 
 # linbo-torrent service
-if ! systemctl status linbo-torrent &> /dev/null; then
+if systemctl status linbo-torrent &> /dev/null; then
+  systemctl restart linbo-torrent
+else
   systemctl enable linbo-torrent
   systemctl start linbo-torrent
 fi
@@ -98,6 +100,8 @@ fi
 if [ -n "$RUNMCAST" ]; then
   systemctl enable linbo-multicast
   systemctl start linbo-multicast
+else
+  systemctl status linbo-multicast &> /dev/null && systemctl restart linbo-multicast
 fi
 
 update-linbofs || exit 1

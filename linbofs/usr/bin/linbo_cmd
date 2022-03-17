@@ -6,7 +6,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20220224
+# 20220317
 # GPL v3
 #
 
@@ -2585,28 +2585,33 @@ download_torrent(){
   local ip="$(ip)"
   [ -z "$ip" -o "$ip" = "OFFLINE" ] && return "$RC"
   # default values
-  local MAX_INITIATE=40
-  local MAX_UPLOAD_RATE=0
-  local SLICE_SIZE=128
+  local SEEDHOURS=100000
+  local MAXPEERS=100
+  local MINPEERS=1
+  local MAXUP
+  local MAXDOWN
+  local SLICESIZE=128
   local TIMEOUT=300
+  local OPTIONS
   [ -e /torrent-client.conf ] && . /torrent-client.conf
-  [ -n "$DOWNLOAD_SLICE_SIZE" ] && SLICE_SIZE=$(($DOWNLOAD_SLICE_SIZE/1024))
   local pid="$(ps w | grep ctorrent | grep "$torrent" | grep -v grep | awk '{ print $1 }')"
   [ -n "$pid" ] && kill "$pid"
-  local OPTS="-I $ip -M $MAX_INITIATE -z $SLICE_SIZE"
-  [ $MAX_UPLOAD_RATE -gt 0 ] && OPTS="$OPTS -U $MAX_UPLOAD_RATE"
-  echo "Torrent options: $OPTS" >> /tmp/image.log
+  local CTOPTS="-I $ip -m $MINPEERS -M $MAXPEERS -z $SLICESIZE"
+  [ -n "$OPTIONS" ] && CTOPTS="$CTOPTS $OPTIONS"
+  [ -n "$MAXUP" ] && CTOPTS="$CTOPTS -U $MAXUP"
+  [ -n "$MAXDOWN" ] && CTOPTS="$CTOPTS -D $MAXDOWN"
+  echo "Torrent options: $CTOPTS" >> /tmp/image.log
   echo "Starting torrent service for $imagefile." | tee -a /tmp/image.log
   local logfile=/tmp/"$imagefile".log
   if [ ! -e "$complete" ]; then
     rm -f "$imagefile" "$torrent".bf
     torrent_watchdog "$imagefile" "$TIMEOUT" &
-    interruptible ctorrent -e 0 $OPTS -X "touch $complete" "$torrent" | tee -a "$logfile"
+    interruptible ctorrent -e 0 $CTOPTS -X "touch $complete" "$torrent" | tee -a "$logfile"
   fi
   # start seeder if download is complete
   if [ -e "$complete" ]; then
     RC=0
-    ctorrent -e 100000 $OPTS -f -d "$torrent"
+    ctorrent -e $SEEDHOURS $CTOPTS -f -d "$torrent"
   fi
   return "$RC"
 }

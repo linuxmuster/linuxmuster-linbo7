@@ -1,4 +1,6 @@
 # serverfs build environment
+# thomas@linuxmuster.net
+# 20220317
 
 # note: copy and link actions are applied in PKGBUILDROOT
 
@@ -36,6 +38,7 @@ SRVFS_DIRS="
 
 # links to be created on server filesystem (source and destination pairs per line)
 SRVFS_LINKS="
+etc/default/linbo-torrent                       srv/linbo/torrent-client.conf
 etc/linuxmuster/linbo/start.conf.default        srv/linbo/start.conf
 usr/share/linuxmuster/linbo/update-linbofs.sh   usr/sbin/update-linbofs
 usr/share/linuxmuster/linbo/linbo-remote.sh     usr/sbin/linbo-remote
