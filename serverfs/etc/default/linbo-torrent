@@ -28,3 +28,6 @@ MAXUP=""
 
 # Timeout in seconds until rsync fallback (client only)
 TIMEOUT="300"
+
+# user to run ctorrent (server only)
+CTUSER="nobody"

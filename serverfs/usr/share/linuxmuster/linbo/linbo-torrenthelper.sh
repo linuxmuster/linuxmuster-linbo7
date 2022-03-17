@@ -21,8 +21,10 @@ torrent="$1"
 [ -n "$MAXUP" ] &&  OPTIONS="$OPTIONS -U $MAXUP"
 OPTIONS="$OPTIONS $torrent"
 
+[ -n "$CTUSER" ] && SUDO="/usr/bin/sudo -u $CTUSER"
+
 while true; do
- /usr/bin/ctorrent $OPTIONS || exit 1
+ $SUDO /usr/bin/ctorrent $OPTIONS || exit 1
  # hash check only on initial start, add -f parameter
  echo "$OPTIONS" | grep -q ^"-f " || OPTIONS="-f $OPTIONS"
 done
