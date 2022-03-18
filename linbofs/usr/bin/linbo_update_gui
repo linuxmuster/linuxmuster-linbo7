@@ -3,7 +3,7 @@
 # download linbo_gui from server
 #
 # thomas@linuxmuster.net
-# 20220316
+# 20220318
 #
 
 if [ -e /tmp/.gui.done ]; then
@@ -54,17 +54,10 @@ fi
 
 
 print_status "Trying to download linbo_gui from server to cache."
+[ -e /tmp/linbo-cache.done ] && cachedev="$(cat /tmp/linbo-cache.done)"
+[ -n "$cachedev" ] && linbo_cmd mountcache "$cachedev"
 mount | grep -qw /cache && cache_mounted="yes"
-if [ -n "$cache_mounted" ]; then
-  # ensure cache is mounted writeable
-  mount -o remount,rw /cache
-else
-  nocache="yes"
-  [ -e /tmp/linbo-cache.done ] && cachedev="$(cat /tmp/linbo-cache.done)"
-  if [ -n "$cachedev" ]; then
-    linbo_cmd mount "$cachedev" && nocache=""
-  fi
-fi
+[ -z "$cache_mounted" ] && nocache="yes"
 if [ -n "$nocache" ]; then
   print_status "Continuing without cache partition." | tee -a /cache/linbo.log
   # to avoid unmounting later
@@ -73,7 +66,7 @@ else
   print_status "Successfully mounted cache partition." | tee -a /cache/linbo.log
 fi
 # get network infos
-[ -s /tmp/dhcp.log ] && source /tmp/dhcp.log &> /dev/null
+[ -s /tmp/network.ok ] && eval "$(awk '{print $2}' /tmp/network.ok)"
 if [ -z "$linbo_server" ]; then
   print_status "Fatal: Cannot read network infos. Continuing offline." | tee -a /cache/linbo.log
   offline="yes"
