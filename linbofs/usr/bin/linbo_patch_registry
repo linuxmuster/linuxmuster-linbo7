@@ -2,7 +2,7 @@
 #
 # linbo_patch_registry
 # thomas@linuxmuster.net
-# 20220226
+# 20220318
 #
 
 usage(){
@@ -34,11 +34,15 @@ hive_dir="/mnt/Windows/System32/config"
 # strip unwanted lines, replace hostname and split regfile into handy parts
 grep ^"[\[\"]" "$regfile" | \
   sed -e 's|{\$HostName\$}|'"$myname"'|g' | \
+  sed -e 's|@@hostname@@|'"$myname"'|g' | \
   csplit -s -z -f "$prefix" - '/^\[/' '{*}'
 
 # iterate over regfiles
 for i in ${prefix}*; do
+  # add windows registry header
   sed -i "1s/^/$header\n\n/" "$i"
+  # repair controlset name
+  sed -i 's|\\[Cc][Uu][Rr][Rr][Ee][Nn][Tt][Cc][Oo][Nn][Tt][Rr][Oo][Ll][Ss][Ee][Tt]\\|\\ControlSet001\\|g' "$i"
   branch="$(grep -i ^'\[HKEY' "$i" | awk -F \\\\ '{print $1}' | awk -F \[ '{print $2}')"
   hive="$(grep -i ^'\[HKEY' "$i" | awk -F \\\\ '{print $2}')"
   hive_file="$hive_dir/$(echo "$hive" | tr a-z A-Z)"
