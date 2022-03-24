@@ -46,12 +46,12 @@ repstrings="HKEY_LOCAL_MACHINE
             Printers
             PointAndPrint
             Services
-            Session_Manager
+            Session+Manager
             Software
             System
             Tcpip
             Windows
-            Windows_NT"
+            Windows+NT"
 
 # replace template with hostname & repair case of registry paths
 cp "$regfile" "$regtmp"
@@ -59,7 +59,7 @@ sed -i 's|{\$HostName\$}|'"$myname"'|g
         s|@@hostname@@|'"$myname"'|g
         s|\\currentcontrolset\\|\\ControlSet001\\|Ig' "$regtmp"
 for i in $repstrings; do
-  sed -i 's|\\'"${i/_/ }"'\\|\\'"${i/_/ }"'\\|Ig' "$regtmp"
+  sed -i 's|\\'"${i/+/ }"'\\|\\'"${i/+/ }"'\\|Ig' "$regtmp"
 done
 
 # split regfile into handy parts
