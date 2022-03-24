@@ -1,14 +1,9 @@
-linuxmuster-linbo7 (4.0.16-1) lmn71-testing; urgency=low
-
-  * linbo_patch_registry: uses + instead of _ for space in registry string to replace (see #50).
-
- -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 24 Mar 2022 11:01:00 +0100
-
 linuxmuster-linbo7 (4.0.16-0) lmn71-testing; urgency=low
 
-  * linbo_patch_registry: fix case of several registry strings (see #50).
+  * fix case of registry patch strings (see #50).
+  * fix plymouth output of registry patching.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 24 Mar 2022 10:29:00 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 24 Mar 2022 22:57:00 +0100
 
 linuxmuster-linbo7 (4.0.15-0) lmn71-testing; urgency=low
 
