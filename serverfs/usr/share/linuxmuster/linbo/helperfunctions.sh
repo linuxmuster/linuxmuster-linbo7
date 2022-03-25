@@ -118,7 +118,12 @@ END
 # return hostgroup of device from devices.csv
 # get_hostgroup hostname
 get_hostgroup(){
-  $LDBSEARCH "(sophomorixDnsNodename="$(tolower $1)")" memberOf | grep ,OU=device-groups, | awk -F= '{print $2}' | awk -F, '{print $1}' | sed 's|^d_||'
+  schoolprefix=$($LDBSEARCH "(sophomorixDnsNodename="$(tolower $1)")" sophomorixSchoolPrefix | grep sophomorixSchoolPrefix | awk '{print $2}')
+  if [ "$schoolprefix" == "---" ]; then
+    $LDBSEARCH "(sophomorixDnsNodename="$(tolower $1)")" memberOf | grep ,OU=device-groups, | awk -F= '{print $2}' | awk -F, '{print $1}' | sed 's|^d_||'
+  else
+    $LDBSEARCH "(sophomorixDnsNodename="$(tolower $1)")" memberOf | grep ,OU=device-groups, | awk -F= '{print $2}' | awk -F, '{print $1}' | sed "s|^d_${schoolprefix}-||"
+  fi
 }
 
 # return mac address from dhcp leases
