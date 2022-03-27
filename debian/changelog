@@ -1,8 +1,10 @@
 linuxmuster-linbo7 (4.1.0-0) lmn71-testing; urgency=low
 
-  * kernel 5.15.31.
+  * update kernel to 5.15.31.
+  * use ntfs3 kernel driver.
+  * implemented differential imaging.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 26 Mar 2022 13:30:00 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sun, 27 Mar 2022 13:40:00 +0200
 
 linuxmuster-linbo7 (4.0.17-0) lmn71; urgency=low
 
