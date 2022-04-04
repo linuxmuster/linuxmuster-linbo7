@@ -2,7 +2,7 @@
 #
 # starts screen process for each valid torrent in LINBODIR
 # thomas@linuxmuster.net
-# 20220114
+# 20220404
 #
 
 # read environment
@@ -43,7 +43,7 @@ fi
 # check for torrent screen and return pid
 torrent_pid(){
   local torrent="$1"
-  local process="$(screen -ls | grep -w $torrent)"
+  local process="$(screen -ls | grep -w [0-9]*.$torrent)"
   [ -z "$process" ] && return 0
   # print pid if there is any
   echo "$process" | awk -F\. '{print $1}' | awk '{print $1}'
@@ -216,44 +216,3 @@ case "$1" in
 esac
 
 exit 0
-
-
-
-# check if torrent file is given
-if [ -n "$2" ]; then
-  # torrent file must have the correct extension
-  if [ "${2##*.}" != "torrent" ]; then
-    echo "$2 is not a torrent file!"
-    usage
-  fi
-  # corresponding image file must exist
-  image="${2/.torrent/}"
-  if [ ! -s "$image" ]; then
-    echo "Image file is missing!"
-    usage
-  fi
-  case "$1" in
-    create)
-      # in case of create the torrent file and may not already exist
-      if [ -e "$2" ]; then
-        echo "$2 exists already!"
-        usage
-      fi
-      ;;
-    start|stop|restart|check)
-      # torrent file must exist
-      if [ ! -s "$2" ]; then
-        echo "$2 does not exist!"
-        usage
-      fi
-      ;;
-    reload|status)
-      echo "Command $1 with torrent file is not supported!"
-      usage
-      ;;
-    *) ;;
-  esac
-  TORRENTS="$2"
-else
-  TORRENTS="$(ls -1 *.torrent)"
-fi

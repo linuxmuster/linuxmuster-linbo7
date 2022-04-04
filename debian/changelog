@@ -1,8 +1,14 @@
-linuxmuster-linbo7 (4.0.18-0) lmn71; urgency=low
+linuxmuster-linbo7 (4.0.19-0) lmn71; urgency=low
 
-  * Fix recognition of "PXE IP4" uefi boot entry.
+  * Fix #66: Issue parsing Running Torrent Trackers.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 1 Apr 2022 20:52:00 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 4 Apr 2022 12:38:00 +0200
+
+ linuxmuster-linbo7 (4.0.18-0) lmn71; urgency=low
+
+   * Fix recognition of "PXE IP4" uefi boot entry.
+
+  -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 1 Apr 2022 20:52:00 +0200
 
 linuxmuster-linbo7 (4.0.17-0) lmn71; urgency=low
 
