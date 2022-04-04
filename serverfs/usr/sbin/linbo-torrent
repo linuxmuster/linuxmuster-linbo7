@@ -2,7 +2,7 @@
 #
 # starts screen process for each valid torrent in LINBODIR
 # thomas@linuxmuster.net
-# 20220327
+# 20220404
 #
 
 # read environment
@@ -47,7 +47,7 @@ fi
 # check for torrent screen and return pid
 torrent_pid(){
   local torrent="$1"
-  local process="$(screen -ls | grep -w $torrent)"
+  local process="$(screen -ls | grep -w [0-9]*.$torrent)"
   [ -z "$process" ] && return 0
   # print pid if there is any
   echo "$process" | awk -F\. '{print $1}' | awk '{print $1}'
