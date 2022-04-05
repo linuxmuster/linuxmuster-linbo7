@@ -5,8 +5,9 @@ linuxmuster-linbo7 (4.1.0-0) lmn71-testing; urgency=low
   * implemented differential imaging.
   * Fix recognition of "PXE IP4" uefi boot entry.
   * Fix #66: Issue parsing Running Torrent Trackers.
+  * uefi boot improvements.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Sun, 27 Mar 2022 13:40:00 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 5 Apr 2022 20:03:00 +0200
 
 linuxmuster-linbo7 (4.0.17-0) lmn71; urgency=low
 
