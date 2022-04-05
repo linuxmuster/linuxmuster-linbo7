@@ -1076,41 +1076,6 @@ write_devicemap() {
   [ -s "$devicemap" ] || return 1
 }
 
-# umount_boot
-# unmounts boot partition
-umount_boot(){
-  local i
-  for i in /boot/efi /boot; do
-    if mount | grep -q " $i "; then
-      umount "$i" || umount -l "$i"
-    fi
-  done
-}
-
-# mount_boot efipart
-# fake mounts boot partition for grub
-mount_boot(){
-  local efipart="$1"
-  mkdir -p /boot
-  if ! mount | grep -q " /boot "; then
-    mount --bind /cache/boot /boot || return 1
-  fi
-  if [ -n "$efipart" ]; then
-    mkdir -p /boot/efi
-    if ! mount | grep -q " /boot/efi "; then
-      if ! mount "$efipart" /boot/efi; then
-        umount_boot
-        return 1
-      fi
-    fi
-    # fschuett, this can fail, if mount is ro
-    if ! mkdir -p /boot/efi/EFI; then
-      umount_boot
-      return 1
-    fi
-  fi
-}
-
 # mk_winefiboot: restore and install windows efi boot files
 # args: partition efipart bootloaderid
 mk_winefiboot(){
@@ -1326,17 +1291,19 @@ mk_boot(){
   local APPEND="$4"
   local efipart="$(print_efipart)"
   local partition="$1"
-  local nonv
   remote_cache "$(cachedev)" || local localcache="yes"
   # get disk for grub install, use always the first disk from start.conf
-  #local grubdisk="$(get_disks | head -1)"
   local grubdisk="$(get_disk_from_partition $(grep -iw ^dev /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }' | grep ^/dev | sort -u | head -1))"
   if [ ! -b "$grubdisk" ]; then
-    echo "$grubdisk ist kein Blockdevice!"
+    echo "$grubdisk is not a block device!"
     return 1
   fi
-  # mount boot partitions
-  mount_boot "$efipart" || return 1
+  # mount efi partition
+  if [ -n "$efipart" ]; then
+    mkdir -p /cache/boot/efi
+    mount "$efipart" /cache/boot/efi || return 1
+    mkdir -p /cache/boot/efi/EFI
+  fi
   # needed grub dirs
   local grubdir="/cache/boot/grub"
   local grubenv="$grubdir/grubenv"
@@ -1353,18 +1320,17 @@ mk_boot(){
   fi
   # install grub in mbr/efi
   if [ ! -e "$doneflag" -a -n "$localcache" ]; then
-    echo -n "Installiere GRUB in MBR/EFI von $grubdisk ... "
-    [ -n "$efipart" ] && nonv="--no-nvram"
-    grub-install -s $nonv $grubdisk 2>> /tmp/linbo.log || RC="1"
+    echo -n "Installing GRUB in MBR/EFI of $grubdisk ... "
+    grub-install --root-directory=/cache -s $grubdisk 2>> /tmp/linbo.log || RC="1"
     if [ "$RC" = "0" ]; then
       touch "$doneflag"
       echo "OK!"
     else
-      echo "Fehler!"
+      echo "failed!"
     fi
   fi
-  # umount boot partitions if mounted
-  umount_boot
+  # umount efi partition if mounted
+  [ -n "$efipart" ] && umount /cache/boot/efi || RC="1"
   return "$RC"
 }
 
