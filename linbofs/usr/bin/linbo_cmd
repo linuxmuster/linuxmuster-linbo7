@@ -1947,7 +1947,7 @@ cp_image(){
     echo "Trying to resize filesystem on $targetdev." | tee -a /tmp/image.log
     local fstype="$(fstype_startconf "$targetdev")"
     case "$fstype" in
-      ntfs) echo -e "y\ņ" | ntfsresize "$targetdev" | tee -a /tmp/image.log ;;
+      ntfs) echo -e "y\n" | ntfsresize "$targetdev" | tee -a /tmp/image.log ;;
       ext4)
         e2fsck -f "$targetdev" | tee -a /tmp/image.log
         resize2fs -f "$targetdev" | tee -a /tmp/image.log
