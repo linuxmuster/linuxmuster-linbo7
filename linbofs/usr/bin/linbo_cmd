@@ -2919,7 +2919,7 @@ update(){
   local i
   local myname="$(clientname)"
   local cfgfile
-  local domainname
+  local sambadomain
 
   # local restore of start.conf in cache (necessary if cache partition was formatted before)
   [ -s start.conf ] || cp /start.conf .
@@ -3028,10 +3028,10 @@ update(){
     echo "OK!"
   fi
   # unix2dos and sambadomain fix
-  [ -s /cache/hostname ] && domainname="$(awk -F\. '{print $2}' /cache/hostname | tr a-z A-Z)"
+  [ -s /cache/hostname ] && sambadomain="$(awk -F\. '{print $2}' /cache/hostname | tr a-z A-Z)"
   for i in /cache/linuxmuster-win/*.reg; do
     unix2dos "$i"
-    [ -n "$domainname" ] && sed -i "s|SAMBADOMAIN|$domainname|g" "$i"
+    [ -n "$sambadomain" ] && sed -i "s|SAMBADOMAIN|$sambadomain|g" "$i"
   done
 
   # finally update/install grub stuff
