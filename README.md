@@ -28,7 +28,7 @@
 * Important: Start all clients 2 times to ensure Linbo v2 was updated to v4.
 * Finally start the import script `linuxmuster-import-devices`, which will remove the obsolete start.conf links.
 * Now you can create and deploy images as usual.
-* Explore the new linbo-torrent tool:  
+* Explore the new linbo-torrent tool:
   ```
   Usage: /usr/sbin/linbo-torrent <start|stop|restart|reload|status|create|check> [torrent_filename|image_filename]
 
@@ -38,7 +38,7 @@
     torrent files found recursivly below /srv/linbo.
   * A torrent filename parameter is mandatory with the command check.
   * An image filename parameter is mandatory with the command create.
-  ```  
+  ```
 * Note:
   - Your current cloop images will be still functional and available for client restauration after migration.
   - New images have to be in qcow2 format.
@@ -55,6 +55,7 @@
 * start.conf in yaml format.
 * step by step changeover of the scripting to python.
 * differential imaging.
+* switch to new ntfs3 kernel driver.
 * secure boot support.
 
 ## Build environment
@@ -75,10 +76,10 @@
 * Install 64bit Ubuntu 18.04
 * If you are using Ubuntu server or minimal:
   `sudo apt install dpkg-dev`
-* Install build depends (uses sudo):  
+* Install build depends (uses sudo):
   `./get-depends.sh`
-* Build package:  
-  `./buildpackage.sh`  
+* Build package:
+  `./buildpackage.sh`
 
 Or for better convenience use the new [linbo-build-docker](https://github.com/linuxmuster/linbo-build-docker) environment.
 
@@ -86,8 +87,8 @@ Or for better convenience use the new [linbo-build-docker](https://github.com/li
 
 ### Kernel parameters
 
-are defined in the start.conf file (see [examples](https://github.com/linuxmuster/linuxmuster-linbo7/tree/main/serverfs/srv/linbo/examples)) of the hardware group:  
-`KernelOptions = quiet splash`  
+are defined in the start.conf file (see [examples](https://github.com/linuxmuster/linuxmuster-linbo7/tree/main/serverfs/srv/linbo/examples)) of the hardware group:
+`KernelOptions = quiet splash`
 The command `linuxmuster-import-devices` writes the parameters into the grub configuration of the hardware group.
 Option  |  Description
 --|--
@@ -98,7 +99,7 @@ warmstart=no  |  Suppresses linbo warmstart after downloading a new linbo kernel
 
 ### Linbo services
 
-Linbo's torrent and multicast services are controlled by systemd:  
+Linbo's torrent and multicast services are controlled by systemd:
 ```
 systemctl start|stop|restart|status|disable|enable linbo-multicast
 systemctl start|stop|restart|status|disable|enable linbo-torrent
