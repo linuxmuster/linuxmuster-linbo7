@@ -1,3 +1,9 @@
+linuxmuster-linbo7 (4.0.21-0) lmn71; urgency=low
+
+  * unix2dos & sambadomain fix for windows regfiles in cache (f803a14).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 6 Apr 2022 14:10:00 +0200
+
 linuxmuster-linbo7 (4.0.20-0) lmn71; urgency=low
 
   * ntfs resize fix.
