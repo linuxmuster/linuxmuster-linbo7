@@ -1363,7 +1363,11 @@ invoke_macct(){
   # get image filename from start.conf
   for i in qcow2 cloop; do
     if grep -i ^baseimage /start.conf | grep -q "${imagebase}.${i}"; then
-      imagemacct="${imagebase}.${i}.macct"
+      if [ "$i" == "cloop" ]; then
+        imagemacct="${imagebase}.${i}.macct"
+      else
+        imagemacct="${imagebase}.macct"
+      fi
       break
     fi
   done
