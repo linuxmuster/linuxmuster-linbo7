@@ -1,13 +1,14 @@
 linuxmuster-linbo7 (4.1.0-0) lmn71-testing; urgency=low
 
-  * update kernel to 5.15.31.
+  * update kernel to 5.17.1.
   * use ntfs3 kernel driver.
   * implemented differential imaging.
   * Fix recognition of "PXE IP4" uefi boot entry.
   * Fix #66: Issue parsing Running Torrent Trackers.
   * uefi boot improvements.
+  * unix2dos & sambadomain fix for windows regfiles in cache.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 5 Apr 2022 20:03:00 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 6 Apr 2022 12:14:00 +0200
 
 linuxmuster-linbo7 (4.0.17-0) lmn71; urgency=low
 
