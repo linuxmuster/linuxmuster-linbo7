@@ -2,7 +2,7 @@
 #
 # linbo_warmstart <device>
 # thomas@linuxmuster.net
-# 20211129
+# 20220408
 #
 
 if [ -n "$1" ]; then
@@ -21,37 +21,32 @@ KEXEC="/sbin/kexec"
 KERNEL="linbo64"
 INITRD="linbofs64.lz"
 APPEND="$(cat /proc/cmdline)"
-CFG="/cache/boot/grub/custom.cfg"
-TPL="/usr/share/linbo/warmstart.cfg"
 [ -d /sys/firmware/efi/efivars ] && EFI="true"
 
 # test for warmstart boot parameter
 warmstart="yes"
 for i in $APPEND; do case "$i" in warmstart=*) eval $i ;; esac; done
+
+# no warmstart in this cases
 if [ "$warmstart" = "no" ]; then
-  echo "Skipping kexec'd linbo warmstart, rebooting instead."
+  echo "Skipping linbo warmstart cause it is set to no."
+  exit 0
+fi
+if [ -n "$EFI" ]; then
+  echo "UEFI system detected, skipping linbo warmstart."
+  exit 0
 fi
 
 cd /
-linbo_cmd mount "$CACHE" /cache
+linbo_cmd mountcache "$CACHE"
 
-# cold reboot
-if [ -n "$EFI" -o "$warmstart" = "no" ]; then
-  mv "$CFG" "$CFG".reboot || exit 1
-  sed -e "s|@@kopts@@|$APPEND|" "$TPL" > "$CFG" || exit 1
-  linbo_cmd start "" "$CACHE" "$KERNEL" "$INITRD" "$APPEND" "$CACHE"
-# kexec boot
-else
-  # load linbo kernel
-  if ! $KEXEC --type="bzImage" --append="$APPEND" --initrd="/cache/$INITRD" --load "/cache/$KERNEL"; then
-    echo "Failed to load kernel!"
-    exit 1
-  fi
-  # execute linbo kernel
-  if ! $KEXEC -e; then
-    echo "Failed to execute kernel!"
-    exit 1
-  fi
+# load linbo kernel
+if ! $KEXEC --type="bzImage" --append="$APPEND" --initrd="/cache/$INITRD" --load "/cache/$KERNEL"; then
+  echo "Failed to load kernel!"
+  exit 1
 fi
-
-exit 0
+# execute linbo kernel
+if ! $KEXEC -e; then
+  echo "Failed to execute kernel!"
+  exit 1
+fi
