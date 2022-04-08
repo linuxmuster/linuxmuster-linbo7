@@ -472,13 +472,17 @@ mountpart(){
   local ro
   [ "$3" = "-r" ] && ro=",ro"
   local options
+  # remount partition if it is already mounted
+  local remount
+  if grep -q ^"$partition $destdir" /proc/mounts; then
+    remount="remount,"
+    [ -z "$ro" ] && ro=",rw"
+  fi
   case "$type" in
-    ntfs) options="-i -t ntfs3 -o acl,noatime,discard$ro" ;;
-    vfat) options="-i -t $type -o defaults$ro" ;;
-    *) options="-i -t $type -o acl,user_xattr$ro" ;;
+    ntfs) options="-i -t ntfs3 -o ${remount}acl,noatime,discard${ro}" ;;
+    vfat) options="-i -t $type -o ${remount}defaults${ro}" ;;
+    *) options="-i -t $type -o ${remount}acl,user_xattr${ro}" ;;
   esac
-  # umount partition first if it is already mounted
-  grep -q ^"$partition $destdir" /proc/mounts && umount $destdir
   # mount partition
   mount $options $partition $destdir
   # check success
