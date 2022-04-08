@@ -1,8 +1,10 @@
 linuxmuster-linbo7 (4.0.21-0) lmn71; urgency=low
 
   * unix2dos & sambadomain fix for windows regfiles in cache (f803a14).
+  * linbo_warmstart: removed reboot in case of warmstart is not intended (503c829).
+  * Fix grub update on bios systems (10e9045).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 6 Apr 2022 14:10:00 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 8 Apr 2022 19:02:00 +0200
 
 linuxmuster-linbo7 (4.0.20-0) lmn71; urgency=low
 
