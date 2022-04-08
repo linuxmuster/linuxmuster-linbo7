@@ -6,7 +6,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20220406
+# 20220408
 # GPL v3
 #
 
@@ -1330,7 +1330,9 @@ mk_boot(){
     fi
   fi
   # umount efi partition if mounted
-  [ -n "$efipart" ] && umount /cache/boot/efi || RC="1"
+  if [ -n "$efipart" ]; then
+    umount /cache/boot/efi || RC="1"
+  fi
   return "$RC"
 }
 
