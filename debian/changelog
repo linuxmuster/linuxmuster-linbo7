@@ -7,8 +7,10 @@ linuxmuster-linbo7 (4.1.0-0) lmn71-testing; urgency=low
   * Fix #66: Issue parsing Running Torrent Trackers.
   * uefi boot improvements.
   * unix2dos & sambadomain fix for windows regfiles in cache.
+  * use linbo warmstart also for uefi systems.
+  * Fix #67: Linbo7 assumes wrong macct name (closes also #68).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 6 Apr 2022 12:14:00 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sun, 10 Apr 2022 14:59:00 +0200
 
 linuxmuster-linbo7 (4.0.17-0) lmn71; urgency=low
 
