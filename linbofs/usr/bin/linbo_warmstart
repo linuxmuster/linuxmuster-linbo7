@@ -1,8 +1,8 @@
 #!/bin/sh
 #
-# linbo_warmstart <device>
+# linbo_warmstart <cachedevice>
 # thomas@linuxmuster.net
-# 20220408
+# 20220410
 #
 
 if [ -n "$1" ]; then
@@ -21,7 +21,6 @@ KEXEC="/sbin/kexec"
 KERNEL="linbo64"
 INITRD="linbofs64.lz"
 APPEND="$(cat /proc/cmdline)"
-[ -d /sys/firmware/efi/efivars ] && EFI="true"
 
 # test for warmstart boot parameter
 warmstart="yes"
@@ -29,11 +28,7 @@ for i in $APPEND; do case "$i" in warmstart=*) eval $i ;; esac; done
 
 # no warmstart in this cases
 if [ "$warmstart" = "no" ]; then
-  echo "Skipping linbo warmstart cause it is set to no."
-  exit 0
-fi
-if [ -n "$EFI" ]; then
-  echo "UEFI system detected, skipping linbo warmstart."
+  echo "Skipping linbo warmstart."
   exit 0
 fi
 
@@ -41,7 +36,7 @@ cd /
 linbo_cmd mountcache "$CACHE"
 
 # load linbo kernel
-if ! $KEXEC --type="bzImage" --append="$APPEND" --initrd="/cache/$INITRD" --load "/cache/$KERNEL"; then
+if ! $KEXEC --type="bzImage64" --reuse-cmdline --initrd="/cache/$INITRD" --load "/cache/$KERNEL"; then
   echo "Failed to load kernel!"
   exit 1
 fi
