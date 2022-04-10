@@ -1,3 +1,9 @@
+linuxmuster-linbo7 (4.0.22-0) lmn71; urgency=low
+
+  * Fix #67: Linbo7 assumes wrong macct name (closes also #68).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sun, 10 Apr 2022 14:24:00 +0200
+
 linuxmuster-linbo7 (4.0.21-0) lmn71; urgency=low
 
   * unix2dos & sambadomain fix for windows regfiles in cache (f803a14).
