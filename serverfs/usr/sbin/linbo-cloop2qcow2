@@ -2,7 +2,7 @@
 #
 # convert cloop image to qcow2 format
 # thomas@linuxmuster.net
-# 20220114
+# 20220410
 #
 
 # read environment
@@ -103,7 +103,7 @@ for i in info desc postsync prestart reg macct; do
   [ -e "$srcfile" ] || srcfile="${CLOOPFILE}.$i"
   [ -e "$srcfile" ] || continue
   case "$i" in
-    info|desc) cp "$srcfile" "${QCOW2FILE}.$i" ;;
+    info|desc|macct) cp "$srcfile" "${QCOW2FILE}.$i" ;;
     *) cp "$srcfile" "${imagebase}.$i" ;;
   esac
 done
