@@ -6,7 +6,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20220406
+# 20220412
 # GPL v3
 #
 
@@ -1843,11 +1843,12 @@ mk_qcow2(){
 # returns true if mountable & contains a version of the archive.
 check_status(){
   local RC=1
-  local base="${2##*/}"
-  base="${base%.[CcQq][LlCc][Oo][OoWw][Pp2]}"
-  echo "## $(date) : Check status of $1 using $2." | tee -a /tmp/linbo.log
+  local partition="$1"
+  local imagefile="$2"
+  local imagebase="${imagefile%%.*}"
+  echo "## $(date) : Check status of $partition using $imagefile." | tee -a /tmp/linbo.log
   mountpart "$1" /mnt -r 2>> /tmp/linbo.log || return $?
-  [ -s /mnt/.linbo ] && case "$(cat /mnt/.linbo 2>/dev/null)" in *$base*) RC=0 ;; esac
+  [ -s /mnt/.linbo ] && case "$(cat /mnt/.linbo 2>/dev/null)" in *$imagebase*) RC=0 ;; esac
   umount /mnt || umount -l /mnt
   # [ "$RC" = "0" ] && echo "Enthaelt schon eine Version von $2."
   return "$RC"
@@ -1856,11 +1857,12 @@ check_status(){
 # update_status partition imagefile:
 # Add information about installed archives to partition
 update_status(){
-  local base="${2##*/}"
-  base="${base%.[CcQq][LlCc][Oo][OoWw][Pp2]}"
-  echo "## $(date) : Update status of $1 using $2." | tee -a /tmp/linbo.log
+  local partition="$1"
+  local imagefile="$2"
+  local imagebase="${imagefile%%.*}"
+  echo "## $(date) : Update status of $partition using $imagefile." | tee -a /tmp/linbo.log
   mountpart "$1" /mnt -w 2>> /tmp/linbo.log || return $?
-  echo "$base" > /mnt/.linbo
+  echo "$imagebase" > /mnt/.linbo
   #sync; sync; sleep 1
   umount /mnt || umount -l /mnt
   return 0
@@ -1925,6 +1927,7 @@ cp_image(){
   local RC=1
   local imagefile="$1"
   local imagetype="${imagefile##*.}"
+  case "$imagetype" in qcow2|qdiff) imagetype="qcow2" ;; esac
   local targetdev="$2"
   if [ ! -s "$imagefile" ]; then
     echo "Error with $imagefile"
@@ -1979,11 +1982,13 @@ restore(){
   echo -n "restore " ;  printargs "$@"
   local RC=1
   local imagefile="$1"
-  local imagetype="${imagefile##*.}"
+  local imagediff="${imagefile%%.*}.qdiff"
   local targetdev="$2"
   local force="$3"
   local fstype="$(fstype_startconf "$targetdev")"
   local label="$(print_partlabel "$targetdev")"
+  # detect differential image file
+  [ -s "$imagediff" ] && imagefile="$imagediff"
   echo "Unpacking: $imagefile -> $targetdev"
   check_status "$targetdev" "$imagefile" || force="force"
   if [ "$force" = "force" ]; then
@@ -2006,6 +2011,9 @@ restore(){
   fi
   if [ "$RC" = "0" ]; then
     echo "Done."
+    # log hosts image status
+    local timestamp="$(getinfo /cache/$imagefile.info timestamp)"
+    log_image_status "$imagefile" "$timestamp" applied
   else
     echo "Error!"
   fi
@@ -2183,7 +2191,9 @@ syncl(){
   local disk="$(get_disk_from_partition "$rootdev")"
   local group="$(hostgroup)"
   local bootdir
-  local image="$2"
+  local imagefile="$2"
+  local imagebase="${imagefile%%.*}"
+  local imagetype="${imagefile##*.}"
   local force="$9"
   local HOSTNAME
   local FQDN
@@ -2195,7 +2205,7 @@ syncl(){
 
   # don't sync in that case
   if [ "$1" = "$rootdev" ]; then
-    echo "Skipping local synchronisation. Image $image will be started direct from cache."
+    echo "Skipping local synchronisation. Image $imagefile will be started direct from cache."
     return 0
   fi
 
@@ -2206,15 +2216,13 @@ syncl(){
   mountcache "$1" || return 1
   cd /cache
   # start syncing image
-  restore "$image" "$rootdev" $force ; RC="$?"
-  local imagename="${image%.*}"
-  local imagetype="${image##*.}"
+  restore "$imagefile" "$rootdev" $force ; RC="$?"
   if [ "$imagetype" = "cloop" ]; then
-    patchfile="$image.reg"
-    postsync="$image.postsync"
+    patchfile="$imagefile.reg"
+    postsync="$imagefile.postsync"
   else
-    patchfile="$imagename.reg"
-    postsync="$imagename.postsync"
+    patchfile="$imagebase.reg"
+    postsync="$imagebase.postsync"
   fi
 
   # mount os partition
@@ -2421,12 +2429,6 @@ syncl(){
 
   # restore partition labels
   label_allpartitions
-
-  # log hosts image status
-  if [ "$RC" = "0" ]; then
-    local timestamp="$(getinfo /cache/$image.info timestamp)"
-    log_image_status "$image" "$timestamp" applied
-  fi
 
   sendlog
   cd / # ; mountcache "$1" -r
@@ -2677,7 +2679,8 @@ download_img_if_changed(){
   localmode && return 0
   local server="$1"
   local imagefile="$2"
-  local imagebase="$(echo "$imagefile" | awk -F\. '{print $1}')"
+  local imagebase="${imagefile%%.*}"
+  local imagetype="${imagefile##*.}"
   local subdir="images/$imagebase/"
   local infofile="${imagefile}.info"
   local dltype="$3"
@@ -2693,6 +2696,12 @@ download_img_if_changed(){
     mv -f "$infofile" "${infofile}.bak"
     # download infofile, first try from subdir
     if ! download "$server" "${subdir}${infofile}"; then
+      # remove differential image files if download fails
+      # (means there is no diff image on the server)
+      if [ "$imagetype" = "qdiff" ]; then
+        rm -f "/cache/${imagefile}"*
+        return 0
+      fi
       download "$server" "$infofile" || return 1
       subdir=""
     fi
@@ -2710,13 +2719,21 @@ download_img_if_changed(){
       DOWNLOAD="true"
     fi
   fi
-  # download other supplemental files
-  download_all "$server" "${subdir}${imagefile}.desc" \
-    "${subdir}${imagefile}.info" \
-    "${subdir}${imagefile}.reg" \
-    "${subdir}${imagefile}.postsync" \
-    "${subdir}${imagebase}.reg" \
-    "${subdir}${imagebase}.postsync"
+  # download os related supplemental files
+  if [ "$imagetype" = "qcow2" -o "$imagetype" = "cloop" ]; then
+    download_all "$server" "${subdir}${imagefile}.desc" \
+      "${subdir}${imagefile}.info" \
+      "${subdir}${imagefile}.reg" \
+      "${subdir}${imagefile}.postsync" \
+      "${subdir}${imagebase}.reg" \
+      "${subdir}${imagebase}.postsync"
+  elif [ "$imagetype" = "qdiff" ]; then
+    download_all "$server" "${subdir}${imagefile}.desc" \
+      "${subdir}${imagefile}.info"
+  else
+    echo "Unknown image type $imagetype."
+    return 1
+  fi
   # if image file is unchanged compared to server version end here
   if [ -z "$DOWNLOAD" ]; then
     echo "$imagefile has not changed, nothing to do."
@@ -2858,17 +2875,17 @@ upload(){
 # syncr server cachedev baseimage image bootdev rootdev kernel initrd append [force]
 syncr(){
   echo "syncr " ; printargs "$@"
+  local imagefile="$3"
+  local imagediff="${imagefile%%.*}.qdiff"
   if remote_cache "$2"; then
-    echo "Cache $2 is not local, skipping image update."
+    echo "Cache $2 is not local, skipping remote image update."
   else
     mountcache "$2" || return 1
     cd /cache
     local i
     local RC="0"
-    for i in "$3" "$4"; do
-      if [ -n "$i" ]; then
-        download_img_if_changed "$1" "$i" || RC="1"
-      fi
+    for i in "$imagefile" "$imagediff"; do
+      download_img_if_changed "$1" "$i" || RC="1"
     done
     sendlog
     cd / ; mountcache "$2" -r
