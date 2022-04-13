@@ -1,8 +1,7 @@
 linuxmuster-linbo7 (4.1.0-0) lmn71-testing; urgency=low
 
-  * merged differential imaging from branch diffimage.
+  * merged differential imaging from branch diffimage (cc78fd7...8969db1).
   * update kernel to 5.17.1 (6bf2d65).
-  * use new ntfs3 kernel driver instead of ntfs-3g.
   * added qdiff support to linbo-remote (f949a5d).
   * Fix recognition of "PXE IP4" uefi boot entry (e7aa263).
   * Fix #66: Issue parsing Running Torrent Trackers.
@@ -14,8 +13,9 @@ linuxmuster-linbo7 (4.1.0-0) lmn71-testing; urgency=low
   * linbo_cmd, mountpart: use remount instead of umount/mount (6eccd36).
   * use linbo warmstart also for uefi systems (53c7a30).
   * Fix #67: Linbo7 assumes wrong macct name (closes also #68).
+  * implement differential image sync (e46cade).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 11 Apr 2022 11:03:00 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 13 Apr 2022 09:52:00 +0200
 
 linuxmuster-linbo7 (4.0.17-0) lmn71; urgency=low
 
