@@ -5,7 +5,7 @@
 #
 # linuxmuster-mkgrubimg.py
 # thomas@linuxmuster.net
-# 20210224
+# 20220414
 #
 
 import configparser
@@ -21,9 +21,9 @@ from functions import writeTextfile
 from functions import getStartconfOption
 
 def usage():
-    print('Purpose: mkgrubhostimg.py creates host specific image for grub network')
+    print('Purpose: linbo-mkgrubimg creates host specific image for grub network')
     print('boot and stores it in /srv/linbo/boot/grub/hostcfg/<hostname>.img.')
-    print('Usage: mkgrubhostimg.py [options]')
+    print('Usage: linbo-mkgrubimg [options]')
     print(' [options] may be:')
     print(' -h,            --help                : print this help.')
     print(' -n <hostname>, --name=<hostname>     : hostname for which an image will be')
@@ -163,11 +163,23 @@ if setfilename == True:
     row_new = field1 + ';' + hostname + ';' + group + ';' + mac + ';' + ip + ';' + field6 + ';' + field7 + ';' + foption + ';' + field9 + ';' + field10 + ';' + field11
     rc, content = readTextfile(wsfile)
     rc = writeTextfile(wsfile, content.replace(row_old, row_new), 'w')
-    # modify dhcpd.conf
-    rc, content = readTextfile(constants.DHCPDEVCONF)
-    row_old = re.findall('host ' + hostname + ' .*?(?=}|$)', content, re.DOTALL)[0]
-    row_new = 'host ' + hostname + ' {\n  hardware ethernet ' + mac + ';\n  fixed-address ' + ip + ';\n  ' + foption + ';\n  option host-name "' + hostname + '";\n  option extensions-path "' + group + '";\n'
-    rc = writeTextfile(constants.DHCPDEVCONF, content.replace(row_old, row_new), 'w')
+    # modify dhcp device entry
+    # read included conf files
+    rc, includes = readTextfile(constants.DHCPDEVCONF)
+    prefix = os.path.dirname(constants.DHCPDEVCONF)
+    # iterate over included files
+    for item in includes.split('"'):
+        # skip not relevant items
+        if prefix not in item or not os.path.exists(item):
+            continue
+        rc, content = readTextfile(item)
+        # find host entry
+        if 'host ' + hostname in content:
+            # replace device entry with custom grub img path
+            row_old = re.findall('host ' + hostname + ' .*?(?=}|$)', content, re.DOTALL)[0]
+            row_new = 'host ' + hostname + ' {\n  hardware ethernet ' + mac + ';\n  fixed-address ' + ip + ';\n  ' + foption + ';\n  option host-name "' + hostname + '";\n  option extensions-path "' + group + '";\n'
+            rc = writeTextfile(item, content.replace(row_old, row_new), 'w')
+            break
     # finally restart dhcp service
     os.system('service isc-dhcp-server restart')
 
