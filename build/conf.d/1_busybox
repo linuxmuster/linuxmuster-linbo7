@@ -1,8 +1,9 @@
 # busybox build environment
 
-BBVER="1.32.1"
+BBURL="https://busybox.net/downloads"
+BBVER="1.35.0"
 BBARCHIVE="busybox-$BBVER.tar.bz2"
-BBSHA256="9d57c4bd33974140fd4111260468af22856f12f5b5ef7c70c8d9b75c712a0dee"
+BBSHA256="${BBARCHIVE}.sha256"
 
 BBDIR="${BBARCHIVE/.tar.bz2/}"
 BBSRCDIR="$SRC/$BBDIR"

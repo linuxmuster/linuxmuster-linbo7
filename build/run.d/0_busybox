@@ -7,15 +7,17 @@ for i in build/conf.d/*; do source "$i" || exit 1; done
 
 # download
 ARCHIVE="$CACHE/$BBARCHIVE"
+SHA256="$CACHE/$BBSHA256"
 if [ ! -s "$ARCHIVE" ]; then
   echo "Downloading $BBARCHIVE ..."
-  curl -L -o "$ARCHIVE" "$REMOTE_CACHE/$BBARCHIVE"
+  curl -L -o "$ARCHIVE" "$BBURL/$BBARCHIVE"
+  echo "Downloading $BBSHA256 ..."
+  curl -L -o "$SHA256" "$BBURL/$BBSHA256"
 fi
 
 # check
-SHA256SUM="$(sha256sum "$ARCHIVE" | awk '{print $1}')"
 echo "Checking sha256sum ..."
-[ "$BBSHA256" = "$SHA256SUM" ] || exit 1
+[ "$(awk '{print $1}' "$SHA256")" = "$(sha256sum "$ARCHIVE" | awk '{print $1}')" ] || exit 1
 
 # extract
 if [ -d "$BBSRCDIR" ]; then
