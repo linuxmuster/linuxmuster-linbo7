@@ -1,9 +1,16 @@
-linuxmuster-linbo7 (4.0.22-0) lmn71; urgency=low
+linuxmuster-linbo7 (4.0.23-0) lmn71; urgency=low
 
-  * Fix #67: Linbo7 assumes wrong macct name (closes also #68).
-  * use linbo warmstart also for uefi systems (0053aa9).
+  * multi-school fix for mkgrubhostimg.py (d84d57b).
+  * link mkgrubhostimg.py to /usr/sbin/linbo-mkgrubimg (f96c109).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Sun, 10 Apr 2022 15:06:00 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 14 Apr 2022 10:39:00 +0200
+
+ linuxmuster-linbo7 (4.0.22-0) lmn71; urgency=low
+
+   * Fix #67: Linbo7 assumes wrong macct name (closes also #68).
+   * use linbo warmstart also for uefi systems (0053aa9).
+
+  -- Thomas Schmitt <thomas@linuxmuster.net>  Sun, 10 Apr 2022 15:06:00 +0200
 
 linuxmuster-linbo7 (4.0.21-0) lmn71; urgency=low
 
