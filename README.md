@@ -199,9 +199,9 @@ create_* and upload_* commands cannot be used with hostlists, -r and -g options.
 #### linbo-mkgrubimg
 creates hostspecific custom grub boot images to workaround buggy (UEFI-)BIOSes, which fail to netboot:
 ```
-Purpose: mkgrubhostimg.py creates host specific image for grub network
+Purpose: linbo-mkgrubimg creates host specific image for grub network
 boot and stores it in /srv/linbo/boot/grub/hostcfg/<hostname>.img.
-Usage: mkgrubhostimg.py [options]
+Usage: linbo-mkgrubimg [options]
  [options] may be:
  -h,            --help                : print this help.
  -n <hostname>, --name=<hostname>     : hostname for which an image will be
