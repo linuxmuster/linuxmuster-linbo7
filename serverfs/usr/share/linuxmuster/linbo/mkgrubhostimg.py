@@ -5,7 +5,7 @@
 #
 # linuxmuster-mkgrubimg.py
 # thomas@linuxmuster.net
-# 20220414
+# 20220416
 #
 
 import configparser
@@ -84,6 +84,8 @@ field2 = hostrow[1]
 group = hostrow[2]
 mac = hostrow[3]
 ip = hostrow[4]
+if ip == 'DHCP':
+    ip = '0.0.0.0'
 field6 = hostrow[5]
 field7 = hostrow[6]
 field8 = hostrow[7]
@@ -154,33 +156,37 @@ else:
 os.system(cmd)
 os.unlink(cfgout)
 
-# set filename option in workstations file and dhcpd.conf
-if setfilename == True:
-    print('Setting filename option in DHCP ...')
-    foption = 'filename "' + imgrel + '"'
-    # modify workstations file
-    row_old = field1 + ';' + field2 + ';' + group + ';' + mac + ';' + ip + ';' + field6 + ';' + field7 + ';' + field8 + ';' + field9 + ';' + field10 + ';' + field11
-    row_new = field1 + ';' + hostname + ';' + group + ';' + mac + ';' + ip + ';' + field6 + ';' + field7 + ';' + foption + ';' + field9 + ';' + field10 + ';' + field11
-    rc, content = readTextfile(wsfile)
-    rc = writeTextfile(wsfile, content.replace(row_old, row_new), 'w')
-    # modify dhcp device entry
-    # read included conf files
-    rc, includes = readTextfile(constants.DHCPDEVCONF)
-    prefix = os.path.dirname(constants.DHCPDEVCONF)
-    # iterate over included files
-    for item in includes.split('"'):
-        # skip not relevant items
-        if prefix not in item or not os.path.exists(item):
-            continue
-        rc, content = readTextfile(item)
-        # find host entry
-        if 'host ' + hostname in content:
-            # replace device entry with custom grub img path
-            row_old = re.findall('host ' + hostname + ' .*?(?=}|$)', content, re.DOTALL)[0]
-            row_new = 'host ' + hostname + ' {\n  hardware ethernet ' + mac + ';\n  fixed-address ' + ip + ';\n  ' + foption + ';\n  option host-name "' + hostname + '";\n  option extensions-path "' + group + '";\n'
-            rc = writeTextfile(item, content.replace(row_old, row_new), 'w')
-            break
-    # finally restart dhcp service
-    os.system('service isc-dhcp-server restart')
+print(img + ' successfully created.')
 
-print('Done!')
+if not setfilename:
+    sys.exit(0)
+
+# set filename option in workstations file and dhcpd.conf
+foption = 'filename "' + imgrel + '"'
+# modify workstations file
+row_old = field1 + ';' + field2 + ';' + group + ';' + mac + ';' + ip + ';' + field6 + ';' + field7 + ';' + field8 + ';' + field9 + ';' + field10 + ';' + field11
+row_new = field1 + ';' + hostname + ';' + group + ';' + mac + ';' + ip + ';' + field6 + ';' + field7 + ';' + foption + ';' + field9 + ';' + field10 + ';' + field11
+rc, content = readTextfile(wsfile)
+rc = writeTextfile(wsfile, content.replace(row_old, row_new), 'w')
+# modify dhcp device entry
+# read included conf files
+rc, includes = readTextfile(constants.DHCPDEVCONF)
+prefix = os.path.dirname(constants.DHCPDEVCONF)
+# iterate over included files
+for item in includes.split('"'):
+    # skip not relevant items
+    if prefix not in item or not os.path.exists(item):
+        continue
+    rc, content = readTextfile(item)
+    # find host entry
+    if 'host ' + hostname in content:
+        # replace device entry with custom grub img path
+        row_old = re.findall('host ' + hostname + ' .*?(?=}|$)', content, re.DOTALL)[0]
+        row_new = 'host ' + hostname + ' {\n  hardware ethernet ' + mac + ';\n  fixed-address ' + ip + ';\n  ' + foption + ';\n  option host-name "' + hostname + '";\n  option extensions-path "' + group + '";\n'
+        row_new = row_new.replace('  fixed-address 0.0.0.0;\n', '')
+        rc = writeTextfile(item, content.replace(row_old, row_new), 'w')
+        break
+# finally restart dhcp service
+os.system('service isc-dhcp-server restart')
+
+print('Filename option in ' + hostname + '\'s dhcp config successfully set.')
