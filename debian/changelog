@@ -1,3 +1,10 @@
+linuxmuster-linbo7 (4.0.24-0) lmn71; urgency=low
+
+  * Fix #70: Clean up invalid UEFI entries.
+  * dhcp client fix for mkgrubhostimg.py (d8c1e77).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 25 Apr 2022 14:10:00 +0200
+
 linuxmuster-linbo7 (4.0.23-0) lmn71; urgency=low
 
   * multi-school fix for mkgrubhostimg.py (d84d57b).
