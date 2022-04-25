@@ -1029,9 +1029,16 @@ repair_efi(){
   local FOUND
   local bootnr
   local winbootimg="/cache/boot/efi/EFI/Microsoft/Boot/bootmgfw.efi"
-  # first remove redundant entries, keep entries with lower number
+  # delete windows boot entries, if efi boot image does not exist
   efibootmgr | grep ^Boot[0-9] | sort -r > "$efiout" || return 1
-  # read in the unique boot entries and test for multiple occurances of the same item
+  bootnr="$(grep -i windows /tmp/efiout  | awk -F\* '{ print $1 }' | sed 's|Boot||')"
+  if [ -n "$bootnr" -a ! -e "$winbootimg" ]; then
+    for item in $bootnr; do
+      efibootmgr --bootnum "$bootnr" --delete-bootnum 2>> /tmp/linbo.log 1>> /tmp/linbo.log
+    done
+    efibootmgr | grep ^Boot[0-9] | sort -r > "$efiout"
+  fi
+  # remove redundant entries, keep entries with lower number
   awk -F\* '{ print $2 }' "$efiout" | sort -u | while read item; do
     [ -z "$item" ] && continue
     line=""
@@ -1047,13 +1054,6 @@ repair_efi(){
       fi
     done
   done
-  # delete windows boot entries, if efi boot image does not exist
-  bootnr="$(grep -i windows /tmp/efiout  | awk -F\* '{ print $1 }' | sed 's|Boot||')"
-  if [ -n "$bootnr" -a ! -e "$winbootimg" ]; then
-    for item in $bootnr; do
-      efibootmgr --bootnum "$bootnr" --delete-bootnum 2>> /tmp/linbo.log 1>> /tmp/linbo.log
-    done
-  fi
   # create grub entry if missing
   create_efiboot grub "$efipart" || return 1
   # set bootorder
