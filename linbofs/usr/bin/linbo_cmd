@@ -6,7 +6,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20220412
+# 20220425
 # GPL v3
 #
 
@@ -963,15 +963,11 @@ create_efiboot(){
   local label="$1"
   local efipart="$2"
   local efipartnr="$(get_partnr "$efipart")"
+  local efidisk="$(get_disk_from_partition "$efipart")"
   local efiloader
-  local bits
   case "$label" in
     *[Ww][Ii][Nn][Dd][Oo][Ww][Ss]*) efiloader="\\EFI\\Microsoft\\Boot\\bootmgfw.efi" ;;
-    grub)
-      bits="$(get_64)"
-      [ -z "$bits" ] && bits="32"
-      efiloader="\\EFI\\grub\\grubx${bits}.efi"
-      ;;
+    grub) efiloader="\\EFI\\grub\\grubx64.efi" ;;
     *) return 1 ;;
   esac
   efibootmgr --create --disk "$efidisk" --part "$efipartnr" --loader "$efiloader" --label "$label" 2>> /tmp/linbo.log 1>> /tmp/linbo.log || return 1
@@ -1015,7 +1011,7 @@ set_efibootorder(){
     fi
   done
   if [ -n "$bootorder" ]; then
-    echo "Setze EFI Bootreihenfolge: $bootorder."
+    echo "Setting EFI bootorder: $bootorder."
     efibootmgr --bootorder "$bootorder" 2>> /tmp/linbo.log 1>> /tmp/linbo.log || return 1
   fi
 }
@@ -1032,6 +1028,7 @@ repair_efi(){
   local item
   local FOUND
   local bootnr
+  local winbootimg="/cache/boot/efi/EFI/Microsoft/Boot/bootmgfw.efi"
   # first remove redundant entries, keep entries with lower number
   efibootmgr | grep ^Boot[0-9] | sort -r > "$efiout" || return 1
   # read in the unique boot entries and test for multiple occurances of the same item
@@ -1050,6 +1047,13 @@ repair_efi(){
       fi
     done
   done
+  # delete windows boot entries, if efi boot image does not exist
+  bootnr="$(grep -i windows /tmp/efiout  | awk -F\* '{ print $1 }' | sed 's|Boot||')"
+  if [ -n "$bootnr" -a ! -e "$winbootimg" ]; then
+    for item in $bootnr; do
+      efibootmgr --bootnum "$bootnr" --delete-bootnum 2>> /tmp/linbo.log 1>> /tmp/linbo.log
+    done
+  fi
   # create grub entry if missing
   create_efiboot grub "$efipart" || return 1
   # set bootorder
@@ -1138,8 +1142,6 @@ mk_efiboot(){
   local startflag="/tmp/.start"
   local bootloaderid
   local doneflag="/tmp/.grub-install"
-  # repare efi configuration
-  repair_efi "$efipart" || return 1
   # restore windows efi boot files
   local RC="0"
   if [ "$(fstype $partition)" = "ntfs" ]; then
@@ -1154,7 +1156,7 @@ mk_efiboot(){
   # install default efi boot file
   local grubefi="/boot/efi/EFI/grub/grubx64.efi"
   if [ -s "$grubefi" ]; then
-    echo "Stelle EFI-Standardboot wieder her."
+    echo "Restore EFI standard boot."
     local efibootdir="$(ls -d /boot/efi/EFI/B[Oo][Oo][Tt] 2>/dev/null)"
     [ -z "$efibootdir" ] && efibootdir="/boot/efi/EFI/BOOT"
     local bootefi="$(ls $efibootdir/[Bb][Oo][Oo][Tt][Xx]64.[Ee][Ff][Ii] 2>/dev/null)"
@@ -1170,7 +1172,7 @@ mk_efiboot(){
     # cause another grub-install
     [ "$RC" = "0" ] && rm -f "$doneflag"
   fi
-  [ "$RC" = "1" ] && echo "Fehler beim Schreiben der EFI-Boot-Konfiguration."
+  [ "$RC" = "1" ] && echo "Failed to write EFI boot configuration."
   # force grub reboot id kerneloption is set
   forcegrub && RC="1"
   return "$RC"
@@ -1328,8 +1330,13 @@ mk_boot(){
       echo "failed!"
     fi
   fi
-  # umount efi partition if mounted
-  [ -n "$efipart" ] && umount /cache/boot/efi || RC="1"
+  # final efi stuff
+  if [ -n "$efipart" ]; then
+    # do some efi housekeeping
+    repair_efi "$efipart" || RC="1"
+    # finally unmount efi partition
+    cd ; umount /cache/boot/efi || RC="1"
+  fi
   return "$RC"
 }
 
@@ -2910,7 +2917,7 @@ update(){
   local force="$3"
 
   if [ -e "$doneflag" -a -z "$force" ]; then
-    echo "LINBO-Update wurde schon ausgefuehrt!"
+    echo "LINBO update has been already done!"
     return 0
   else
     rm -f "$doneflag"
@@ -3056,25 +3063,7 @@ update(){
   done
 
   # finally update/install grub stuff
-  if mk_boot; then
-
-    # set efi bootorder to local,network
-    [ -d /sys/firmware/efi ] && set_efibootorder
-
-    # remove for old legacy grub stuff
-    if [ -e "$grubdir/stage1" -o -e "$grubdir/menu.lst" ]; then
-      echo "Remove grub legacy, reboot is necessary."
-      rm -f "$grubdir"/*stage* "$grubdir"/menu.lst gpxe.krn
-      if [ -e /cache/update.log ]; then
-        cat /cache/update.log >> /tmp/linbo.log
-        sendlog
-      fi
-      reboot="yes"
-    fi
-
-  else
-    RC="1"
-  fi
+  mk_boot || RC="1"
 
   if [ "$RC" = "0" ]; then
     echo "Linbo & grub update successfully finished."
