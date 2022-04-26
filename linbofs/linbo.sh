@@ -4,7 +4,7 @@
 # (C) Klaus Knopper 2007
 # License: GPL V2
 # thomas@linuxmuster.net
-# 20220424
+# 20220425
 #
 
 # Reset fb color mode
@@ -27,7 +27,7 @@ if [ -x "/sbin/plymouthd" -a -n "$SPLASH" ]; then
 fi
 
 # update & extract linbo_gui, disabled since there is no compatible version for 22.04
-#linbo_update_gui
+linbo_update_gui
 
 # DEBUG mode
 case "$CMDLINE" in *\ debug*)
