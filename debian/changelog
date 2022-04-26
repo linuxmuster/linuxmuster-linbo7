@@ -1,3 +1,9 @@
+linuxmuster-linbo7 (4.0.25-0) lmn71; urgency=low
+
+  * Fix restore of windows efi boot files (#70).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 26 Apr 2022 21:17:00 +0200
+
 linuxmuster-linbo7 (4.0.24-0) lmn71; urgency=low
 
   * Fix #70: Clean up invalid UEFI entries.
