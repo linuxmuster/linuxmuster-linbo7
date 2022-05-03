@@ -5,7 +5,7 @@ linuxmuster-linbo7 (4.0.26-0) lmn71; urgency=low
   * Revert "Further UEFI optimations (#70)",
     reverts commit 9de4fec8a716a15e4d42875a3ca61ba4d58667f7.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 2 May 2022 20:07:00 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 3 May 2022 20:16:00 +0200
 
 linuxmuster-linbo7 (4.0.25-0) lmn71; urgency=low
 
