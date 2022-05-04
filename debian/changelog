@@ -8,8 +8,9 @@ linuxmuster-linbo7 (4.0.26-0) lmn71; urgency=low
     reverts commit 17921f3de8f7922b3a3c8ade7e44aea57e102735.
   * Revert "Fix #70: Clean up invalid UEFI entries",
     reverts commit 05193cca7aeb9a93a0648ae7830cd73b0c3f653e.
+  * UEFI fixes, increased verbosity, more english translations (#70).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 3 May 2022 20:24:00 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 4 May 2022 13:09:00 +0200
 
 linuxmuster-linbo7 (4.0.25-0) lmn71; urgency=low
 
