@@ -6,7 +6,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20220408
+# 20220504
 # GPL v3
 #
 
@@ -964,33 +964,42 @@ create_efiboot(){
   local label="$1"
   local efipart="$2"
   local efipartnr="$(get_partnr "$efipart")"
+  local efidisk="$(get_disk_from_partition "$efipart")"
   local efiloader
   local bits
   case "$label" in
     *[Ww][Ii][Nn][Dd][Oo][Ww][Ss]*) efiloader="\\EFI\\Microsoft\\Boot\\bootmgfw.efi" ;;
-    grub)
-      bits="$(get_64)"
-      [ -z "$bits" ] && bits="32"
-      efiloader="\\EFI\\grub\\grubx${bits}.efi"
-      ;;
-    *) return 1 ;;
+    grub) efiloader="\\EFI\\grub\\grubx64.efi" ;;
+    *) echo "Unknown efiloader: $efiloader." ; return 1 ;;
   esac
-  efibootmgr --create --disk "$efidisk" --part "$efipartnr" --loader "$efiloader" --label "$label" 2>> /tmp/linbo.log 1>> /tmp/linbo.log || return 1
+  if efibootmgr --create --disk "$efidisk" --part "$efipartnr" --loader "$efiloader" --label "$label" 2>> /tmp/linbo.log 1>> /tmp/linbo.log; then
+    echo "EFI boot entry for $label successfully created."
+  else
+    echo "Failed to create EFI boot entry for $label."
+    return 1
+  fi
 }
 
 # set_efibootnext: creates efi bootnext entry
 # args: bootloaderid
 set_efibootnext(){
   local bootloaderid="$1"
+  local RC="0"
   forcegrub && bootloaderid="grub"
   # get the bootnr
   local bootnextnr="$(print_efi_bootnr "$bootloaderid")"
   if [ -n "$bootnextnr" ]; then
-    echo "Setze EFI BootNext: $bootnextnr."
-    efibootmgr --bootnext "$bootnextnr" 2>> /tmp/linbo.log 1>> /tmp/linbo.log || return 1
+    if efibootmgr --bootnext "$bootnextnr" 2>> /tmp/linbo.log 1>> /tmp/linbo.log; then
+      echo "EFI bootnext for $bootloaderid has been set to $bootnextnr."
+    else
+      echo "Failed to set boot no. for $bootloaderid to $bootnextnr."
+      RC="1"
+    fi
   else
-    return 1
+    echo "Failed to get boot no. for $bootloaderid."
+    RC="1"
   fi
+  return "$RC"
 }
 
 # set_efibootorder: set the boot order to local,network
@@ -999,6 +1008,7 @@ set_efibootorder(){
   efibootmgr | grep ^Boot | grep -vi ipv6 > "$efiout"
   local i
   local nr
+  local RC="0"
   local bootorder
   # fix bootnext in case of KVM virtualization
   if dmesg | grep -qw KVM; then
@@ -1016,9 +1026,16 @@ set_efibootorder(){
     fi
   done
   if [ -n "$bootorder" ]; then
-    echo "Setze EFI Bootreihenfolge: $bootorder."
-    efibootmgr --bootorder "$bootorder" 2>> /tmp/linbo.log 1>> /tmp/linbo.log || return 1
+    if efibootmgr --bootorder "$bootorder" 2>> /tmp/linbo.log 1>> /tmp/linbo.log; then
+      echo "EFI bootorder has been successfully set."
+    else
+      echo "Failed to set EFI bootorder."
+      RC="1"
+    fi
   fi
+  # remove dups
+  efibootmgr -D || RC="1"
+  return "$RC"
 }
 
 # repair_efi: sets efi configuration into a proper state
@@ -1097,11 +1114,11 @@ mk_winefiboot(){
         mkdir -p "$win_efidir"
       fi
       # copy whole windows efi stuff to efi partition
-      echo "Restoring windows bootfiles on efi partition."
+      echo "Restoring windows bootfiles on EFI partition."
       rsync -r "$win_bootdir/" "$win_efidir/"
     fi
   else
-    echo "Failed to restore windows efi bootfiles."
+    echo "Failed to restore windows EFI bootfiles."
     RC="1"
   fi
   # create efi bootloader entry if missing
@@ -1149,19 +1166,26 @@ mk_efiboot(){
   else # assume linux system
     bootloaderid="$(osname "$partition")"
     if [ -n "$bootloaderid" ]; then
-      mk_linefiboot "$partition" "$grubdisk" "$efipart" "$bootloaderid" || RC="1"
+      if ! mk_linefiboot "$partition" "$grubdisk" "$efipart" "$bootloaderid"; then
+        echo "Failed to update linux EFI boot configuration."
+        RC="1"
+      fi
     fi
   fi
   # install default efi boot file
   local grubefi="/boot/efi/EFI/grub/grubx64.efi"
   if [ -s "$grubefi" ]; then
-    echo "Stelle EFI-Standardboot wieder her."
     local efibootdir="$(ls -d /boot/efi/EFI/B[Oo][Oo][Tt] 2>/dev/null)"
     [ -z "$efibootdir" ] && efibootdir="/boot/efi/EFI/BOOT"
     local bootefi="$(ls $efibootdir/[Bb][Oo][Oo][Tt][Xx]64.[Ee][Ff][Ii] 2>/dev/null)"
     [ -z "$bootefi" ] && bootefi="$efibootdir/BOOTX64.EFI"
     mkdir -p "$efibootdir"
-    rsync "$grubefi" "$bootefi" || RC="1"
+    if ! rsync "$grubefi" "$bootefi"; then
+      echo "Failed to restore EFI standard boot."
+      RC="1"
+    else
+      echo "Successfully restored efi standard boot."
+    fi
   fi
   # set efi bootnext entry if invoked by start()
   if [ -e "$startflag" -a -n "$bootloaderid" ]; then
@@ -1171,8 +1195,8 @@ mk_efiboot(){
     # cause another grub-install
     [ "$RC" = "0" ] && rm -f "$doneflag"
   fi
-  [ "$RC" = "1" ] && echo "Fehler beim Schreiben der EFI-Boot-Konfiguration."
-  # force grub reboot id kerneloption is set
+  [ "$RC" = "1" ] && echo "Failed to write EFI boot configuration."
+  # force grub reboot if forcegrub kerneloption is set
   forcegrub && RC="1"
   return "$RC"
 }
