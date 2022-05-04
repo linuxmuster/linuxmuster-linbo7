@@ -2,4 +2,3 @@
 
 file /sbin/parted /sbin/parted 755 0 0
 file /lib/libparted.so.2 /lib/x86_64-linux-gnu/libparted.so.2 755 0 0
-file /lib/libtinfo.so.5 /lib/x86_64-linux-gnu/libtinfo.so.5 755 0 0

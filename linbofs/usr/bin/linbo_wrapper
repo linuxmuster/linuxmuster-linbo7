@@ -3,7 +3,7 @@
 # wrapper for linbo_cmd
 #
 # thomas@linuxmuster.net
-# 20210514
+# 20220327
 # GPL V3
 #
 
@@ -68,14 +68,13 @@ get_downloadtype(){
 
 # get image names
 get_images(){
-  local baseimages=`grep -i ^baseimage /start.conf | sed -e 's/#.*$//' | awk -F\= '{ print $2 }' | awk '{ print $1 }' | sed -e '/^$/d'`
-  local diffimages=`grep -i ^image /start.conf | sed -e 's/#.*$//' | awk -F\= '{ print $2 }' | awk '{ print $1 }' | sed -e '/^$/d'`
-  [ -n "$baseimages" -a -n "$diffimages" ] && images="$baseimages $diffimages"
-  [ -n "$baseimages" -a -z "$diffimages" ] && images="$baseimages"
+  local images=`grep -i ^baseimage /start.conf | sed -e 's/#.*$//' | awk -F\= '{ print $2 }' | awk '{ print $1 }' | sed -e '/^$/d'`
+  local diffimages="$(echo "$images" | sed -e 's|.qcow2|.qdiff|g')"
+  images="$images $diffimages"
   echo "$images"
 }
 
-# get baseimage name
+# get imagefile name
 get_os(){
   # check for valid start.conf
   if ! grep -qi ^"\[os\]" /start.conf; then
@@ -87,8 +86,7 @@ get_os(){
   local param=""
   local value=""
   osname=""
-  baseimage=""
-  image=""
+  imagefile=""
   bootdev=""
   rootdev=""
   kernel=""
@@ -120,8 +118,7 @@ get_os(){
       value="$(echo "$line" | sed "s/$param//" | sed "s/^[ \t]*//" | sed "s/^=//" | sed "s/^[ \t]*//" | awk -F\# '{ print $1 }' | sed "s/ *$//g")"
       case "$param" in
         [Nn][Aa][Mm][Ee]) osname="$value" ;;
-        [Ii][Mm][Aa][Gg][Ee]) image="$value" ;;
-        [Bb][Aa][Ss][Ee][Ii][Mm][Aa][Gg][Ee]) baseimage="$value" ;;
+        [Bb][Aa][Ss][Ee][Ii][Mm][Aa][Gg][Ee]) imagefile="$value" ;;
         [Bb][Oo][Oo][Tt]) bootdev="$value" ;;
         [Rr][Oo][Oo][Tt]) rootdev="$value" ;;
         [Kk][Ee][Rr][Nn][Ee][Ll]) kernel="$value" ;;
@@ -295,24 +292,24 @@ help(){
   echo
   echo "Available commands are:"
   echo
-  echo "partition                : Partitions the disk."
-  echo "label                    : Assings labels to partitions."
-  echo "format                   : Partitions the disk and formats the partions."
-  echo "format:<#>               : Partitions the disk and formats only"
-  echo "                           partition nr. <#>."
-  echo "initcache:<dltype>       : Updates the local cache. <dltype> is"
-  echo "                           rsync, multicast or torrent. If <dltype> is"
-  echo "                           not given it will be fetched from start.conf."
-  echo "sync:<#>                 : Synchronizes operating system nr. <#>."
-  echo "start:<#>                : Starts operating system nr. <#>."
+  echo "partition                  : Partitions the disk."
+  echo "label                      : Assings labels to partitions."
+  echo "format                     : Partitions the disk and formats the partions."
+  echo "format:<#>                 : Partitions the disk and formats only"
+  echo "                             partition nr. <#>."
+  echo "initcache:<dltype>         : Updates the local cache. <dltype> is"
+  echo "                             rsync, multicast or torrent. If <dltype> is"
+  echo "                             not given it will be fetched from start.conf."
+  echo "sync:<#>                   : Synchronizes operating system nr. <#>."
+  echo "start:<#>                  : Starts operating system nr. <#>."
   echo "create_image:<#>:<\"msg\"> : Creates a baseimage from operating system nr. <#>."
-  echo "create_rsync:<#>:<\"msg\"> : Creates a RSYNC image from operating system nr. <#>."
-  echo "upload_image:<#>         : Uploads the baseimage of operating system nr. <#>."
-  echo "upload_rsync:<#>         : Uploads the RSYNC image of operating system nr. <#>."
-  echo "update                   : Updates LINBO's kernel and initrd and installs GRUB."
-  echo "reboot                   : Reboots the client."
-  echo "halt                     : Shuts down the client."
-  echo "help                     : Show this help."
+  echo "create_qdiff:<#>:<\"msg\"> : Creates a differential image from operating system nr. <#>."
+  echo "upload_image:<#>           : Uploads the baseimage of operating system nr. <#>."
+  echo "upload_qdiff:<#>           : Uploads the differential image of operating system nr. <#>."
+  echo "update                     : Updates LINBO's kernel and initrd and installs GRUB."
+  echo "reboot                     : Reboots the client."
+  echo "halt                       : Shuts down the client."
+  echo "help                       : Show this help."
   echo
   echo "<\"msg\"> image comment (optional)."
   echo "The position numbers depend on the position in the start.conf."
@@ -391,7 +388,7 @@ while [ "$#" -gt "0" ]; do
       fi
       ;;
 
-    create_image)
+    create_image|create_qdiff)
       osnr="$param"
       if ! isinteger "$osnr"; then
         echo "$osnr is not an integer!"
@@ -399,20 +396,22 @@ while [ "$#" -gt "0" ]; do
         continue
       fi
       get_os
-      echo "Creating $baseimage from $osname ..."
+      # detect differential image
+      [ "$cmd" = "create_qdiff" ] && imagefile="${imagefile/.qcow2/.qdiff}"
+      echo "Creating $imagefile from $osname ..."
       [ -z "$cachedev" ] && get_cachedev
-      [ -n "$customimage" ] && baseimage="$customimage"
-      if [ -n "$cachedev" -a -n "$baseimage" -a -n "$bootdev" -a -n "$rootdev" -a -n "$kernel" ]; then
-        create_desc "$baseimage"
-        linbo_cmd create "$cachedev" "$baseimage" "" "$bootdev" "$rootdev" "$kernel" "$initrd" || exit 1
+      [ -n "$customimage" ] && imagefile="$customimage"
+      if [ -n "$cachedev" -a -n "$imagefile" -a -n "$bootdev" -a -n "$rootdev" -a -n "$kernel" ]; then
+        create_desc "$imagefile"
+        linbo_cmd create "$cachedev" "$imagefile" "$rootdev" || exit 1
       else
         echo "Failed! One or more necessary parameters are missing!"
-        echo "Create command was: linbo_cmd create $cachedev $baseimage $bootdev $rootdev $kernel $initrd"
+        echo "Create command was: linbo_cmd create $cachedev $imagefile $rootdev"
         exit 1
       fi
       ;;
 
-    upload_image)
+    upload_image|upload_qdiff)
       osnr="$param"
       if ! isinteger "$osnr"; then
         echo "$osnr is not an integer!"
@@ -423,58 +422,16 @@ while [ "$#" -gt "0" ]; do
       get_passwd
       [ -z "$server" ] && get_server
       [ -z "$server" ] && return 1
-      echo "Uploading $baseimage to $server ..."
+      # detect differential image
+      [ "$cmd" = "upload_qdiff" ] && imagefile="${imagefile/.qcow2/.qdiff}"
+      echo "Uploading $imagefile to $server ..."
       [ -z "$cachedev" ] && get_cachedev
-      [ -n "$customimage" ] && baseimage="$customimage"
-      if [ -n "$server" -a -n "$user" -a -n "$password" -a -n "$cachedev" -a -n "$baseimage" ]; then
-        linbo_cmd upload "$server" "$user" "$password" "$cachedev" "$baseimage" || exit 1
+      [ -n "$customimage" ] && imagefile="$customimage"
+      if [ -n "$server" -a -n "$user" -a -n "$password" -a -n "$cachedev" -a -n "$imagefile" ]; then
+        linbo_cmd upload "$server" "$user" "$password" "$cachedev" "$imagefile" || exit 1
       else
         echo "Failed! One or more necessary parameters are missing!"
-        echo "Upload command was: linbo_cmd upload $server $user $password $cachedev $baseimage"
-        exit 1
-      fi
-      ;;
-
-    create_rsync)
-      osnr="$param"
-      if ! isinteger "$osnr"; then
-        echo "$osnr is not an integer!"
-        shift
-        continue
-      fi
-      get_os
-      echo "Creating $image from $osname ..."
-      [ -z "$cachedev" ] && get_cachedev
-      [ -n "$customimage" ] && image="$customimage"
-      if [ -n "$cachedev" -a -n "$image" -a -n "$baseimage" -a -n "$bootdev" -a -n "$rootdev" -a -n "$kernel" ]; then
-        create_desc "$image"
-        linbo_cmd create "$cachedev" "$image" "$baseimage" "$bootdev" "$rootdev" "$kernel" "$initrd" || exit 1
-      else
-        echo "Failed! One or more necessary parameters are missing!"
-        echo "Create command was: linbo_cmd create $cachedev $image $bootdev $rootdev $kernel $initrd"
-        exit 1
-      fi
-      ;;
-
-    upload_rsync)
-      osnr="$param"
-      if ! isinteger "$osnr"; then
-        echo "$osnr is not an integer!"
-        shift
-        continue
-      fi
-      get_os
-      get_passwd
-      echo "Uploading $image to $server ..."
-      [ -z "$server" ] && get_server
-      [ -z "$server" ] && return 1
-      [ -z "$cachedev" ] && get_cachedev
-      [ -n "$customimage" ] && image="$customimage"
-      if [ -n "$server" -a -n "$user" -a -n "$password" -a -n "$cachedev" -a -n "$image" ]; then
-        linbo_cmd upload "$server" "$user" "$password" "$cachedev" "$image" || exit 1
-      else
-        echo "Failed! One or more necessary parameters are missing!"
-        echo "Upload command was: linbo_cmd upload $server $user $password $cachedev $image"
+        echo "Upload command was: linbo_cmd upload $server $user $password $cachedev $imagefile"
         exit 1
       fi
       ;;
@@ -491,11 +448,11 @@ while [ "$#" -gt "0" ]; do
       [ -z "$server" ] && get_server
       [ -z "$server" ] && server="offline"
       [ -z "$cachedev" ] && get_cachedev
-      if [ -n "$server" -a -n "$cachedev" -a -n "$baseimage" -a -n "$bootdev" -a -n "$rootdev" -a -n "$kernel" ]; then
-        linbo_cmd synconly "$server" "$cachedev" "$baseimage" "$image" "$bootdev" "$rootdev" "$kernel" "$initrd" "$append" || exit 1
+      if [ -n "$server" -a -n "$cachedev" -a -n "$imagefile" -a -n "$bootdev" -a -n "$rootdev" -a -n "$kernel" ]; then
+        linbo_cmd synconly "$server" "$cachedev" "$imagefile" "" "$bootdev" "$rootdev" "$kernel" "$initrd" "$append" || exit 1
       else
         echo "Failed! One or more necessary parameters are missing!"
-        echo "Sync command was: linbo_cmd synconly $server $cachedev $baseimage $image $bootdev $rootdev $kernel $initrd $append"
+        echo "Sync command was: linbo_cmd synconly $server $cachedev $imagefile $bootdev $rootdev $kernel $initrd $append"
         exit 1
       fi
       ;;

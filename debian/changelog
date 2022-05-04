@@ -1,70 +1,21 @@
-linuxmuster-linbo7 (4.0.26-0) lmn71; urgency=low
+linuxmuster-linbo7 (4.1.0-0) lmn71-testing; urgency=low
 
-  * Revert "Fix restore of windows efi boot files (#70)",
-    reverts commit ac816c4592378f742458f77c7dbae635c186fe56.
-  * Revert "Further UEFI optimations (#70)",
-    reverts commit 9de4fec8a716a15e4d42875a3ca61ba4d58667f7.
-  * Revert "Improvement: Clean up invalid UEFI entries (#70)",
-    reverts commit 17921f3de8f7922b3a3c8ade7e44aea57e102735.
-  * Revert "Fix #70: Clean up invalid UEFI entries",
-    reverts commit 05193cca7aeb9a93a0648ae7830cd73b0c3f653e.
-  * UEFI fixes, increased verbosity, more english translations (#70).
+  * merged differential imaging from branch diffimage (cc78fd7...8969db1).
+  * update kernel to 5.17.1 (6bf2d65).
+  * added qdiff support to linbo-remote (f949a5d).
+  * Fix recognition of "PXE IP4" uefi boot entry (e7aa263).
+  * Fix #66: Issue parsing Running Torrent Trackers.
+  * ntfs3 mount & resize fix (0ad65f6).
+  * uefi boot improvements (713935a).
+  * rename domainname to sambadomain (422b7d9).
+  * unix2dos & sambadomain fix for windows regfiles in cache (57c61c7).
+  * linbo_warmstart: removed reboot in case of warmstart is not intended (2c65e93).
+  * linbo_cmd, mountpart: use remount instead of umount/mount (6eccd36).
+  * use linbo warmstart also for uefi systems (53c7a30).
+  * Fix #67: Linbo7 assumes wrong macct name (closes also #68).
+  * implement differential image sync (e46cade).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 4 May 2022 13:09:00 +0200
-
-linuxmuster-linbo7 (4.0.25-0) lmn71; urgency=low
-
-  * Fix restore of windows efi boot files (#70).
-
- -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 26 Apr 2022 21:17:00 +0200
-
-linuxmuster-linbo7 (4.0.24-0) lmn71; urgency=low
-
-  * Fix #70: Clean up invalid UEFI entries.
-  * dhcp client fix for mkgrubhostimg.py (d8c1e77).
-
- -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 25 Apr 2022 14:10:00 +0200
-
-linuxmuster-linbo7 (4.0.23-0) lmn71; urgency=low
-
-  * multi-school fix for mkgrubhostimg.py (d84d57b).
-  * link mkgrubhostimg.py to /usr/sbin/linbo-mkgrubimg (f96c109).
-
- -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 14 Apr 2022 10:39:00 +0200
-
- linuxmuster-linbo7 (4.0.22-0) lmn71; urgency=low
-
-   * Fix #67: Linbo7 assumes wrong macct name (closes also #68).
-   * use linbo warmstart also for uefi systems (0053aa9).
-
-  -- Thomas Schmitt <thomas@linuxmuster.net>  Sun, 10 Apr 2022 15:06:00 +0200
-
-linuxmuster-linbo7 (4.0.21-0) lmn71; urgency=low
-
-  * unix2dos & sambadomain fix for windows regfiles in cache (f803a14).
-  * linbo_warmstart: removed reboot in case of warmstart is not intended (503c829).
-  * Fix grub update on bios systems (10e9045).
-
- -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 8 Apr 2022 19:02:00 +0200
-
-linuxmuster-linbo7 (4.0.20-0) lmn71; urgency=low
-
-  * ntfs resize fix.
-  * uefi boot improvements.
-
- -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 5 Apr 2022 20:14:00 +0200
-
- linuxmuster-linbo7 (4.0.19-0) lmn71; urgency=low
-
-   * Fix #66: Issue parsing Running Torrent Trackers.
-
-  -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 4 Apr 2022 12:38:00 +0200
-
- linuxmuster-linbo7 (4.0.18-0) lmn71; urgency=low
-
-   * Fix recognition of "PXE IP4" uefi boot entry.
-
-  -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 1 Apr 2022 20:52:00 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 13 Apr 2022 09:52:00 +0200
 
 linuxmuster-linbo7 (4.0.17-0) lmn71; urgency=low
 

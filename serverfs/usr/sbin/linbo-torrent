@@ -6,8 +6,11 @@
 #
 
 # read environment
-source /usr/share/linuxmuster/linbo/helperfunctions.sh || exit 1
+. /usr/share/linuxmuster/defaults.sh || exit 1
 THELPER=$LINBOSHAREDIR/linbo-torrenthelper.sh
+. $LINBOSHAREDIR/helperfunctions.sh || exit 1
+LINBOIMGEXT="qcow2 qdiff cloop"
+
 
 # help message
 usage(){
@@ -18,9 +21,10 @@ usage(){
   echo " * The commands start, stop and restart may have optionally a torrent filename"
   echo "   as parameter. So the command is only processed to this certain file."
   echo "   Without an explicit torrent filename the commands were processed to all"
-  echo "   torrent files found recursivly below $LINBODIR."
+  echo "   torrent files found inside $LINBODIR and recursivly below $LINBOIMGDIR."
   echo " * A torrent filename parameter is mandatory with the command check."
   echo " * An image filename parameter is mandatory with the command create."
+  echo "   Only image files with the extensions qcow2, qdiff & cloop are processed."
   echo
   exit 1
 }
@@ -32,7 +36,7 @@ if [ -n "$2" ] ; then
   extension="${filename##*.}"
 fi
 if [ "$1" = "create" ]; then
-  [ "$extension" != "qcow2" -a "$extension" != "cloop" ] && usage
+  stringinstring "$extension" "$LINBOIMGEXT" || usage
 else
   [ -n "$2" -a "$extension" != "torrent" ] && usage
 fi

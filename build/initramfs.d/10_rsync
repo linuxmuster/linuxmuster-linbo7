@@ -1,4 +1,6 @@
 # rsync
 
 file /bin/rsync /usr/bin/rsync 755 0 0
+file /lib/liblz4.so.1 /lib/x86_64-linux-gnu/liblz4.so.1 755 0 0
+file /lib/libxxhash.so.0 /lib/x86_64-linux-gnu/libxxhash.so.0 755 0 0
 file /usr/lib/libpopt.so.0 /usr/lib/x86_64-linux-gnu/libpopt.so.0 755 0 0

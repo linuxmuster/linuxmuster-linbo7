@@ -11,6 +11,9 @@ if [ -e /tmp/.gui.done ]; then
   exit 0
 fi
 
+# is gui disabled?
+grep -qw nogui /proc/cmdline && exit 0
+
 # is boot splash active?
 grep -qw splash /proc/cmdline && SPLASH="yes"
 

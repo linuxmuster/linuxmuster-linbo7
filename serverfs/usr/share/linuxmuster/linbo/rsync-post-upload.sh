@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # thomas@linuxmuster.net
-# 20220114
+# 20220327
 #
 
 # read in linuxmuster specific environment
@@ -48,7 +48,7 @@ if [ -s "$BACKUP" ]; then
   if [ "$RSYNC_EXIT_STATUS" = "0" ]; then
     echo "Upload of $BASENAME was successful." >&2
     case "$EXT" in
-      *.qcow2)
+      *.qcow2|*.qdiff)
         # qcow2 is the first file of image upload, so place backup file in temporary dir
         # cause without info file we don't know the timestamp
         mkdir -p "$BAKTMP"
@@ -56,14 +56,20 @@ if [ -s "$BACKUP" ]; then
         mv -fv "$BACKUP" "$ARCHIVE"
         echo "$BASENAME successfully backed up." >&2
         # backup supplemental image files that reside on server
-        for i in macct reg postsync prestart; do
+        for i in reg postsync prestart; do
           cp -f "$IMGDIR"/*."$i" "$BAKTMP" &> /dev/null
         done
+        for i in macct opsi torrent; do
+          cp -f "$FILE.$i" "$BAKTMP" &> /dev/null
+        done
+        # move differential image away if qcow2 image was uploaded
+        case "$EXT" in *.qcow2) mv -f "$IMGDIR"/*.qdiff* "$BAKTMP" &> /dev/null;; esac
+        # repair permissions of certain file types
         chmod 600 "$BAKTMP"/*.macct &> /dev/null
         ;;
       *)
-        # next is the info file, so we can get the timestamp and create the final backup dir
-        INFOFILE="$(ls $IMGDIR/*.info)"
+        # info file is next, so we can get the timestamp and create the final backup FILE
+        INFOFILE="$(ls -1 "$IMGDIR"/*.q*.info | tail -1)"
         eval "$(grep -i ^timestamp "$INFOFILE")" &> /dev/null
         if [ -n "$timestamp" ]; then
           BAKDIR="$IMGDIR/backups/$timestamp"
@@ -95,7 +101,7 @@ fi
 # do something depending on file type
 case "$EXT" in
 
-  *.qcow2)
+  *.qcow2|*.qdiff)
     # restart multicast service if image file was uploaded.
     echo "Image file $BASENAME detected. Restarting multicast service if enabled." >&2
     /etc/init.d/linbo-multicast restart >&2

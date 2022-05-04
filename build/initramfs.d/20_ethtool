@@ -1,3 +1,4 @@
 # ethtool
 
 file /sbin/ethtool /sbin/ethtool 755 0 0
+file /lib/libmnl.so.0 /lib/x86_64-linux-gnu/libmnl.so.0 755 0 0

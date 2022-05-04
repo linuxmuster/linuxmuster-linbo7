@@ -471,21 +471,20 @@ mountpart(){
   local destdir="$2"
   local ro
   [ "$3" = "-r" ] && ro=",ro"
-  local options="noatime$ro"
-  local mountcmd="mount -i -t $type"
-  case "$type" in
-    ntfs)
-      options="$options,recover,remove_hiberfile,user_xattr,inherit,acl"
-      mountcmd="mount.ntfs-3g"
-      ;;
-    vfat) ;;
-    *) options="$options,acl,user_xattr" ;;
-  esac
-  # umount partition first if it is already mounted
+  local options
+  # remount partition if it is already mounted
+  local remount
   if grep -q ^"$partition $destdir" /proc/mounts; then
-    umount $destdir
+    remount="remount,"
+    [ -z "$ro" ] && ro=",rw"
   fi
-  $mountcmd -o $options $partition $destdir
+  case "$type" in
+    ntfs) options="-i -t ntfs3 -o ${remount}acl,noatime,discard${ro}" ;;
+    vfat) options="-i -t $type -o ${remount}defaults${ro}" ;;
+    *) options="-i -t $type -o ${remount}acl,user_xattr${ro}" ;;
+  esac
+  # mount partition
+  mount $options $partition $destdir
   # check success
   local RC="1"
   grep -q ^"$partition $destdir" /proc/mounts && RC="0"
@@ -495,10 +494,10 @@ mountpart(){
       echo "Windows partition seems in bad shape. Try ntfsfix to solve this issue."
       ntfsfix "$partition"
     fi
-    $mountcmd -o $options $partition $destdir
+    mount $options $partition $destdir
   # second try with default options for other filesystems
   elif [ "$RC" != "0" ]; then
-    $mountcmd $partition $destdir
+    mount $partition $destdir
   fi
   # check success again
   grep -q ^"$partition $destdir" /proc/mounts && RC="0"
@@ -1354,9 +1353,7 @@ mk_boot(){
     fi
   fi
   # umount efi partition if mounted
-  if [ -n "$efipart" ]; then
-    umount /cache/boot/efi || RC="1"
-  fi
+  [ -n "$efipart" ] && umount /cache/boot/efi || RC="1"
   return "$RC"
 }
 
@@ -1732,17 +1729,83 @@ prepare_fs(){
 }
 
 
-# mk_qcow2 rootdev imagename
+# mk_baseimage rootdev imagefile
+mk_baseimage(){
+  local rootdev="$1"
+  local imagefile="$2"
+  echo "Filling up partition with zeroes..."
+  # Create nulled files of size 1GB, should work on any FS.
+  local count=0
+  while true; do
+    # tschmitt: log errors to image.log
+    interruptible dd if=/dev/zero of="/mnt/zero$count.tmp" bs=1024k count=1000 || break
+    [ -s "/mnt/zero$count.tmp" ] || break
+    let count++
+    echo "$(du -ch /mnt/zero*.tmp | tail -1 | awk '{ print $1 }') zeroed ... "
+  done
+  # remove excluded files
+  grep -v ^# /etc/rsync.exclude | while read line; do
+    [ -z "$line" ] && continue
+    [ "${line:0:1}" = " " ] && continue
+    rm -rf /mnt/$line
+  done
+  # Sync is asynchronous, unless started twice at least.
+  sync ; sync ; sync
+  rm -f /mnt/zero*.tmp
+  umount /mnt || umount -l /mnt
+  echo "Starting compression of $rootdev -> $imagefile (full partition, ${size}K)."
+  echo "qemu-img convert -p -c -f raw -O qcow2 $rootdev $imagefile"
+  interruptible qemu-img convert -p -c -f raw -O qcow2 "$rootdev" "$imagefile" ; RC="$?"
+  if [ "$RC" != "0" ]; then
+    echo "Creation of $imagefile failed. :("
+    return "$RC"
+  fi
+  # remove diffimage files in case of new baseimage
+  rm -f "${imagefile/.qcow2/.qdiff}"*
+}
+
+
+# mk_diffimage rootdev imagefile
+mk_diffimage(){
+  local rootdev="$1"
+  local imagefile="$2"
+  # create imagefile if it is not yet there
+  if [ ! -e "$imagefile" ]; then
+    qemu-img create -f qcow2 -b "${imagefile/.qdiff/.qcow2}" "$imagefile" || return 1
+  fi
+  # connect imagefile to nbd device
+  qemu-nbd --disconnect /dev/nbd0
+  qemu-nbd --connect /dev/nbd0 "$imagefile" || return 1
+  mkdir -p /image
+  # mount image filesystem
+  if ! mount /dev/nbd0 /image; then
+    qemu-nbd --disconnect /dev/nbd0
+    return 1
+  fi
+  echo "Start syncing differences of $rootdev -> $imagefile."
+  interruptible rsync -HAa --exclude="/.linbo" --exclude-from="/etc/rsync.exclude" --delete --delete-excluded  /mnt/ /image 2>&1 ; RC="$?"
+  umount /image || umount -l /image
+  qemu-nbd --disconnect /dev/nbd0
+  [ "$RC" = "0" ] && return
+  echo "Creation of $imagefile failed. :("
+  rm -f "$imagefile"*
+  return "$RC"
+}
+
+
+# mk_qcow2 rootdev imagefile
 mk_qcow2(){
   local rootdev="$1"
-  local imagename="$2"
-  echo "## $(date) : Starting creation of $imagename." | tee -a /tmp/image.log
+  local imagefile="$2"
+  local imageext="${imagefile/*.}"
+  [ "$(pwd)" = "/cache" ] || cd /cache
+  echo "## $(date) : Starting creation of $imagefile." | tee -a /tmp/image.log
   # kill torrent process for this image
-  local pid="$(ps w | grep ctorrent | grep "$imagename.torrent" | grep -v grep | awk '{ print $1 }')"
+  local pid="$(ps w | grep ctorrent | grep "$imagefile.torrent" | grep -v grep | awk '{ print $1 }')"
   [ -n "$pid" ] && kill "$pid"
   # remove torrent files
-  [ -e "/cache/$imagename.torrent" ] && rm -f "/cache/$imagename.torrent"
-  [ -e "/cache/$imagename.complete" ] && rm -f "/cache/$imagename.complete"
+  [ -e "/cache/$imagefile.torrent" ] && rm -f "/cache/$imagefile.torrent"
+  [ -e "/cache/$imagefile.complete" ] && rm -f "/cache/$imagefile.complete"
   local RC=1
   local size="$(get_partition_size $rootdev)"
   if [ -z "$size" ]; then
@@ -1764,44 +1827,26 @@ mk_qcow2(){
     echo "Cannot prepare $rootdev!"
     return "$RC"
   fi
-  echo "Filling up partition with zeroes..." | tee -a /tmp/image.log
-  # Create nulled files of size 1GB, should work on any FS.
-  local count=0
-  while true; do
-    # tschmitt: log errors to image.log
-    interruptible dd if=/dev/zero of="/mnt/zero$count.tmp" bs=1024k count=1000 2>>/tmp/image.log || break
-    [ -s "/mnt/zero$count.tmp" ] || break
-    let count++
-    echo "$(du -ch /mnt/zero*.tmp | tail -1 | awk '{ print $1 }') zeroed ... " | tee -a /tmp/image.log
-  done
-  # remove excluded files
-  grep -v ^# /etc/rsync.exclude | while read line; do
-    [ -z "$line" ] && continue
-    [ "${line:0:1}" = " " ] && continue
-    rm -rf /mnt/$line
-  done
-  # Sync is asynchronous, unless started twice at least.
-  sync ; sync ; sync
-  rm -f /mnt/zero*.tmp
-  umount /mnt || umount -l /mnt
-  echo "Starting compression of $rootdev -> $imagefile (full partition, ${size}K)." | tee -a /tmp/image.log
-  echo "qemu-img convert -p -c -f raw -O qcow2 $rootdev $imagefile" | tee -a /tmp/image.log
   set -o pipefail
-  interruptible qemu-img convert -p -c -f raw -O qcow2 "$rootdev" "$imagefile" | tee -a /tmp/image.log ; RC="$?"
-  set +o pipefail
+  case "$imageext" in
+    qcow2) mk_baseimage "$rootdev" "$imagefile" | tee -a /tmp/image.log ; RC="$?" ;;
+    qdiff) mk_diffimage "$rootdev" "$imagefile" | tee -a /tmp/image.log ; RC="$?" ;;
+    *) echo "Unknown image type!" ; RC="1" ;;
+  esac
   if [ "$RC" != "0" ]; then
-    echo "Creation of $imagefile failed. :(" | tee -a /tmp/image.log
+    set +o pipefail
+    umount /mnt || umount -l /mnt
     return "$RC"
   fi
-  set -o pipefail
+  # mount rootdevice after image creation
   mountpart "$rootdev" /mnt -w | tee -a /tmp/image.log ; RC="$?"
   set +o pipefail
   if [ "$RC" != "0" ]; then
     echo "Mounting of $rootdev failed. :(" | tee -a /tmp/image.log
     return "$RC"
   fi
-  local imagename="${imagefile%.qcow2}"
-  echo "$imagename" > /mnt/.linbo
+  # save imagename on partition
+  echo "${imagefile/.*}" > /mnt/.linbo
   umount /mnt || umount -l /mnt
   # create info file
   local imgsize="$(get_filesize $imagefile)"
@@ -1822,11 +1867,12 @@ mk_qcow2(){
 # returns true if mountable & contains a version of the archive.
 check_status(){
   local RC=1
-  local base="${2##*/}"
-  base="${base%.[CcQq][LlCc][Oo][OoWw][Pp2]}"
-  echo "## $(date) : Check status of $1 using $2." | tee -a /tmp/linbo.log
+  local partition="$1"
+  local imagefile="$2"
+  local imagebase="${imagefile%%.*}"
+  echo "## $(date) : Check status of $partition using $imagefile." | tee -a /tmp/linbo.log
   mountpart "$1" /mnt -r 2>> /tmp/linbo.log || return $?
-  [ -s /mnt/.linbo ] && case "$(cat /mnt/.linbo 2>/dev/null)" in *$base*) RC=0 ;; esac
+  [ -s /mnt/.linbo ] && case "$(cat /mnt/.linbo 2>/dev/null)" in *$imagebase*) RC=0 ;; esac
   umount /mnt || umount -l /mnt
   # [ "$RC" = "0" ] && echo "Enthaelt schon eine Version von $2."
   return "$RC"
@@ -1835,11 +1881,12 @@ check_status(){
 # update_status partition imagefile:
 # Add information about installed archives to partition
 update_status(){
-  local base="${2##*/}"
-  base="${base%.[CcQq][LlCc][Oo][OoWw][Pp2]}"
-  echo "## $(date) : Update status of $1 using $2." | tee -a /tmp/linbo.log
+  local partition="$1"
+  local imagefile="$2"
+  local imagebase="${imagefile%%.*}"
+  echo "## $(date) : Update status of $partition using $imagefile." | tee -a /tmp/linbo.log
   mountpart "$1" /mnt -w 2>> /tmp/linbo.log || return $?
-  echo "$base" > /mnt/.linbo
+  echo "$imagebase" > /mnt/.linbo
   #sync; sync; sleep 1
   umount /mnt || umount -l /mnt
   return 0
@@ -1860,7 +1907,7 @@ sync_image(){
     echo "Cannot mount $targetdev!"
     return "$RC"
   fi
-  local ROPTS="-HaAX"
+  local ROPTS="-HAa"
   [ "$(fstype "$targetdev")" = "vfat" ] && ROPTS="-rt"
   # mount qcow2 image as network block device
   set -o pipefail
@@ -1904,6 +1951,7 @@ cp_image(){
   local RC=1
   local imagefile="$1"
   local imagetype="${imagefile##*.}"
+  case "$imagetype" in qcow2|qdiff) imagetype="qcow2" ;; esac
   local targetdev="$2"
   if [ ! -s "$imagefile" ]; then
     echo "Error with $imagefile"
@@ -1958,11 +2006,13 @@ restore(){
   echo -n "restore " ;  printargs "$@"
   local RC=1
   local imagefile="$1"
-  local imagetype="${imagefile##*.}"
+  local imagediff="${imagefile%%.*}.qdiff"
   local targetdev="$2"
   local force="$3"
   local fstype="$(fstype_startconf "$targetdev")"
   local label="$(print_partlabel "$targetdev")"
+  # detect differential image file
+  [ -s "$imagediff" ] && imagefile="$imagediff"
   echo "Unpacking: $imagefile -> $targetdev"
   check_status "$targetdev" "$imagefile" || force="force"
   if [ "$force" = "force" ]; then
@@ -1985,6 +2035,9 @@ restore(){
   fi
   if [ "$RC" = "0" ]; then
     echo "Done."
+    # log hosts image status
+    local timestamp="$(getinfo /cache/$imagefile.info timestamp)"
+    log_image_status "$imagefile" "$timestamp" applied
   else
     echo "Error!"
   fi
@@ -2162,7 +2215,9 @@ syncl(){
   local disk="$(get_disk_from_partition "$rootdev")"
   local group="$(hostgroup)"
   local bootdir
-  local image="$2"
+  local imagefile="$2"
+  local imagebase="${imagefile%%.*}"
+  local imagetype="${imagefile##*.}"
   local force="$9"
   local HOSTNAME
   local FQDN
@@ -2174,7 +2229,7 @@ syncl(){
 
   # don't sync in that case
   if [ "$1" = "$rootdev" ]; then
-    echo "Skipping local synchronisation. Image $image will be started direct from cache."
+    echo "Skipping local synchronisation. Image $imagefile will be started direct from cache."
     return 0
   fi
 
@@ -2185,15 +2240,13 @@ syncl(){
   mountcache "$1" || return 1
   cd /cache
   # start syncing image
-  restore "$image" "$rootdev" $force ; RC="$?"
-  local imagename="${image%.*}"
-  local imagetype="${image##*.}"
+  restore "$imagefile" "$rootdev" $force ; RC="$?"
   if [ "$imagetype" = "cloop" ]; then
-    patchfile="$image.reg"
-    postsync="$image.postsync"
+    patchfile="$imagefile.reg"
+    postsync="$imagefile.postsync"
   else
-    patchfile="$imagename.reg"
-    postsync="$imagename.postsync"
+    patchfile="$imagebase.reg"
+    postsync="$imagebase.postsync"
   fi
 
   # mount os partition
@@ -2401,34 +2454,38 @@ syncl(){
   # restore partition labels
   label_allpartitions
 
-  # log hosts image status
-  if [ "$RC" = "0" ]; then
-    local timestamp="$(getinfo /cache/$image.info timestamp)"
-    log_image_status "$image" "$timestamp" applied
-  fi
-
   sendlog
   cd / # ; mountcache "$1" -r
   return "$RC"
 }
 
-# create cachedev imagefile baseimagefile bootdev rootdev kernel initrd
+# create cachedev imagefile baseimagefile bootdev rootdev kernel initrd (obsolete)
+# create cachedev imagefile rootdev
 create(){
   echo -n "create " ;  printargs "$@" | tee -a /tmp/image.log
-  [ -z "$1" -o -z "$5" ] && return 1
-  [ -z "$2" -a -z "$3" ] && return 1
-  if [ -n "$2" -a -n "$3" ]; then
-    if [ "$2" != "$3" ]; then
-      echo "Differential images are currently not supported!"
-      return 1
-    fi
+  # check parameters
+  if [ -b "$1" ]; then
+    local cachedev="$1"
+  else
+    echo "Given cache device is not a block device!"
+    return 1
   fi
-  local cachedev="$1"
-  local imagefile="$2"
-  local baseimagefile="$3"
-  local rootdev="$5"
-  if ! echo "$imagefile" | grep -q ".qcow2"; then
-    echo "Only the creation of qcow2 images is currently supported!"
+  local imagefile
+  if [ "${2/*.}" = "qcow2" -o "${2/*.}" = "qdiff" ]; then
+    imagefile="$2"
+  elif [ "${3/*.}" = "qcow2" -o "${3/*.}" = "qdiff" ]; then
+    imagefile="$3"
+  else
+    echo "Given imagefile name is not valid!"
+    return 1
+  fi
+  local rootdev
+  if [ -b "$3" ]; then
+    rootdev="$3"
+  elif [ -b "$5" ]; then
+    rootdev="$5"
+  else
+    echo "Given root device is not a block device!"
     return 1
   fi
   mountcache "$cachedev" || return 1
@@ -2442,7 +2499,7 @@ create(){
   local RC="1"
   echo "Creating image $imagefile of partition $rootdev ..." | tee -a /tmp/image.log
   set -o pipefail
-  mk_qcow2 "$rootdev" "$imagefile"  | tee -a /tmp/image.log ; RC="$?"
+  mk_qcow2 "$rootdev" "$imagefile" | tee -a /tmp/image.log ; RC="$?"
   set +o pipefail
   [ "$RC" = "0" ] && echo "Done." || echo "Failed" | tee -a /tmp/image.log
   sendlog
@@ -2477,6 +2534,7 @@ log_image_status(){
 
 # mk_info imagefile rootdev - creates timestamp file
 mk_info(){
+  echo "### mk_info $1 $2"
   local imagefile="$1"
   local rootdev="$2"
   local partsize="$(get_partition_size "$rootdev")"
@@ -2491,6 +2549,19 @@ imagesize="$imagesize"
 partition="$rootdev"
 partitionsize="$partsize"
 EOF
+  # save timestamp of backingfile to info file of differential image
+  local backingfile="$(qemu-img info --output=json "$imagefile" | grep full-backing-filename | awk -F\" '{print $4}')"
+  if [ -n "$backingfile" ]; then
+    local backingfile_timestamp="$(grep ^timestamp "$backingfile".info | awk -F\" '{print $2}')"
+    if [ -n "$backingfile_timestamp" ]; then
+      cat <<EOF >> "$imagefile".info
+backingfile_timestamp="$backingfile_timestamp"
+EOF
+    else
+      echo "Cannot get backingfile timestamp!"
+      return 1
+    fi
+  fi
 }
 
 # get_multicast_server file
@@ -2632,7 +2703,8 @@ download_img_if_changed(){
   localmode && return 0
   local server="$1"
   local imagefile="$2"
-  local imagebase="$(echo "$imagefile" | awk -F\. '{print $1}')"
+  local imagebase="${imagefile%%.*}"
+  local imagetype="${imagefile##*.}"
   local subdir="images/$imagebase/"
   local infofile="${imagefile}.info"
   local dltype="$3"
@@ -2648,6 +2720,12 @@ download_img_if_changed(){
     mv -f "$infofile" "${infofile}.bak"
     # download infofile, first try from subdir
     if ! download "$server" "${subdir}${infofile}"; then
+      # remove differential image files if download fails
+      # (means there is no diff image on the server)
+      if [ "$imagetype" = "qdiff" ]; then
+        rm -f "/cache/${imagefile}"*
+        return 0
+      fi
       download "$server" "$infofile" || return 1
       subdir=""
     fi
@@ -2665,13 +2743,21 @@ download_img_if_changed(){
       DOWNLOAD="true"
     fi
   fi
-  # download other supplemental files
-  download_all "$server" "${subdir}${imagefile}.desc" \
-    "${subdir}${imagefile}.info" \
-    "${subdir}${imagefile}.reg" \
-    "${subdir}${imagefile}.postsync" \
-    "${subdir}${imagebase}.reg" \
-    "${subdir}${imagebase}.postsync"
+  # download os related supplemental files
+  if [ "$imagetype" = "qcow2" -o "$imagetype" = "cloop" ]; then
+    download_all "$server" "${subdir}${imagefile}.desc" \
+      "${subdir}${imagefile}.info" \
+      "${subdir}${imagefile}.reg" \
+      "${subdir}${imagefile}.postsync" \
+      "${subdir}${imagebase}.reg" \
+      "${subdir}${imagebase}.postsync"
+  elif [ "$imagetype" = "qdiff" ]; then
+    download_all "$server" "${subdir}${imagefile}.desc" \
+      "${subdir}${imagefile}.info"
+  else
+    echo "Unknown image type $imagetype."
+    return 1
+  fi
   # if image file is unchanged compared to server version end here
   if [ -z "$DOWNLOAD" ]; then
     echo "$imagefile has not changed, nothing to do."
@@ -2760,7 +2846,7 @@ upload(){
   local pw="$3"
   local cache="$4"
   local file="$5"
-  local filetype="${file##*.}"
+  local ext="${file##*.}"
   local RC=0
   local filelist
   local imagebase
@@ -2777,10 +2863,10 @@ upload(){
   cd /cache
   if [ -s "$file" ]; then
     filelist="$file"
-    # expand filelist in case of qcow2 file
-    echo "### filetype: $filetype ###"
-    if [ "$filetype" = "qcow2" ]; then
-      imagebase="${file%.$filetype}"
+    # expand filelist in case of qcow2|qdiff file
+    #echo "### filetype: $ext ###"
+    if [ "$ext" = "qcow2" -o "$ext" = "qdiff" ]; then
+      imagebase="${file%.$ext}"
       subdir="images/$imagebase/"
       for i in info desc torrent; do
         [ -s "${file}.${i}" ] && filelist="$filelist ${file}.${i}"
@@ -2813,17 +2899,17 @@ upload(){
 # syncr server cachedev baseimage image bootdev rootdev kernel initrd append [force]
 syncr(){
   echo "syncr " ; printargs "$@"
+  local imagefile="$3"
+  local imagediff="${imagefile%%.*}.qdiff"
   if remote_cache "$2"; then
-    echo "Cache $2 is not local, skipping image update."
+    echo "Cache $2 is not local, skipping remote image update."
   else
     mountcache "$2" || return 1
     cd /cache
     local i
     local RC="0"
-    for i in "$3" "$4"; do
-      if [ -n "$i" ]; then
-        download_img_if_changed "$1" "$i" || RC="1"
-      fi
+    for i in "$imagefile" "$imagediff"; do
+      download_img_if_changed "$1" "$i" || RC="1"
     done
     sendlog
     cd / ; mountcache "$2" -r

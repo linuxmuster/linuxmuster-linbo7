@@ -3,14 +3,14 @@
 # exec linbo commands remote per ssh
 #
 # thomas@linuxmuster.net
-# 20220114
+# 20220404
 # GPL V3
 #
 
 # read linuxmuster environment
 source /usr/share/linuxmuster/linbo/helperfunctions.sh || exit 1
 
-KNOWNCMDS="label partition format initcache sync start create_image create_rsync upload_image upload_rsync reboot halt"
+KNOWNCMDS="label partition format initcache sync start create_image create_qdiff upload_image upload_qdiff reboot halt"
 DLTYPES="multicast rsync torrent"
 SSH="/usr/sbin/linbo-ssh -o BatchMode=yes -o StrictHostKeyChecking=no"
 SCP=/usr/sbin/linbo-scp
@@ -70,8 +70,10 @@ usage(){
   echo "                           start.conf."
   echo "sync:<#>                 : Syncs the operating system on position nr <#>."
   echo "start:<#>                : Starts the operating system on pos. nr <#>."
-  echo "create_image:<#>:<\"msg\"> : Creates a image image from operating system nr <#>."
-  echo "upload_image:<#>         : Uploads the image image from operating system nr <#>."
+  echo "create_image:<#>:<\"msg\"> : Creates a full image from operating system nr <#>."
+  echo "upload_image:<#>         : Uploads a full image from operating system nr <#>."
+  echo "create_qdiff:<#>:<\"msg\"> : Creates a differential image from operating system nr <#>."
+  echo "upload_qdiff:<#>         : Uploads a differential image from operating system nr <#>."
   echo "reboot                   : Reboots the client."
   echo "halt                     : Shuts the client down."
   echo
@@ -298,7 +300,7 @@ while [ -n "$CMDS" ]; do
       [ "${CMDS:0:1}" = ":" ] && extract_nr
       ;;
 
-    sync|start|upload_image|upload_rsync)
+    sync|start|upload_image|upload_qdiff)
       [ "${CMDS:0:1}" = ":" ] || usage "Command string \"$CMDS\" is not valid!"
       extract_nr
       ;;
@@ -312,7 +314,7 @@ while [ -n "$CMDS" ]; do
       fi
       ;;
 
-    create_image|create_rsync)
+    create_image|create_qdiff)
       extract_nr
       [ "${CMDS:0:1}" = ":" ] && extract_comment
       ;;
