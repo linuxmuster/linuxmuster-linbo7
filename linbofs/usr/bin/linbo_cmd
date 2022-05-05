@@ -6,7 +6,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20220504
+# 20220505
 # GPL v3
 #
 
@@ -1108,9 +1108,9 @@ mk_winefiboot(){
     # restore bcd and efiboot files on efi partition
     local win_bcd="$(ls "$win_bootdir"/[Bb][Cc][Dd] 2> /dev/null)"
     if [ -n "$win_bcd" ]; then
-      local win_efidir="$(ls -d /boot/efi/[Ee][Ff][Ii]/[Mm][Ii][Cc][Rr][Oo][Ss][Oo][Ff][Tt]/[Bb][Oo][Oo][Tt] 2> /dev/null)"
+      local win_efidir="$(ls -d /cache/boot/efi/[Ee][Ff][Ii]/[Mm][Ii][Cc][Rr][Oo][Ss][Oo][Ff][Tt]/[Bb][Oo][Oo][Tt] 2> /dev/null)"
       if [ -z "$win_efidir" ]; then
-        win_efidir="/boot/efi/EFI/Microsoft/Boot"
+        win_efidir="/cache/boot/efi/EFI/Microsoft/Boot"
         mkdir -p "$win_efidir"
       fi
       # copy whole windows efi stuff to efi partition
