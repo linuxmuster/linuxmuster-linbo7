@@ -1,3 +1,9 @@
+linuxmuster-linbo7 (4.0.27-0) lmn71; urgency=low
+
+  * Fix restore of windows efi boot files (#70).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 5 May 2022 10:15:00 +0200
+
 linuxmuster-linbo7 (4.0.26-0) lmn71; urgency=low
 
   * Revert "Fix restore of windows efi boot files (#70)",
