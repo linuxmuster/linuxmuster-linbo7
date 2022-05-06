@@ -1,7 +1,7 @@
 # busybox ash profile
 #
 # thomas@schmitt.tk
-# 20210802
+# 20220504
 
 # prompt
 export PS1='\h: \w # '
@@ -12,7 +12,9 @@ export PATH='/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
 # aliases
 alias mount="mount -i"
 
-ip="$(LANG=C ip route show | grep src | awk '{print $7}')"
+# environment
+source /.env
+
 [ -n "$ip" ] && ip="| IP: $ip"
 
 # logo
@@ -25,7 +27,7 @@ echo '| |      | | | . ` |  _ <| |  | |'
 echo '| |____ _| |_| |\  | |_) | |__| |'
 echo '|______|_____|_| \_|____/ \____/'
 echo
-echo "$(cat /etc/linbo-version | sed -e 's|LINBO |v|') $ip"
+echo "$linbo_version $ip $myname"
 echo
-uname -a | sed -e "s| $(hostname)||"
+uname -a | sed -e "s| $hostname||"
 echo

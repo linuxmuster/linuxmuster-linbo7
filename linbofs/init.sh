@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20220224
+# 20220504
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -42,8 +42,6 @@ CYAN="[1;36m"
 # BOLD WHITE: Hint
 WHITE="[1;37m"
 
-CMDLINE=""
-LINBOVER="$(cat /etc/linbo-version | sed 's|LINBO |v|')"
 
 # Utilities
 
@@ -60,23 +58,10 @@ isinteger () {
 print_status(){
   local msg="$1"
   if [ -n "$PMSTATUS" ]; then
-    plymouth message --text="$LINBOVER"
+    plymouth message --text="$(cat /etc/linbo-version | sed 's|LINBO |v|')"
     plymouth update --status="$msg"
   fi
   echo "$msg"
-}
-
-# DMA
-enable_dma(){
-  case "$CMDLINE" in *\ nodma*) return 0 ;; esac
-  for d in $(cd /proc/ide 2>/dev/null && echo hd[a-z]); do
-    if test -d /proc/ide/$d; then
-      MODEL="$(cat /proc/ide/$d/model 2>/dev/null)"
-      test -z "$MODEL" && MODEL="[GENERIC IDE DEVICE]"
-      echo "${BLUE}Enabling DMA acceleration for: ${MAGENTA}$d      ${YELLOW}[${MODEL}]${NORMAL}"
-      echo "using_dma:1" >/proc/ide/$d/settings
-    fi
-  done
 }
 
 # create device nodes
@@ -99,38 +84,24 @@ read_cmdline(){
   echo 0 >/proc/sys/kernel/printk
 
   # parse kernel cmdline
-  CMDLINE="$(cat /proc/cmdline)"
+#  CMDLINE="$(cat /proc/cmdline)"
 
-  case "$CMDLINE" in *\ quiet*) quiet=yes ;; esac
-  case "$CMDLINE" in *\ splash*) splash=yes ;; esac
-  case "$CMDLINE" in *\ noauto*) noauto=yes;; esac
-  case "$CMDLINE" in *\ localboot*) localboot=yes;; esac
+#  case "$CMDLINE" in *\ quiet*) quiet=yes ;; esac
+#  case "$CMDLINE" in *\ splash*) splash=yes ;; esac
+#  case "$CMDLINE" in *\ noauto*) noauto=yes;; esac
+#  case "$CMDLINE" in *\ localboot*) localboot=yes;; esac
+
+  for item in `cat /proc/cmdline`; do
+    echo "$item" | grep -q "=" || item="${item}='yes'"
+    echo "export $item" >> /.env
+    eval "$item"
+  done
+  #source /.env
 }
 
 # initial setup
 init_setup(){
-  case "$CMDLINE" in *\ nonetwork*|*\ localmode*) localmode=yes;; esac
-
-  # process parameters given on kernel command line
-  cache=""
-  for i in $CMDLINE; do
-
-    case "$i" in
-
-        # evalutate sata_nv options
-      sata_nv.swnc=*)
-        value="$(echo $i | awk -F\= '{ print $2 }')"
-        echo "options sata_nv swnc=$value" > /etc/modprobe.d/sata_nv.conf
-        ;;
-
-      *=*)
-        echo "Evaluating $i ..."
-        eval "$i"
-        ;;
-
-    esac
-
-  done # cmdline
+  [ -n "$nonetwork" ] && export localmode=yes
 
   # get optionally give cache partition
   if [ -n "$cache" ]; then
@@ -594,15 +565,16 @@ network(){
   mv /start.conf /start.conf.dist
   if [ -n "$server" ]; then
     export server
-    print_status "linbo_server='$server'" >> /tmp/dhcp.log
-    print_status "Loading configuration files from $server ..."
+    print_status "Loading start.conf from $server ..."
     # request host specific start.conf from server
     rsync -L "$server::linbo/tmp/start.conf_$hostname" "/start.conf" &> /dev/null
     # set flag for working network connection and do additional stuff which needs
     # connection to linbo server
     if [ -s /start.conf ]; then
       print_status "Network connection to $server established successfully."
-      grep ^[a-z] /tmp/dhcp.log | sed -e 's|^|local |g' > /tmp/network.ok
+      touch /tmp/network.ok
+      grep ^[a-z] /tmp/dhcp.log | sed -e 's|^|export |g' >> /.env
+      print_status "export linbo_server='$server'" >> /.env
       # first do linbo update & grub installation
       do_linbo_update "$server"
       # time sync
@@ -686,132 +658,15 @@ hwsetup(){
   touch /tmp/linbo-cache.done
 }
 
-# 32bit splashmode based on fbcon kernel patch
-fbconsplash(){
-  # convert wallpaper to splash image
-  pngtopnm /icons/linbo_wallpaper.png > /etc/splash.pnm
-
-  # no kernel messages, no screen blanking
-  setterm -msg off -cursor off -linewrap off -foreground green -blank 0 -powerdown 0
-  tput clear
-
-  # create pipes for progress bar and output
-  mkfifo /fbfifo
-  mkfifo /outfifo
-
-  # start fbsplash
-  fbsplash -i /etc/splash.conf -f /fbfifo -s /etc/splash.pnm &
-  fbsplash_pid="$!"
-
-  # start network and grab output
-  network > /outfifo &
-
-  # defaults for console output
-  YPOS=12
-  COLS=62
-  SEPLINE="$(for i in $(seq $COLS); do echo -n '-'; done)"
-  XPOS=19
-  MAXCOUNT=100
-  COUNTSTEP=12
-
-  # console output for network configuration
-  count=$COUNTSTEP
-  while read DATA; do
-    tput cup $YPOS $XPOS
-    printf "%${COLS}s"
-    tput cup $YPOS $XPOS
-    echo "$DATA"
-    [ $count -gt $MAXCOUNT ] && count=$MAXCOUNT
-    echo "$count" > /fbfifo
-    count=$(($count + $COUNTSTEP))
-  done < /outfifo
-  echo $MAXCOUNT > /fbfifo
-
-  # wait for network
-  while [ ! -e /tmp/linbo-network.done ]; do
-    sleep 1
-  done
-
-  # read downloaded onboot linbocmds (unnecessary)
-  #[ -e /linbocmd ] && linbocmd="$(cat /linbocmd)"
-
-  # console output for linbo commands
-  if [ -n "$linbocmd" ]; then
-
-    # start progress bar
-    ( count=0; while true; do sleep 1; echo $count > /fbfifo; count=$(($count + 10)); [ $count -gt $MAXCOUNT ] && count=0; done ) &
-    pb_pid="$!"
-
-    # iterate over on commandline given linbo commands
-    OIFS="$IFS"
-    IFS=","
-    n=1
-    for cmd in $linbocmd; do
-
-      # pause between commands
-      [ $n -gt 1 ] && sleep 3
-
-      # create pipe for command output
-      mkfifo /outfifo
-      # filter password
-      if echo "$cmd" | grep -q ^linbo:; then
-        msg="linbo_wrapper linbo:*****"
-      else
-        msg="linbo_wrapper $cmd"
-      fi
-
-      ( echo "$msg" ; /usr/bin/linbo_wrapper "$cmd" 2>&1 ; rm /outfifo ) > /outfifo &
-
-      # read and print output
-      header=""
-      while read DATA; do
-        # print header once
-        if [ -z "$header" ]; then
-          tput cup $(($YPOS - 2)) $XPOS
-          printf "%${COLS}s"
-          tput cup $(($YPOS - 2)) $XPOS
-          echo "${DATA:0:$COLS}"
-          tput cup $(($YPOS - 1)) $XPOS
-          echo "$SEPLINE"
-          header=yes
-        else
-          tput cup $YPOS $XPOS
-          printf "%${COLS}s"
-          tput cup $YPOS $XPOS
-          echo "${DATA:0:$COLS}"
-        fi
-        tput cup $YPOS $XPOS
-      done < /outfifo
-
-      n=$(( $n + 1 ))
-
-    done
-    IFS="$OIFS"
-  fi
-  echo $MAXCOUNT > /fbfifo
-
-  # kill progress bar
-  kill "$pb_pid"
-  ps w | grep -q " $pb_pid " && kill -9 "$pb_pid"
-
-  echo "exit\n" > /fbfifo
-  clear
-  setterm -default
-  kill "$fbsplash_pid"
-  rm -f /fbfifo
-
-  exit 0
-}
-
 
 # Main
+
+# evaluate commandline parameters
+read_cmdline
 
 # print welcome message
 clear
 source /.profile
-
-# evaluate commandline parameters
-read_cmdline
 
 # initial setup
 echo
@@ -825,13 +680,10 @@ else
   hwsetup
 fi
 
-# fork due to splash mode
-[ ! -x "/sbin/plymouthd" -a -n "$splash" ] && fbconsplash
-
 # start plymouth daemon
 if [ -x /sbin/plymouthd -a -n "$splash" ]; then
   plymouthd --mode=boot --tty="/dev/tty2" --attach-to-session
-  plymouth show-splash message --text="$LINBOVER"
+  plymouth show-splash message --text="$linbo_version"
   PMSTATUS="yes"
 fi
 
