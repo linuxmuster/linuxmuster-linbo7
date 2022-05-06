@@ -30,6 +30,8 @@ for i in $APPEND; do case "$i" in warmstart=*) eval $i ;; esac; done
 if [ "$warmstart" = "no" ]; then
   echo "Skipping linbo warmstart."
   exit 0
+else
+  echo "Initiating linbo warmstart ..."
 fi
 
 cd /
