@@ -93,6 +93,7 @@ The command `linuxmuster-import-devices` writes the parameters into the grub con
 Option  |  Description
 --|--
 forcegrub  |  Forces grub boot on uefi systems (in case of uefi boot issues).
+noefibootmgr  |  Skips providing the EFI boot files and boot entries (in case of uefi boot issues).
 quiet  |  Suppresses kernel boot messages.
 splash  |  Displays graphical splash screen at boot time. Without this parameter, only text is displayed on the console at boot time.
 warmstart=no  |  Suppresses linbo warmstart after downloading a new linbo kernel from the server (in case this causes problems).
