@@ -2,7 +2,7 @@
 #
 # linbo_warmstart <cachedevice>
 # thomas@linuxmuster.net
-# 20220410
+# 20220506
 #
 
 if [ -n "$1" ]; then
@@ -30,6 +30,8 @@ for i in $APPEND; do case "$i" in warmstart=*) eval $i ;; esac; done
 if [ "$warmstart" = "no" ]; then
   echo "Skipping linbo warmstart."
   exit 0
+else
+  echo "Initiating linbo warmstart ..."
 fi
 
 cd /
