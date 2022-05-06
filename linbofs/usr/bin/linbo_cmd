@@ -6,7 +6,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20220505
+# 20220506
 # GPL v3
 #
 
@@ -1496,7 +1496,7 @@ start(){
       fi
       # load kernel for later warmstart
       if [ "$warmstart" != "no" ]; then
-        kexec --type="bzImage" --append="$APPEND" --initrd="/mnt/$INITRD" --load "/mnt/$KERNEL" && warmstart="yes"
+        kexec --type="bzImage64" --append="$APPEND" --initrd="/mnt/$INITRD" --load "/mnt/$KERNEL" && warmstart="yes"
       fi
     else
       echo "No kernel $KERNEL on partition $partition. Using \"auto\"."
