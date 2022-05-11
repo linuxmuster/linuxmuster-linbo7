@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # thomas@linuxmuster.net
-# 20210512
+# 20220511
 #
 
 MY_DIR="$(dirname $0)"
@@ -13,6 +13,7 @@ rm -rf tmp/*
 dpkg-buildpackage \
     -tc -sn -us -uc \
     -I".git" \
+    -I".github" \
     -I".gitignore" \
     -I".directory" \
     -I"*.debhelper*" \
