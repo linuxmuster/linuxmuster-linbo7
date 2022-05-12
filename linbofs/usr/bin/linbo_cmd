@@ -6,7 +6,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20220505
+# 20220512
 # GPL v3
 #
 
@@ -2904,16 +2904,19 @@ syncr(){
   if remote_cache "$2"; then
     echo "Cache $2 is not local, skipping remote image update."
   else
-    mountcache "$2" || return 1
+    linbo_mountcache "$2" || return 1
     cd /cache
-    local i
     local RC="0"
-    for i in "$imagefile" "$imagediff"; do
-      download_img_if_changed "$1" "$i" || RC="1"
-    done
+    # try to download baseimage
+    download_img_if_changed "$1" "$imagefile" || RC="1"
+    # echo missing diff image is not an error
+    if [ "$RC" = "0" ]; then
+      # remove local diff image if the server does not provide one
+      download_img_if_changed "$1" "$imagediff" || rm -f "$imagediff"*
+    fi
     sendlog
-    cd / ; mountcache "$2" -r
-    # don't sync local if download failed
+    cd / ; linbo_mountcache "$2" -r
+    # don't sync local if download of baseimage failed
     [ "$RC" = "1" ] && return 1
     # Also update LINBO, while we are here.
     update "$1" "$2"
