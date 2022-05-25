@@ -2,7 +2,7 @@
 #
 # Pre-Download script for rsync/LINBO
 # thomas@linuxmuster.net
-# 20220128
+# 20220525
 #
 
 # read in linuxmuster specific environment
@@ -176,7 +176,8 @@ case $EXT in
     grubcfg_tpl="$LINBOTPLDIR/grub.cfg.local"
     group="$(basename "$FILE" | awk -F\. '{ print $2 }')"
     startconf="$LINBODIR/start.conf.$group"
-    append="$(linbo_kopts "$startconf") localboot"
+    linbo_kopts="$(grep -iw ^kerneloptions "$startconf" | awk -F\= '{print $2}' | awk -F\# '{print $1}' | head -$nr | tail -1 | awk '{$1=$1};1')"
+    append="$linbo_kopts localboot"
     sed -e "s|linux \$linbo_kernel .*|linux \$linbo_kernel $append|g" "$grubcfg_tpl" > "$FILE"
     ;;
 
