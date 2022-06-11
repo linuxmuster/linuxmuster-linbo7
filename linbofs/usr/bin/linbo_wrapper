@@ -1,293 +1,21 @@
 #!/bin/sh
 #
-# wrapper for linbo_cmd
-#
+# linbo_wrapper: wrapper for linbo commands
 # thomas@linuxmuster.net
-# 20220327
-# GPL V3
+# 20220610
 #
 
-ARGS="$@"
-
-[ -z "$ARGS" ] && exit 0
-
-# check for concurrent processes
-if ps w | grep linbo_cmd | grep -v grep; then
-  echo "A linbo_cmd process is already running. Aborting!"
-  exit 1
-fi
-
-export PATH=/bin:/sbin:/usr/bin:/usr/sbin
 SECRETS=/tmp/rsyncd.secrets
 
-# test if variable is an integer
-isinteger () {
-  [ $# -eq 1 ] || return 1
-  case $1 in
-    *[!0-9]*|"") return 1 ;;
-    *) return 0 ;;
-  esac
-}
 
-islinked(){
-  local i
-  for i in $(ifconfig | grep ^e | awk '{ print $1 }'); do
-    ethtool "$i" | grep -i "link detected" | grep -qi "yes" && return 0
-  done
-  return 1
-}
+#### functions begin ####
 
-# get server ip
-get_server(){
-  server=`grep ^linbo_server /tmp/dhcp.log | awk -F\' '{ print $2 }'`
-  if [ -z "$server" ]; then
-    islinked && udhcpc
-    server=`grep ^serverid /tmp/dhcp.log | awk -F\' '{ print $2 }' | tail -1`
-    server_check=`grep -i ^server /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }' | tail -1`
-    if [ "$server_check" = "$server" ]; then
-      touch /tmp/network.ok
-    else
-      return 1
-    fi
-  fi
-  echo "$server"
-}
-
-# get cache device
-get_cachedev(){
-  cachedev=`grep -i ^cache /start.conf | tail -1 | awk -F\= '{ print $2 }' | awk '{ print $1 }'`
-  echo "$cachedev"
-}
-
-# get downloadtype
-get_downloadtype(){
-  downloadtype=`grep -i ^downloadtype /start.conf | tail -1 | awk -F\= '{ print $2 }' | awk '{ print $1 }'`
-  [ -z "$downloadtype" ] && downloadtype=rsync
-  echo "$downloadtype"
-}
-
-# get image names
-get_images(){
-  local images=`grep -i ^baseimage /start.conf | sed -e 's/#.*$//' | awk -F\= '{ print $2 }' | awk '{ print $1 }' | sed -e '/^$/d'`
-  local diffimages="$(echo "$images" | sed -e 's|.qcow2|.qdiff|g')"
-  images="$images $diffimages"
-  echo "$images"
-}
-
-# get imagefile name
-get_os(){
-  # check for valid start.conf
-  if ! grep -qi ^"\[os\]" /start.conf; then
-    echo "Error! No operating system definition found in start.conf!"
-    return 1
-  fi
-  local line=""
-  local c=0
-  local param=""
-  local value=""
-  osname=""
-  imagefile=""
-  bootdev=""
-  rootdev=""
-  kernel=""
-  initrd=""
-  append=""
-  while read line; do
-    # strip trailing comments
-    line="${line%\#*}"
-    # strip trailing spaces
-    line="$(echo "$line" | sed 's/[ \t]*$//')"
-    # skip lines beginning with comment
-    [ "${line:0:1}" = "#" ] && continue
-    # skip empty lines
-    [ -z "$line" ] && continue
-    # find [OS] entry at position given in $osnr
-    case "$line" in
-      \[[Oo][Ss]\])
-        let c+=1
-        if [ $c -gt $osnr ]; then
-          return 0
-        else
-          continue
-        fi
-        ;;
-    esac
-    # parse os definition
-    if [ $c -eq $osnr ]; then
-      param="$(echo $line | awk -F\= '{ print $1 }' | sed 's/[ \t]*$//')"
-      value="$(echo "$line" | sed "s/$param//" | sed "s/^[ \t]*//" | sed "s/^=//" | sed "s/^[ \t]*//" | awk -F\# '{ print $1 }' | sed "s/ *$//g")"
-      case "$param" in
-        [Nn][Aa][Mm][Ee]) osname="$value" ;;
-        [Bb][Aa][Ss][Ee][Ii][Mm][Aa][Gg][Ee]) imagefile="$value" ;;
-        [Bb][Oo][Oo][Tt]) bootdev="$value" ;;
-        [Rr][Oo][Oo][Tt]) rootdev="$value" ;;
-        [Kk][Ee][Rr][Nn][Ee][Ll]) kernel="$value" ;;
-        [Ii][Nn][Ii][Tt][Rr][Dd]) initrd="$value" ;;
-        [Aa][Pp][Pp][Ee][Nn][Dd]) append="$value" ;;
-      esac
-    fi
-  done < /start.conf
-}
-# get_os
-
-# print value of start.conf parameter
-stripvalue(){
-  local line="$1"
-  local ret="$(echo $line | awk -F\= '{ print $2 }')"
-  [ -z "$ret" ] && ret="-"
-  echo "$ret"
-}
-
-# get partition data
-get_partitions() {
-  # check for valid start.conf
-  if ! grep -qi ^"\[partition\]" /start.conf; then
-    echo "Error! No partition definition found in start.conf!"
-    return 1
-  fi
-  if ! grep -qi ^"\[os\]" /start.conf; then
-    echo "Error! No operating system definition found in start.conf!"
-    return 1
-  fi
-  # define local variables
-  local dev=""
-  local size=""
-  local pid=""
-  local fstype=""
-  local bootable=""
-  local line=""
-  partitions=""
-  # parse start.conf and store partition definitions in /tmp/partitions
-  grep ^[\[DdSsIiBbFf][PpEeIiDdOoSs] /start.conf | tr A-Z a-z | sed 's/ //g' | sed -e 's/#.*$//' | while read line; do
-    case "$line" in
-      \[partition\]*|\[os\]*)
-        if [ -n "$dev" -a -n "$size" -a -n "$pid" ]; then
-          [ -z "$bootable" ] && bootable="-"
-          [ -z "$fstype" ] && fstype="-"
-          partitions="$partitions $dev $size $pid $bootable $fstype"
-          echo "$partitions" > /tmp/partitions
-        fi
-        [ "$line" = "\[os\]" ] && break
-        dev=""; size=""; pid=""; bootable=""; fstype=""
-        ;;
-      dev=*) dev="$(stripvalue "$line")" ;;
-      size=*)
-        size="$(stripvalue "$line")"
-        isinteger "$size" || size=0
-        ;;
-      id=*) pid="$(stripvalue "$line")" ;;
-      bootable=*)
-        bootable="$(stripvalue "$line")"
-        [ "$bootable" = "yes" ] && bootable="bootable"
-        ;;
-      fstype=*) fstype="$(stripvalue "$line")" ;;
-      *) ;;
-    esac
-  done
-  partitions="$(cat /tmp/partitions)"
-}
-# get_partitions
-
-# get partitionlabel from start.conf
-# partlabel_startconf partition
-partlabel_startconf(){
-  [ -s /start.conf ] || return
-  local part="$1"
-  local line=""
-  local dev=""
-  local label=""
-  grep -i ^[dl][ea][vb] /start.conf | awk -F\= '{ print $1 " " $2 }' | awk '{ print $1 " " $2 }' | while read line; do
-    echo "$line" | grep -qi ^dev && dev="$(echo "$line" | awk '{ print $2 }')"
-    echo "$line" | grep -qi ^label && label="$(echo "$line" | awk '{ print $2 }')"
-    if [ -n "$dev" -a -n "$label" ]; then
-      if [ "$dev" = "$part" ]; then
-        echo "$label"
-        return
-      fi
-      dev="" ; label=""
-    fi
-  done
-}
-
-# print_partlabel partition
-print_partlabel(){
-  [ -e /dev/disk/by-label ] || return
-  local label="$(partlabel_startconf "$1")"
-  [ -z "$label" ] && return
-  ls -l /dev/disk/by-label/ | grep -qw "$label" && echo "$label"
-}
-
-# format a specific partition
-format_partition(){
-  local pos=$((((1))+$(($partnr-1))*((5))))
-  local dev="$(echo $partitions | cut -d" " -f$pos)"
-  local label="$(print_partlabel "$dev")"
-  pos=$(($partnr*5))
-  local fstype="$(echo $partitions | cut -d" " -f$pos)"
-  local fcmd=""
-  if [ -n "$label" ]; then
-    case "$fstype" in
-      swap|ext2|ext3|ext4|[Nn][Tt][Ff][Ss]*) label="-L $label" ;;
-      reiserfs) label="-l $label" ;;
-      *[Ff][Aa][Tt]*) label="-n $label" ;;
-      *) ;;
-    esac
-  fi
-  case "$fstype" in
-    [Ss][Ww][Aa][Pp]) fcmd="mkswap $label $dev" ;;
-    [Rr][Ee][Ii][Ss][Ee][Rr][Ff][Ss]) fcmd="mkreiserfs $label -f -f $dev" ;;
-    [Ee][Xx][Tt][234]) fcmd="mkfs.$fstype -F $label $dev" ;;
-    [Nn][Tt][Ff][Ss]) fcmd="mkfs.ntfs $label -Q $dev" ;;
-    *[Ff][Aa][Tt]*) fcmd="mkdosfs $label -F 32 $dev" ;;
-    *) echo "Unbekanntes Dateisystem: $fstype!"
-      return 1 ;;
-  esac
-  if [ -n "$fcmd" ]; then
-    # test if device is present after partitioning, if not wait 3 secs
-    if [ ! -b "$dev" ]; then
-      echo "Partition $dev is not yet ready ... Waiting 3 seconds ..."
-      sleep 3
-    fi
-    # test again, abort if device is not there
-    if [ ! -b "$dev" ]; then
-      echo "Partition $dev does not exist ... Aborting!"
-      return 1
-    fi
-    if ! $fcmd; then
-      echo "Formatting of $dev failed ... Aborting!"
-      return 1
-    fi
-  fi
-}
-
-# get rsync user and password
-get_passwd(){
-  [ -s "$SECRETS" ] || return 1
-  user=linbo
-  password="$(grep ^"$user:" "$SECRETS" | awk -F\: '{ print $2 }')"
-}
-
-# creates image description
-create_desc(){
-  local image="$1"
-  linbo_cmd mountcache "$cachedev" -w
-  cat /proc/mounts | grep -q /cache || return 1
-  if [ -n "$msg" ]; then
-    msg="$(date): $msg"
-  else
-    msg="$(date): $image created by linbo_wrapper."
-  fi
-  echo "$msg" > /cache/msg.tmp
-  [ -s "/cache/$image.desc" ] && cat "/cache/$image.desc" >> /cache/msg.tmp
-  mv /cache/msg.tmp "/cache/$image.desc"
-}
-
-# print help
-help(){
+# print usage infos
+usage(){
   echo
-  echo "Usage: `basename $0` <command1 command2 ...>"
+  echo "Usage: linbo_wrapper <command1 command2 ...>"
   echo
-  echo "`basename $0` is a linbo_cmd command wrapper."
+  echo "linbo_wrapper is a linbo command wrapper."
   echo "It reads the start.conf and creates the according commands."
   echo
   echo "Available commands are:"
@@ -320,186 +48,115 @@ help(){
   exit
 }
 
-case "$@" in *help*) help ;; esac
+
+# get rsync user and password
+get_passwd(){
+  [ -s "$SECRETS" ] || return 1
+  user=linbo
+  password="$(grep ^"$user:" "$SECRETS" | awk -F\: '{ print $2 }')"
+}
+
+
+# creates image description
+create_desc(){
+  local image="$1"
+  linbo_mountcache
+  cat /proc/mounts | grep -q /cache || return 1
+  if [ -n "$msg" ]; then
+    msg="$(date): $msg"
+  else
+    msg="$(date): $image created by linbo_wrapper."
+  fi
+  echo "$msg" > /cache/msg.tmp
+  [ -s "/cache/$image.desc" ] && cat "/cache/$image.desc" >> /cache/msg.tmp
+  mv /cache/msg.tmp "/cache/$image.desc"
+}
+
+#### functions end ####
+
+
+# print help
+[ -z "$1" -o "$1" = "help" ] && usage
 
 # process command line args
 while [ "$#" -gt "0" ]; do
 
   cmd=`echo "$1" | awk -F\: '{ print $1 }'`
-  param=`echo "$1" | awk -F\: '{ print $2 }'`
+  osnr=`echo "$1" | awk -F\: '{ print $2 }'`
   msg=`echo "$1" | awk -F\: '{ print $3 }'`
-  customimage=`echo "$1" | awk -F\: '{ print $4 }'`
 
   # do not print linbo password
-  echo "Befehl      : $cmd"
-  [ -n "$param" -a "$cmd" != "linbo" ] && echo "Parameter    : $param"
+  echo "Command     : $cmd"
+  [ -n "$osnr" -a "$cmd" != "linbo" ] && echo "OS number   : $osnr"
   [ -n "$msg" ] && echo "Comment        : $msg"
-  [ -n "$customimage" ] && echo "Custom image : $customimage"
 
   case "$cmd" in
 
     linbo)
-      echo "${cmd}:${param}" > "$SECRETS"
+      password="$osnr"
+      echo "${cmd}:${password}" > "$SECRETS"
       ;;
 
-    partition)
-      get_partitions
-      if [ -n "$partitions" ]; then
-        if ! linbo_cmd partition_noformat; then
-          echo "Partitioning failed!"
-          exit 1
-        fi
-      fi
-      ;;
+    partition) linbo_partition || exit 1 ;;
 
     format)
-      get_partitions
-      if [ -n "$partitions" ]; then
-        if [ -z "$param" ]; then
-          if ! linbo_cmd partition; then
-            echo "Partitioning failed!"
-            exit 1
-          fi
-        else
-          partnr="$param"
-          if isinteger "$partnr" && [ $partnr -gt 0 ]; then
-            format_partition
-          fi
-        fi
+      if [ -n "$osnr" ]; then
+        linbo_format "$osnr" || exit 1
+      else
+        linbo_partition_format | exit 1
       fi
       ;;
 
-    initcache)
-      [ -z "$server" ] && get_server
-      [ -z "$server" ] && return 1
-      [ -z "$cachedev" ] && get_cachedev
-      if [ "$param" = "rsync" -o "$param" = "multicast" -o "$param" = "torrent" ]; then
-        downloadtype="$param"
-      else
-        get_downloadtype
-      fi
-      get_images
-      if [ -n "$server" -a -n "$cachedev" -a -n "$images" ]; then
-        linbo_cmd initcache $server $cachedev $downloadtype $images || exit 1
-      else
-        echo "Failed! One or more necessary parameters are missing!"
-        echo "Initcache command was: linbo_cmd initcache $server $cachedev $downloadtype $images"
-        exit 1
-      fi
-      ;;
+    initcache) linbo_initcache || exit 1 ;;
 
     create_image|create_qdiff)
-      osnr="$param"
-      if ! isinteger "$osnr"; then
-        echo "$osnr is not an integer!"
-        shift
-        continue
-      fi
-      get_os
-      # detect differential image
-      [ "$cmd" = "create_qdiff" ] && imagefile="${imagefile/.qcow2/.qdiff}"
-      echo "Creating $imagefile from $osname ..."
-      [ -z "$cachedev" ] && get_cachedev
-      [ -n "$customimage" ] && imagefile="$customimage"
-      if [ -n "$cachedev" -a -n "$imagefile" -a -n "$bootdev" -a -n "$rootdev" -a -n "$kernel" ]; then
-        create_desc "$imagefile"
-        linbo_cmd create "$cachedev" "$imagefile" "$rootdev" || exit 1
+      source /conf/os.$osnr
+      # differential image
+      if [ "$cmd" = "create_qdiff" ]; then
+        diff="diff"
+        imagefile="${baseimage/.qcow2/.qdiff}"
       else
-        echo "Failed! One or more necessary parameters are missing!"
-        echo "Create command was: linbo_cmd create $cachedev $imagefile $rootdev"
-        exit 1
+        imagefile="$baseimage"
       fi
+      linbo_create_image "$osnr" "$diff" || exit 1
+      create_desc "$imagefile"
       ;;
 
     upload_image|upload_qdiff)
-      osnr="$param"
-      if ! isinteger "$osnr"; then
-        echo "$osnr is not an integer!"
-        shift
-        continue
-      fi
-      get_os
+      source /conf/os.$osnr || exit 1
+      imagefile="$baseimage"
       get_passwd
-      [ -z "$server" ] && get_server
-      [ -z "$server" ] && return 1
-      # detect differential image
+      # differential image
       [ "$cmd" = "upload_qdiff" ] && imagefile="${imagefile/.qcow2/.qdiff}"
-      echo "Uploading $imagefile to $server ..."
-      [ -z "$cachedev" ] && get_cachedev
-      [ -n "$customimage" ] && imagefile="$customimage"
-      if [ -n "$server" -a -n "$user" -a -n "$password" -a -n "$cachedev" -a -n "$imagefile" ]; then
-        linbo_cmd upload "$server" "$user" "$password" "$cachedev" "$imagefile" || exit 1
-      else
-        echo "Failed! One or more necessary parameters are missing!"
-        echo "Upload command was: linbo_cmd upload $server $user $password $cachedev $imagefile"
-        exit 1
-      fi
+      echo "Uploading $imagefile to $LINBOSERVER ..."
+      linbo_upload "$password" "$imagefile" || exit 1
       ;;
 
     sync)
-      osnr="$param"
-      if ! isinteger "$osnr"; then
-        echo "$osnr is not an integer!"
-        shift
-        continue
-      fi
-      get_os
-      echo "Syncing $osname ..."
-      [ -z "$server" ] && get_server
-      [ -z "$server" ] && server="offline"
-      [ -z "$cachedev" ] && get_cachedev
-      if [ -n "$server" -a -n "$cachedev" -a -n "$imagefile" -a -n "$bootdev" -a -n "$rootdev" -a -n "$kernel" ]; then
-        linbo_cmd synconly "$server" "$cachedev" "$imagefile" "" "$bootdev" "$rootdev" "$kernel" "$initrd" "$append" || exit 1
-      else
-        echo "Failed! One or more necessary parameters are missing!"
-        echo "Sync command was: linbo_cmd synconly $server $cachedev $imagefile $bootdev $rootdev $kernel $initrd $append"
-        exit 1
-      fi
+      source /conf/os.$osnr || exit 1
+      echo "Syncing $name ..."
+      linbo_sync "$osnr" || exit 1
       ;;
 
     start)
-      osnr="$param"
-      if ! isinteger "$osnr"; then
-        echo "$osnr ist keine Zahl!"
-        shift
-        continue
-      fi
-      get_os
-      echo "Starte $osname ..."
-      [ -z "$cachedev" ] && get_cachedev
-      if [ -n "$bootdev" -a -n "$rootdev" -a -n "$kernel" -a -n "$cachedev" ]; then
-        linbo_cmd start "$bootdev" "$rootdev" "$kernel" "$initrd" "$append" "$cachedev" || exit 1
-      else
-        echo "Failed! One or more necessary parameters are missing!"
-        echo "Start command was: linbo_cmd start $bootdev $rootdev $kernel $initrd $append $cachedev"
-        exit 1
-      fi
+      source /conf/os.$osnr || exit 1
+      echo "Starting $name ..."
+      linbo_cmd start "$osnr" || exit 1
       ;;
 
-    update)
-      echo "Aktualisiere LINBOs Kernel/RAM-Disk und installiere GRUB ..."
-      [ -z "$server" ] && get_server
-      [ -z "$cachedev" ] && get_cachedev
-      if [ -n "$server" -a -n "$cachedev" ]; then
-        linbo_cmd update "$server" "$cachedev" || exit 1
-      else
-        echo "Failed! One or more necessary parameters are missing!"
-        echo "Update command was: linbo_cmd update $server $cachedev"
-        exit 1
-      fi
-      ;;
+    update) linbo_update || exit 1 ;;
 
-    label) linbo_cmd label || exit 1 ;;
+    label) linbo_label "all" || exit 1 ;;
 
     reboot) /sbin/reboot || exit 1 ;;
 
     halt|poweroff) /sbin/poweroff || exit 1 ;;
 
-    gui_ctl_disable) gui_ctl disable || exit 1;;
+    gui_ctl_disable) gui_ctl disable || exit 1 ;;
 
-    gui_ctl_enable) gui_ctl enable || exit 1;;
+    gui_ctl_enable) gui_ctl enable || exit 1 ;;
 
-    gui_ctl_restore) gui_ctl restore || exit 1;;
+    gui_ctl_restore) gui_ctl restore || exit 1 ;;
 
   esac
 

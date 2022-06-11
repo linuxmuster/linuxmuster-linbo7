@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20220506
+# 20220602
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -78,43 +78,32 @@ udev_extra_nodes() {
   done
 }
 
-# read commandline parameters
-read_cmdline(){
-  mount -t proc /proc /proc
-  echo 0 >/proc/sys/kernel/printk
-
+# provide environment variables from kernel cmdline and dhcp.log
+do_env(){
+  local item
+  local varname
+  local upvarname
   # parse kernel cmdline
-#  CMDLINE="$(cat /proc/cmdline)"
-
-#  case "$CMDLINE" in *\ quiet*) quiet=yes ;; esac
-#  case "$CMDLINE" in *\ splash*) splash=yes ;; esac
-#  case "$CMDLINE" in *\ noauto*) noauto=yes;; esac
-#  case "$CMDLINE" in *\ localboot*) localboot=yes;; esac
-
-  for item in `cat /proc/cmdline`; do
+  for item in `cat /proc/cmdline` `grep ^[a-zB] /tmp/dhcp.log | sort -u`; do
     echo "$item" | grep -q "=" || item="${item}='yes'"
-    echo "export $item" >> /.env
-    eval "$item"
+    varname="$(echo "$item" | awk -F\= '{print $1}')"
+    upvarname="$(echo "$varname" | tr a-z A-Z)"
+    echo "export ${item/${varname}/${upvarname}}" >> /.env
+    [ "$upvarname" = "NONETWORK" ] && echo "export LOCALMODE='yes'" >> /.env
   done
-  #source /.env
+  source /.env
+  echo "export FQDN='"${HOSTNAME}.${DOMAIN}"'" >> /.env
+  export FQDN="${HOSTNAME}.${DOMAIN}"
+  echo "$HOSTNAME" > /etc/hostname
+  hostname "$HOSTNAME"
+  export MACADDR="`ifconfig | grep -B1 "$IP" | grep HWaddr | awk '{ print $5 }' | tr A-Z a-z`"
+  echo "export MACADDR='"$MACADDR"'" >> /.env
 }
 
 # initial setup
 init_setup(){
-  [ -n "$nonetwork" ] && export localmode=yes
-
-  # get optionally give cache partition
-  if [ -n "$cache" ]; then
-    cache_given="$cache"
-    cache=""
-  fi
-
-  # get optionally given start.conf location
-  if [ -n "$conf" ]; then
-    confpart="$(echo $conf | awk -F\: '{ print $1 }')"
-    extraconf="$(echo $conf | awk -F\: '{ print $2 }')"
-  fi
-
+  mount -t proc /proc /proc
+  echo 0 >/proc/sys/kernel/printk
   mount -t sysfs /sys /sys
   mount -t devtmpfs devtmpfs /dev
   if [ -e /etc/udev/links.conf ]; then
@@ -143,183 +132,51 @@ init_setup(){
   fi
 }
 
-# trycopyfromcache device filenames
-trycopyfromcache(){
-  local cachedev="$1"
-  local i=""
-  local files="$2"
-  local RC=1
-  if ! grep -q "$cachedev /cache" /proc/mounts; then
-    linbo_cmd mount "$cachedev" /cache -r || return "$RC"
-  fi
-  if [ -e /cache/linbo -o -e /cache/linbo-np -o -e /cache/linbo64 ]; then
-    RC=0
-    for i in $files; do
-      if [ -e /cache/"$i" ]; then
-        echo "* Copying $i ..."
-        cp -af /cache/"$i" .
-      fi
-    done
-  fi
-  umount /cache || umount -l /cache
-  return "$RC"
-}
-
 # copyfromcache files - copies files from cache to current dir
 copyfromcache(){
-  # if there are no partitions return
-  [ -e /dev/disk/by-uuid ] || return 1
-  local cachedev="$(printcache)"
-  if [ -b "$cachedev" ]; then
-    trycopyfromcache "$cachedev" "$1" && return 0
-  fi
-  # iterate through partitions
-  local device=""
-  ls -l /dev/disk/by-uuid/ | grep ^l | awk -F\/ '{ print $3 }' | sort -u | while read device; do
-    [ -b "/dev/$device" ] || continue
-    trycopyfromcache "/dev/$device" "$1" && return 0
+  linbo_mountcache || return 1
+  local item
+  local RC="0"
+  for item in $@; do
+    if cp -af "/cache/$item" .; then
+      echo "Copied $item successfully to $(pwd)."
+      # read env again to get cache from copied start.conf
+      [ "$item" = "start.conf" ] && source /.env
+    else
+      echo "Failed to copy $item to $(pwd)."
+      RC="1"
+    fi
   done
-  return 1
-}
-
-# modify cache entry in start.conf
-modify_cache(){
-  [ -s "$1" ] || return 1
-  if grep -qi ^cache "$1"; then
-    sed -e "s|^[Cc][Aa][Cc][Hh][Ee].*|Cache = $cache|g" -i "$1"
-  else
-    sed -e "/^\[LINBO\]/a\
-Cache = $cache" -i "$1"
-  fi
-}
-
-# print cache partition
-printcache(){
-  if [ -n "$cache" -a -b "$cache" ]; then
-    echo "$cache" | tee /tmp/linbo-cache.done
-    return
-  fi
-  [ -s /start.conf ] || return
-  local cachedev="$(grep -iw ^cache /start.conf | tail -1 | awk -F\= '{ print $2 }' | awk '{ print $1 }' 2> /dev/null)"
-  [ -n "$cachedev" ] &&  echo "$cachedev" | tee /tmp/linbo-cache.done
-}
-
-# copytocache file - copies start.conf to local cache
-copytocache(){
-  local cachedev="$(printcache)"
-  [ -b "$cachedev" ] || return 1
-  case "$cachedev" in
-    /dev/*) # local cache
-      if ! grep -q "$cachedev /cache" /proc/mounts; then
-        linbo_cmd mount "$cachedev" /cache || return 1
-      fi
-      if [ -s /start.conf ]; then
-        echo "Saving start.conf in cache."
-        cp -a /start.conf /cache
-      fi
-      # save hostname for offline use
-      if [ -s /tmp/network.ok ]; then
-        source /tmp/network.ok
-        local FQDN="${hostname}.${domain}"
-        echo "Saving hostname $FQDN in cache."
-        echo "$FQDN" > /cache/hostname
-      fi
-      # deprecated
-      #[ "$cachedev" = "$cache" ] && modify_cache /cache/start.conf
-      umount /cache || umount -l /cache
-      ;;
-    *)
-      echo "Found no local cache partition!"
-      return 1
-      ;;
-  esac
-}
-
-# copy extra start.conf given on cmdline
-copyextra(){
-  [ -b "$confpart" ] || return 1
-  [ -z "$extraconf" ] && return 1
-  mkdir -p /extra
-  linbo_cmd mount "$confpart" /extra || return 1
-  local RC=1
-  if [ -s "/extra$extraconf" ]; then
-    cp "/extra$extraconf" /start.conf ; RC="$?"
-    umount /extra || umount -l /extra
-  else
-    RC=1
-  fi
+  umount /cache
   return "$RC"
 }
 
-# Try to read the first valid ip address from all up network interfaces
-get_ipaddr(){
-  local ip=""
-  local line
-  ifconfig | while read line; do
-    case "$line" in *inet\ addr:*)
-      ip="${line##*inet addr:}"
-      ip="${ip%% *}"
-      case "$ip" in 127.0.0.1) continue ;; esac
-      [ -n "$ip" ] && { echo "$ip"; return 0; }
-      ;;
-    esac
-  done
-  return 1
+# copytocache - copies start.conf and hostname to local cache
+copytocache(){
+  linbo_mountcache || return 1
+  local RC="0"
+  if [ -s /start.conf ]; then
+    if cp -a /start.conf /cache; then
+      echo "Copied start.conf successfully to cache."
+    else
+      echo "Failed to copy start.conf to cache."
+      RC="1"
+    fi
+  fi
+  # save hostname for offline use
+  if [ -n "$FQDN" ]; then
+    if echo "$FQDN" > /cache/hostname; then
+      echo "Successfully saved hostname $FQDN to cache."
+    else
+      echo "Failed to save hostname $FQDN to cache."
+      RC="1"
+    fi
+  fi
+  umount /cache
+  return "$RC"
 }
 
 # Utilities
-# get_hostname ip
-get_hostname(){
-  local NAME=""
-  local key=""
-  local value=""
-  # Try dhcp info first.
-  if [ -f "/tmp/dhcp.log" ]; then
-    NAME="`grep ^hostname /tmp/dhcp.log | tail -1 | cut -f2 -d"'"`"
-    [ -n "$NAME" ] && { echo "$NAME"; return 0; }
-  fi
-  # Then DNS
-  if [ -n "$1" ] && grep -q ^nameserver /etc/resolv.conf; then
-    while read key value relax; do
-      case "$key" in
-        Name:)
-          if [ "$1" = "$value" ]; then
-            NAME="`echo ip-$value | sed 's/\./-/g'`"
-          else
-            NAME="${value%%.*}"
-          fi
-          break ;;
-      esac
-    done <<.
-$(nslookup "$1" 2>/dev/null)
-.
-    [ -n "$NAME" ] && { echo "$NAME"; return 0; }
-  fi
-  return 1
-}
-
-# Get server address.
-get_server(){
-  local ip=""
-  local a=""
-  local b=""
-  # First try servername from dhcp.log:siaddr.
-  if [ -f "/tmp/dhcp.log" ]; then
-    ip="`grep ^siaddr /tmp/dhcp.log | tail -1 | cut -f2 -d"'"`"
-    [ -n "$ip" ] && { echo "$ip"; return 0; }
-  fi
-  # Second guess from route.
-  while read a b relax; do
-    case "$a" in 0.0.0.0)
-      ip="$b"
-      [ -n "$ip" ] && { echo "$ip"; return 0; }
-      ;;
-    esac
-  done <<.
-$(route -n)
-.
-  return 1
-}
 
 # save windows activation tokens
 save_winact(){
@@ -424,45 +281,40 @@ save_winact(){
     echo "OK."
   fi
   # do not in offline mode
-  [ -e /tmp/linbo-network.done ] && return
+  [ -z "$LINBOSERVER" ] && return
   # trigger upload
   echo "Starting upload of windows activation tokens."
-  rsync "$server::linbo/winact/$(basename $archive).upload" /cache &> /dev/null || true
+  rsync "$LINBOSERVER::linbo/winact/$(basename $archive).upload" /cache &> /dev/null || true
 }
 
 # save windows activation tokens
 do_housekeeping(){
-  local device=""
-  local cachedev="$(printcache)"
-  [ -z "$cachedev" ] && return 1
-  if ! linbo_cmd mount "$cachedev" /cache; then
-    echo "Housekeeping: Cannot mount cache partition $cachedev."
+  local dev
+  #[ -b "$CACHE" ] && return 1
+  if ! linbo_mountcache; then
+    echo "Housekeeping: Cannot mount cache partition $CACHE."
     return 1
   fi
   [ -s /start.conf ] || return 1
   grep -iw ^root /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }' | sort -u | while read device; do
-    [ -b "$device" ] || continue
-    if linbo_cmd mount "$device" /mnt 2> /dev/null; then
+    [ -b "$dev" ] || continue
+    if linbo_mount "$dev" /mnt 2> /dev/null; then
       # save windows activation files
       ls /mnt/linuxmuster-win/*activation_status &> /dev/null && save_winact
       umount /mnt
     fi
   done
-  grep -q "$cachedev /cache" /proc/mounts && umount /cache
+  grep -q "$CACHE /cache" /proc/mounts && umount /cache
 }
 
 # update linbo and install it locally
 do_linbo_update(){
-  local server="$1"
   local rebootflag="/tmp/.linbo.reboot"
-  local cachedev="$(printcache)"
-  linbo_cmd mountcache "$cachedev"
-  # start linbo update
-  linbo_cmd update "$server" "$cachedev" 2>&1 | tee /cache/update.log
+  linbo_update 2>&1 | tee /cache/update.log
   # initiate warm start
   if [ -e "$rebootflag" ]; then
     echo "LINBO/GRUB configuration has been successfully updated."
-    /usr/bin/linbo_warmstart
+    linbo_warmstart
   fi
 }
 
@@ -509,106 +361,96 @@ set_autostart() {
 
 network(){
   echo
-  if [ -n "$localmode" ]; then
+  rm -f /tmp/linbo-network.done
+  if grep -qwi nonetwork /proc/cmdline; then
     print_status "Local mode is configured, skipping network configuration."
-    copyfromcache "start.conf icons"
+    do_env
+    copyfromcache start.conf icons
     do_housekeeping
     touch /tmp/linbo-network.done
     return 0
-  else
-    print_status "Starting network configuration ..."
   fi
-  rm -f /tmp/linbo-network.done
-  if [ -n "$ipaddr" ]; then
-    print_status "Using static ip address $ipaddr."
-    [ -n "$netmask" ] && nm="netmask $netmask" || nm=""
-    ifconfig ${netdevice:-eth0} $ipaddr $nm &> /dev/null
-  else
-    # iterate over ethernet interfaces
-    print_status "Asking for ip address per dhcp ..."
-    # dhcp retries
-    [ -n "$dhcpretry" ] && dhcpretry="-t $dhcpretry"
-    local RC="0"
-    for dev in `grep ':' /proc/net/dev | awk -F\: '{ print $1 }' | awk '{ print $1}' | grep -v ^lo`; do
-      print_status "Interface $dev ... "
-      ifconfig "$dev" up &> /dev/null
-      # activate wol
-      ethtool -s "$dev" wol g &> /dev/null
-      # check if using vlan
-      if [ -n "$vlanid" ]; then
-        print_status "Using vlan id $vlanid."
-        vconfig add "$dev" "$vlanid" &> /dev/null
-        dhcpdev="$dev.$vlanid"
-        ip link set dev "$dhcpdev" up
-      else
-        dhcpdev="$dev"
-      fi
-      udhcpc -n -i "$dhcpdev" $dhcpretry &> /dev/null ; RC="$?"
-      if [ "$RC" = "0" ]; then
-        # set mtu
-        [ -n "$mtu" ] && ifconfig "$dev" mtu $mtu &> /dev/null
-        break
-      fi
-    done
-  fi
-  # Network is up now, fetch a new start.conf
-  # If server, ipaddr and cache are not set on cmdline, try to guess.
-  [ -n "$ipaddr" ] || ipaddr="`get_ipaddr`"
-  [ -n "$hostname" ] || hostname="`get_hostname $ipaddr`"
-  [ -n "$hostname" ] && hostname "$hostname"
-  [ -n "$server" ] || server="`get_server`"
-  macaddr="`ifconfig | grep -B1 "$ip" | grep HWaddr | awk '{ print $5 }' | tr A-Z a-z`"
-  print_status "IP: $ipaddr * Hostname: $hostname * MAC: $macaddr * Server: $server"
-  # Move away old start.conf and look for updates
-  mv /start.conf /start.conf.dist
-  if [ -n "$server" ]; then
-    export server
-    print_status "Loading start.conf from $server ..."
-    # request host specific start.conf from server
-    rsync -L "$server::linbo/tmp/start.conf_$hostname" "/start.conf" &> /dev/null
-    # set flag for working network connection and do additional stuff which needs
-    # connection to linbo server
-    if [ -s /start.conf ]; then
-      print_status "Network connection to $server established successfully."
-      touch /tmp/network.ok
-      grep ^[a-z] /tmp/dhcp.log | sed -e 's|^|export |g' >> /.env
-      print_status "export linbo_server='$server'" >> /.env
-      # first do linbo update & grub installation
-      do_linbo_update "$server"
-      # time sync
-      print_status "Starting time sync ..."
-      #( ntpd -n -q -p "$server" && hwclock --systohc ) &
-      ntpd -g -n -q -p "$server" &
-      #date
-      # get onboot linbo-remote commands, if there are any
-      for i in $hostname $ipaddr; do
-        rsync -L "$server::linbo/linbocmd/$i.cmd" "/linbocmd" &> /dev/null
-        [ -s /linbocmd ] && break
-      done
-      # read linbo-remote noauto command into variable
-      if [ -s /linbocmd ]; then
-        grep -q noauto /linbocmd && noauto="yes" && sed -e "s|noauto||" -i /linbocmd
-        # strip leading and trailing spaces and escapes
-        export linbocmd="$(awk '{$1=$1}1' /linbocmd | sed -e 's|\\||g')"
-      fi
-      # save downloaded stuff to cache
-      copytocache
+  # iterate over ethernet interfaces
+  print_status "Requesting ip address per dhcp ..."
+  # dhcp retries
+  for i in $(cat /proc/cmdline); do case "$i" in dhcpretry=*) eval "$i" ;; esac; done
+  [ -n "$dhcpretry" ] && dhcpretry="-t $dhcpretry"
+  local RC="0"
+  for dev in `grep ':' /proc/net/dev | awk -F\: '{ print $1 }' | awk '{ print $1}' | grep -v ^lo`; do
+    print_status "Interface $dev ... "
+    ifconfig "$dev" up &> /dev/null
+    # activate wol
+    ethtool -s "$dev" wol g &> /dev/nulldo_housekeeping
+    # check if using vlan
+    if [ -n "$vlanid" ]; then
+      print_status "Using vlan id $vlanid."
+      vconfig add "$dev" "$vlanid" &> /dev/null
+      dhcpdev="$dev.$vlanid"
+      ip link set dev "$dhcpdev" up
+    else
+      dhcpdev="$dev"
     fi
+    udhcpc -n -i "$dhcpdev" $dhcpretry &> /dev/null ; RC="$?"
+    if [ "$RC" = "0" ]; then
+      # set mtu
+      [ -n "$mtu" ] && ifconfig "$dev" mtu $mtu &> /dev/null
+      break
+    fi
+  done
+  # Network is up now, create environment
+  do_env
+  # Move away standard start.conf and try to download the current one
+  mv /start.conf /start.conf.dist
+  local server
+  for server in "$SIADDR" "$SERVERID"; do
+    [ -z "$server" ] && continue
+    print_status "Trying to load start.conf from $server ..."
+    rsync -L "$server::linbo/tmp/start.conf_$HOSTNAME" "/start.conf" &> /dev/null
+    [ -s /start.conf ] && break
+  done
+  # set flag for working network connection and do additional stuff which needs
+  # connection to linbo server
+  if [ -s /start.conf ]; then
+    export LINBOSERVER="$server"
+    echo "export LINBOSERVER='"$server"'" >> /.env
+    print_status "Network connection to $LINBOSERVER established successfully."
+    print_status "IP: $IP * Hostname: $HOSTNAME * MAC: $MACADDR * Server: $LINBOSERVER"
+    # split start.conf if complete
+    linbo_split_startconf
+    # first do linbo update & grub installation
+    do_linbo_update
+    # time sync
+    print_status "Starting time sync ..."
+    #( ntpd -n -q -p "$SERVER" && hwclock --systohc ) &
+    ntpd -g -n -q -p "$LINBOSERVER" &
+    #date
+    # get onboot linbo-remote commands, if there are any
+    local item
+    for item in $HOSTNAME $IP; do
+      rsync -L "$LINBOSERVER::linbo/linbocmd/$item.cmd" "/linbocmd" &> /dev/null
+      [ -s /linbocmd ] && break
+    done
+    # read linbo-remote noauto command into variable
+    if [ -s /linbocmd ]; then
+      grep -q noauto /linbocmd && noauto="yes" && sed -e "s|noauto||" -i /linbocmd
+      # strip leading and trailing spaces and escapes
+      export linbocmd="$(awk '{$1=$1}1' /linbocmd | sed -e 's|\\||g')"
+    fi
+    # save start.conf and hostname to cache
+    copytocache
   fi
-  # copy start.conf optionally given on cmdline
-  copyextra && local extra=yes
   # if start.conf could not be downloaded or does not contain [os] section
   if [ ! -s /start.conf ] || ([ -s /start.conf ] && ! grep -qi ^'\[os\]' /start.conf); then
     # No new version / no network available, look for cached copies of start.conf and icons folder.
     echo "Trying to copy start.conf and icons from cache."
-    copyfromcache "start.conf icons"
+    copyfromcache start.conf icons
     # Still nothing new, revert to old version.
-    [ ! -s /start.conf ] && mv -f /start.conf.dist /start.conf
-  fi
-  # modify cache in start.conf if cache was given on cl and no extra start.conf was defined
-  if [ -z "$extra" -a -n "$cache_given" -a -b "$cache_given" ]; then
-    cache="$cache_given"
-    modify_cache /start.conf
+    if [ -s /start.conf ]; then
+      # split start.conf if complete
+      linbo_split_startconf
+    else
+      mv -f /start.conf.dist /start.conf
+    fi
   fi
   # disable auto functions if noauto is given
   if [ -n "$noauto" ]; then
@@ -627,7 +469,6 @@ network(){
   # done
   echo > /tmp/linbo-network.done
   print_status "Done."
-  rm -f /outfifo
 }
 
 # HW Detection
@@ -643,6 +484,7 @@ hwsetup(){
   mkdir -p /dev/.udev/db/ /dev/.udev/queue/
   udevadm trigger --type=subsystems --action=add
   udevadm trigger --type=devices --action=add
+  udevadm trigger
   mkdir -p /dev/pts
   mount /dev/pts
   udevadm settle || true
@@ -658,9 +500,6 @@ hwsetup(){
 
 
 # Main
-
-# evaluate commandline parameters
-read_cmdline
 
 # print welcome message
 clear

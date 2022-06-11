@@ -3,7 +3,7 @@
 # download linbo_gui from server
 #
 # thomas@linuxmuster.net
-# 20220318
+# 20220517
 #
 
 if [ -e /tmp/.gui.done ]; then
@@ -57,8 +57,7 @@ fi
 
 
 print_status "Trying to download linbo_gui from server to cache."
-[ -e /tmp/linbo-cache.done ] && cachedev="$(cat /tmp/linbo-cache.done)"
-[ -n "$cachedev" ] && linbo_cmd mountcache "$cachedev"
+linbo_mountcache
 mount | grep -qw /cache && cache_mounted="yes"
 [ -z "$cache_mounted" ] && nocache="yes"
 if [ -n "$nocache" ]; then
@@ -70,7 +69,7 @@ else
 fi
 # get network infos
 [ -s /tmp/network.ok ] && eval "$(awk '{print $2}' /tmp/network.ok)"
-if [ -z "$linbo_server" ]; then
+if [ -z "$LINBOSERVER" ]; then
   print_status "Fatal: Cannot read network infos. Continuing offline." | tee -a /cache/linbo.log
   offline="yes"
 fi
@@ -100,11 +99,11 @@ if [ -z "$offline" ]; then
     # get md5sum of existing archive
     md5sum_local="$(md5sum "$gui_archive" | awk '{print $1}')"
     # get md5sum from server
-    print_status "Downloading ${gui_archive}.md5 from $linbo_server." | tee -a /cache/linbo.log
+    print_status "Downloading ${gui_archive}.md5 from $LINBOSERVER." | tee -a /cache/linbo.log
     # save md5 file
     mv "${gui_archive}.md5" "${gui_archive}.md5.bak"
     # download md5 file
-    linbo_cmd download "$linbo_server" "${gui_archive}.md5" 2>&1 | tee -a /cache/linbo.log
+     linbo_download "${gui_archive}.md5" 2>&1 | tee -a /cache/linbo.log
     if [ -s "${gui_archive}.md5" ]; then
       md5sum_server="$(cat "${gui_archive}.md5")"
       # md5sums match, no download needed
@@ -123,12 +122,12 @@ if [ -z "$offline" ]; then
   fi
 
   if [ "$download" = "yes" ]; then
-    print_status "Downloading $gui_archive from $linbo_server." | tee -a /cache/linbo.log
-    linbo_cmd download "$linbo_server" "$gui_archive" 2>&1 | tee -a /cache/linbo.log
+    print_status "Downloading $gui_archive from $LINBOSERVER." | tee -a /cache/linbo.log
+     linbo_download "$gui_archive" 2>&1 | tee -a /cache/linbo.log
     # get md5sum file if not yet downloaded
     if [ ! -s "${gui_archive}.md5" ]; then
-      print_status "Downloading ${gui_archive}.md5 from $linbo_server." | tee -a /cache/linbo.log
-      linbo_cmd download "$linbo_server" "${gui_archive}.md5" 2>&1 | tee -a /cache/linbo.log
+      print_status "Downloading ${gui_archive}.md5 from $LINBOSERVER." | tee -a /cache/linbo.log
+       linbo_download "${gui_archive}.md5" 2>&1 | tee -a /cache/linbo.log
     fi
   fi
 

@@ -4,7 +4,7 @@
 # (C) Klaus Knopper 2007
 # License: GPL V2
 # thomas@linuxmuster.net
-# 20220504
+# 20220508
 #
 
 # Reset fb color mode
@@ -15,10 +15,10 @@ CLEAR="c"
 source /.env
 
 # plymouth
-if [ -x "/sbin/plymouthd" -a -n "$splash" ]; then
+if [ -x "/sbin/plymouthd" -a -n "$SPLASH" ]; then
   if ! plymouth --ping &> /dev/null; then
     plymouthd --mode=boot --tty="/dev/tty2" --attach-to-session
-    plymouth show-splash message --text="$linbo_version"
+    plymouth show-splash message --text="$LINBOFULLVER"
   fi
 fi
 
@@ -26,15 +26,15 @@ fi
 linbo_update_gui
 
 # DEBUG mode
-if [ -n "$debug" ]; then
+if [ -n "$DEBUG" ]; then
   plymouth quit
-  for i in /tmp/linbo_gui.*.log; do
-    if [ -s "$i" ]; then
-      echo "There is a logfile from a previous start of linbo_gui in $i::"
-      cat "$i"
+  for item in /tmp/linbo_gui.*.log; do
+    if [ -s "$item" ]; then
+      echo "There is a logfile from a previous start of linbo_gui in $item:"
+      cat "$item"
       echo -n "Press enter key to continue."
       read dummy
-      rm -f "$i"
+      rm -f "$item"
     fi
   done
   echo "Starting DEBUG shell, leave with 'exit'."
@@ -51,11 +51,11 @@ if [ -s /usr/bin/linbo_gui ]; then
 else # handle missing gui problem
 
   plymouth quit
-  if [ -n "$debug" ]; then
+  if [ -n "$DEBUG" ]; then
     echo "Starting DEBUG shell."
     ash >/dev/tty1 2>&1 < /dev/tty1
   else
-    export myname="| Name: $hostname"
+    export myname="| Name: $HOSTNAME"
     source /.profile
     echo
     echo -e "\nPress [1] to reboot or [2] to shutdown."

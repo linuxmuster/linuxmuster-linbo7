@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # thomas@linuxmuster.net
-# 20220327
+# 20220602
 #
 
 # read in linuxmuster specific environment
@@ -135,19 +135,16 @@ case "$EXT" in
     ;;
 
   *.new)
-    # make row lmn7 compatible
-    search=";;;;;1;1"
-    replace=";;;;classroom-studentcomputer;;1;;;;;"
-    ROW="$(sed -e "s|$search|$replace|" $FILE)"
+    ROW="$(cat $FILE)"
     # add row with new host data to devices file
     if grep -i "$ROW" $WIMPORTDATA | grep -qv ^#; then
       echo "$ROW"
       echo "is already present in workstations file. Skipped!" >&2
     else
-      echo "Adding row to $WIMPORTDATA." >&2
-      echo "$ROW" >> $WIMPORTDATA
+      echo "Adding new line to $WIMPORTDATA:" >&2
       # save last registered host
       echo "$ROW" > "$LINBODIR/last_registered"
+      cat "$LINBODIR/last_registered" | tee -a "$WIMPORTDATA"
     fi
     rm $FILE
     ;;

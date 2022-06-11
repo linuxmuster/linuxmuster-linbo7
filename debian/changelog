@@ -1,7 +1,7 @@
 linuxmuster-linbo7 (4.1.0-0) lmn71-testing; urgency=low
 
   * merged differential imaging from branch diffimage (cc78fd7...8969db1).
-  * update kernel to 5.17.5.
+  * update kernel to 5.18.3.
   * added qdiff support to linbo-remote (f949a5d).
   * Fix recognition of "PXE IP4" uefi boot entry (e7aa263).
   * Fix #66: Issue parsing Running Torrent Trackers.
@@ -14,8 +14,10 @@ linuxmuster-linbo7 (4.1.0-0) lmn71-testing; urgency=low
   * use linbo warmstart also for uefi systems (53c7a30).
   * Fix #67: Linbo7 assumes wrong macct name (closes also #68).
   * implement differential image sync (e46cade).
+  * provide linbo environment in /.env.
+  * refactor linbo_cmd.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 4 May 2022 15:09:00 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 8 Jun 2022 09:37:00 +0200
 
 linuxmuster-linbo7 (4.0.17-0) lmn71; urgency=low
 

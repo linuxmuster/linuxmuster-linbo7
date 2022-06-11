@@ -18,17 +18,15 @@ else
   tar xf "$KARCHIVE" -C "$SRC" || exit 1
 fi
 
-# copy kernel config file
-cp "$KCONFIG" "$KSRCDIR/.config" || exit 1
-
-# configure kernel
-cd "$KSRCDIR"
-make olddefconfig || exit 1
-
 # compile
 if [ -s "$KIMAGE" ]; then
   echo "Kernelimage exists, skipping compilation."
 else
+  # copy kernel config file
+  cp "$KCONFIG" "$KSRCDIR/.config" || exit 1
+  # configure kernel
+  cd "$KSRCDIR"
+  make olddefconfig || exit 1
   # provide initramfs config
   ln -snf "$INITRAMFS_KERNEL" "$SRC/initramfs_kernel.conf"
   # make

@@ -1,11 +1,11 @@
 #!/usr/bin/make -f
 #
 # thomas@linuxmuster.net
-# 20210507
+# 20210609
 # GPL v3
 #
 
-export DH_COMPAT=9
+#export DH_COMPAT=9
 
 configure: configure-stamp
 configure-stamp:

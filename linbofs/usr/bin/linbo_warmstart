@@ -1,41 +1,27 @@
 #!/bin/sh
 #
-# linbo_warmstart <cachedevice>
+# linbo_warmstart
 # thomas@linuxmuster.net
-# 20220410
+# 20220608
 #
 
-if [ -n "$1" ]; then
-  CACHE="$1"
-else
-  CACHE="$(grep -iw ^cache /start.conf | tail -1 | awk -F\= '{print $2}' | awk '{print $1}' | awk -F\# '{print $1}' | awk '{print $1}')"
-fi
-
-if [ ! -b "$CACHE" ]; then
-  [ -z "$CACHE" ] && CACHE="<None>"
-  echo "Cache $CACHE is not a blockdevice!"
-  exit 1
-fi
+# get environment
+source /usr/share/linbo/shell_functions
 
 KEXEC="/sbin/kexec"
 KERNEL="linbo64"
 INITRD="linbofs64.lz"
-APPEND="$(cat /proc/cmdline)"
-
-# test for warmstart boot parameter
-warmstart="yes"
-for i in $APPEND; do case "$i" in warmstart=*) eval $i ;; esac; done
 
 # no warmstart in this cases
-if [ "$warmstart" = "no" ]; then
+if warmstart; then
+  echo "Initiating linbo warmstart ..."
+else
   echo "Skipping linbo warmstart."
   exit 0
-else
-  echo "Initiating linbo warmstart ..."
 fi
 
 cd /
-linbo_cmd mountcache "$CACHE"
+linbo_cmd mountcache || exit 1
 
 # load linbo kernel
 if ! $KEXEC --type="bzImage64" --reuse-cmdline --initrd="/cache/$INITRD" --load "/cache/$KERNEL"; then

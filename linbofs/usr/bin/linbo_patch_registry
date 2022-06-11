@@ -2,25 +2,53 @@
 #
 # linbo_patch_registry
 # thomas@linuxmuster.net
-# 20220324
+# 20220611
 #
 
 usage(){
-  echo "Usage: $0 <regfile> [hostname]"
-  exit 1
+  local RC="$1"
+  echo
+  echo "Patches windows registry."
+  echo
+  echo "Usage:"
+  echo"  linbo_patch_registry <regfile> [windowspartition] | [help]"
+  echo
+  echo "It is assumed that the windows partition is mounted under /mnt or"
+  echo "specified as the second parameter."
+  echo
+  exit "$RC"
 }
+
+
+# print help
+[ -z "$1" -o "$1" = "help" ] && usage 0
+
+# get environment
+source /usr/share/linbo/shell_functions
 
 # registryfile to process
 regfile="$1"
-[ -s "$regfile" ] || usage
+[ -s "$regfile" ] || usage 1
 regtmp="/tmp/$(basename "$regfile")"
 
-# hostname
-myname="$2"
-if [ -z "$myname" ]; then
-  myname="$(hostname)"
-  [ -z "$myname" ] && usage
-  echo "Hostname parameter ommitted, using ${myname}."
+# check specified partition
+if [ -n "$2" ]; then
+  [ -b "$2" ] || usage 1
+  if ismounted "$2" /mnt rw; then
+    mntpnt="/mnt"
+  else
+    mntpnt="/tmp/mnt"
+    linbo_mount "$2" "$mntpnt" || usage 1
+    mounted="yes"
+  fi
+fi
+
+# hive directory
+hive_dir="$mntpnt/Windows/System32/config"
+if [ ! -d "$hive_dir" ]; then
+  echo "$hive_dir does not exist!"
+  [ -n "$mounted" ] && umount "$mntpnt"
+  exit 1
 fi
 
 # registry file header
@@ -28,9 +56,6 @@ header="Windows Registry Editor Version 5.00"
 
 # prefix for the created regfiles
 prefix="/tmp/reg.$$."
-
-# hive directory
-hive_dir="/mnt/Windows/System32/config"
 
 # strings to repair
 repstrings="HKEY_LOCAL_MACHINE
@@ -55,8 +80,8 @@ repstrings="HKEY_LOCAL_MACHINE
 
 # replace template with hostname & repair case of registry paths
 cp "$regfile" "$regtmp"
-sed -i 's|{\$HostName\$}|'"$myname"'|g
-        s|@@hostname@@|'"$myname"'|g
+sed -i 's|{\$HostName\$}|'"$HOSTNAME"'|g
+        s|@@hostname@@|'"$HOSTNAME"'|g
         s|\\currentcontrolset\\|\\ControlSet001\\|Ig' "$regtmp"
 for i in $repstrings; do
   sed -i 's|\\'"${i/+/ }"'\\|\\'"${i/+/ }"'\\|Ig' "$regtmp"
@@ -78,3 +103,7 @@ for i in ${prefix}*; do
   fi
   reged -I -C "$hive_file" "$branch\\$hive" "$i"
 done
+
+[ -n "$mounted" ] && umount "$mntpnt"
+
+exit "$?"

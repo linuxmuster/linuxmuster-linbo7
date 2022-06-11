@@ -92,11 +92,12 @@ are defined in the start.conf file (see [examples](https://github.com/linuxmuste
 The command `linuxmuster-import-devices` writes the parameters into the grub configuration of the hardware group.
 Option  |  Description
 --|--
+debug  |  Boots into shell for debugging purposes.
 forcegrub  |  Forces grub boot on uefi systems (in case of uefi boot issues).
 noefibootmgr  |  Skips providing the EFI boot files and boot entries (in case of uefi boot issues).
+nowarmstart  |  Suppresses linbo warmstart after downloading a new linbo kernel from the server (in case this causes problems). Note: Former option `warmstart=no` may also be used for compatibility.
+quiet  |  Suppresses most boot messages.
 splash  |  Displays graphical splash screen at boot time. Without this parameter, only text is displayed on the console at boot time.
-quiet  |  Suppresses kernel boot messages.
-warmstart=no  |  Suppresses linbo warmstart after downloading a new linbo kernel from the server (in case this causes problems).
 
 ### Linbo services
 
