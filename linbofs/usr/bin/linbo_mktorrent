@@ -1,0 +1,40 @@
+#!/bin/sh
+#
+# linbo_mktorrent
+# thomas@linuxmuster.net
+# 20220610
+#
+
+usage(){
+  RC="$1"
+  echo
+  echo "Creates torrent file for image."
+  echo
+  echo "Usage: linbo_mktorrent <imagefile> | [help]"
+  echo
+  exit "$RC"
+}
+
+# print help
+[ -z "$1" -o "$1" = "help" ] && usage 0
+
+# get environment
+source /usr/share/linbo/shell_functions
+
+echo "### linbo_mktorrent $1"
+
+linbo_mountcache || exit 1
+
+curdir="$(pwd)"
+cd /cache
+
+[ -s "$1" ] || usage 1
+
+RC="0"
+echo "Creating $1.torrent ..." | tee -a /tmp/image.log
+rm -f "$1".torrent
+ctorrent -t -u http://"$LINBOSERVER":6969/announce -s "$1".torrent "$1" | tee -a /tmp/image.log || RC="1"
+
+cd "$curdir"
+
+exit "$RC"
