@@ -1,0 +1,23 @@
+#!/bin/sh
+#
+# linbo_ip [-h|help|--help]
+# prints ip address
+# thomas@linuxmuster.net
+# 20220610
+#
+
+usage(){
+  echo
+  echo "Prints ip address."
+  echo
+  echo "Usage: linbo_ip [help]"
+  echo
+  exit 0
+}
+
+case "$1" in
+  help) usage ;;
+  *) if [ -n "$IP" ]; then echo "$IP"; else echo "OFFLINE"; fi ;;
+esac
+
+exit 0
