@@ -1,0 +1,731 @@
+#!/bin/sh
+#
+# linbo_sync
+# thomas@linuxmuster.net
+# 20220614
+#
+
+
+#### functions begin ####
+
+# usage info
+usage(){
+  local RC="$1"
+  echo
+  echo "Synchronizes an operating system."
+  echo
+  echo "Usage: linbo_sync <#> [force] | <root> [force] | [help]"
+  echo
+  echo "The operating system is either defined by start.conf position number or by"
+  echo "root partition devicename. \"force\" forces a full partition sync (optional)."
+  echo
+  exit "$RC"
+}
+
+
+# check_status partition imagefile
+# returns true if mountable & contains a version of the archive.
+check_status(){
+  local RC=1
+  local partition="$1"
+  local imagefile="$2"
+  local imagebase="${imagefile%%.*}"
+  echo "## $(date) : Check status of $partition using $imagefile." | tee -a /tmp/linbo.log
+  linbo_mount "$1" /mnt -r 2>> /tmp/linbo.log || return $?
+  [ -s /mnt/.linbo ] && case "$(cat /mnt/.linbo 2>/dev/null)" in *$imagebase*) RC=0 ;; esac
+  umount /mnt || umount -l /mnt
+  return "$RC"
+}
+
+
+# update_status partition imagefile
+# add information about installed archives to partition
+update_status(){
+  local partition="$1"
+  local imagefile="$2"
+  local imagebase="${imagefile%%.*}"
+  echo "## $(date) : Update status of $partition using $imagefile." | tee -a /tmp/linbo.log
+  linbo_mount "$1" /mnt 2>> /tmp/linbo.log || return $?
+  echo "$imagebase" > /mnt/.linbo
+  #sync; sync; sleep 1
+  umount /mnt || umount -l /mnt
+  return 0
+}
+
+
+# differential/Synced
+# sync_image imagefile targetdev
+sync_image(){
+  echo "## $(date) : Starting sync of $1 to $2." | tee -a /tmp/image.log
+  local imagefile="$1"
+  local targetdev="$2"
+  local RC
+
+  linbo_mount "$targetdev" /mnt | tee -a /tmp/image.log ; RC="$?"
+  if [ "$RC" != "0" ]; then
+    echo "Cannot mount $targetdev!"
+    return "$RC"
+  fi
+
+  local ROPTS="-HAa"
+  [ "$(linbo_fstype "$targetdev")" = "vfat" ] && ROPTS="-rt"
+  # mount qcow2 image as network block device
+  qemu-nbd -r --connect /dev/nbd0 "$imagefile" | tee -a /tmp/image.log ; RC="$?"
+  if [ "$RC" != "0" ]; then
+    echo "Connection to $imagefile failed!" | tee -a /tmp/image.log
+    qemu-nbd --disconnect /dev/nbd0 >> /tmp/image.log
+    return "$RC"
+  fi
+
+  # wait a few seconds after qemu-nbd connect attempt
+  sleep 3
+  mkdir -p /image
+  if ! linbo_mount /dev/nbd0 /image -r; then
+    echo "Mounting $imagefile failed!" | tee -a /tmp/image.log
+    qemu-nbd --disconnect /dev/nbd0 >> /tmp/image.log
+    return "$RC"
+  fi
+
+  # sync image
+  echo "Syncing ... please wait ..."
+  interruptible rsync "$ROPTS" --exclude="/.linbo" --exclude-from="/etc/rsync.exclude" --delete --delete-excluded --log-file=/tmp/image.log --log-file-format="" /image/ /mnt 2>&1 | tee -a /tmp/image.log ; RC="$?"
+  umount /image
+  if [ "$RC" != "0" ]; then
+    echo "Image sync of $imagefile to $targetdev failed!" | tee -a /tmp/image.log
+  fi
+  qemu-nbd --disconnect /dev/nbd0 >> /tmp/image.log
+
+  sync; sync; sleep 1
+  umount /mnt || umount -l /mnt
+  [ "$RC" = "0" ] && update_status "$2" "$1"
+  echo "## $(date) : Sync from $1 finished." | tee -a /tmp/image.log
+  return "$RC"
+}
+
+
+# full copy
+# cp_image imagefile targetdev
+cp_image(){
+  echo "## $(date) : Starting full restore of $2 using $1." | tee -a /tmp/image.log
+  local RC=1
+  local imagefile="$1"
+  local imagetype="${imagefile##*.}"
+  case "$imagetype" in qcow2|qdiff) imagetype="qcow2" ;; esac
+  local targetdev="$2"
+  if [ ! -s "$imagefile" ]; then
+    echo "Error with $imagefile"
+    return "$RC"
+  fi
+  if [ ! -b "$targetdev" ]; then
+    echo "$targetdev is no block device!"
+    return "$RC"
+  fi
+
+  # check sizes
+  qemu-nbd -r --connect /dev/nbd0 "$imagefile" || return "$RC"
+  # wait a few seconds after qemu-nbd connect attempt
+  sleep 3
+  local s1="$(get_partition_size /dev/nbd0)"
+  local s2="$(get_partition_size $targetdev)"
+  if [ "$s1" -gt "$s2" ] 2>/dev/null; then
+    echo "Error: $imagefile (${s1}K) is bigger than partition $targetdev (${s2}K)" >&2 | tee -a /tmp/image.log
+    qemu-nbd --disconnect /dev/nbd0 >> /tmp/image.log
+    return 1
+  fi
+
+  # restore
+  qemu-nbd --disconnect /dev/nbd0 >> /tmp/image.log
+  interruptible qemu-img convert -p -f "$imagetype" -O raw "$imagefile" "$targetdev" | tee -a /tmp/image.log
+  RC="$?"
+  if [ "$RC" != "0" ]; then
+    echo "Restore with $imagefile failed!"
+    return "$RC"
+  fi
+
+  # check if resize is necessary
+  if [ "$s2" -gt "$s1" ]; then
+    echo "Trying to resize filesystem on $targetdev." | tee -a /tmp/image.log
+    local fstype="$(fstype_startconf "$targetdev")"
+    case "$fstype" in
+      ntfs)
+        ntfsfix -bd "$targetdev" | tee -a /tmp/image.log
+        ntfsresize -f "$targetdev" | tee -a /tmp/image.log
+        ntfsfix -bd "$targetdev" | tee -a /tmp/image.log
+        ;;
+      ext4)
+        e2fsck -f "$targetdev" | tee -a /tmp/image.log
+        resize2fs -f "$targetdev" | tee -a /tmp/image.log
+        ;;
+      *) ;;
+    esac
+  fi
+
+  update_status "$targetdev" "$imagefile" ; RC="$?"
+  echo "## $(date) : Full restore from $imagefile finished." | tee -a /tmp/image.log
+  return "$RC"
+}
+
+
+# set_guid device guid
+# sets gpt uuid of a partition (works only with efi)
+set_guid(){
+  [ -z "$1" -a -z "$2" ] && return 1
+  if [ ! -b "$1" ]; then
+    echo "$1 is not a block device!"
+    return 1
+  fi
+  # get device data
+  local i
+  local PARTUUID
+  local PTUUID
+  local device
+  local guid
+  # get current guid and check if it matches already
+  for i in `blkid "$1"`; do
+    case "$i" in
+      PARTUUID=*|PTUUID=*)
+        guid="$(echo "$i" | awk -F \" '{print $2}')"
+        if [ "$(echo $guid | tr A-Z a-z)" = "$(echo $2 | tr A-Z a-z)" ]; then
+          echo "UUID $guid of $1 matches already. Doing nothing."
+          return 0
+        fi
+        eval $i
+        device="$1"
+        guid="$2"
+        break
+      ;;
+    esac
+  done
+  # disk or a partition
+  if [ -n "$PARTUUID" ]; then
+    # partition
+    echo "Restoring partition UUID $guid of $device."
+    local disk="$(get_disk_from_partition "${device}")"
+    local partnr="$(get_partnr "$device")"
+    echo -e "x\nc\n$partnr\n$guid\nw\nY\n" | gdisk "$disk" 2>&1
+  elif [ -n "$PTUUID" ]; then
+    # disk
+    echo "Restoring disk UUID $guid of $device."
+    echo -e "x\ng\n$guid\nw\nY\n" | gdisk "$device" 2>&1
+  else
+    echo "Unknown device $device!" | tee -a /tmp/image.log
+    return 1
+  fi
+  blkid "$device" | grep -qi "$guid" || return 1
+}
+
+
+# patch fstab with root partition and root fstype: patch_fstab rootdev
+patch_fstab(){
+  echo -n "patch_fstab " ;  printargs "$@"
+  local rootdev="$1"
+  local line=""
+  local found=""
+  local fstype_mount=""
+  local fstype_fstab=""
+  local mntpnt=""
+  local changed=""
+  local rootdev_fstab=""
+  local options=""
+  local dump=""
+  local pass=""
+  [ -z "$rootdev" ] && return 1
+  [ -e "$rootdev" ] || return 1
+  [ -e /tmp/fstab ] && rm -f /tmp/fstab
+  while read line; do
+    if [ -n "$line" -a "${line:0:1}" != "#" ]; then
+      mntpnt="$(echo "$line" | awk '{ print $2 }')"
+      if [ "$mntpnt" = "/" -a -z "$found" ]; then
+        found=yes
+        rootdev_fstab="$(echo "$line" | awk '{ print $1 }')"
+        [ -z "$rootdev_fstab" ] && return 1
+        fstype_fstab="$(echo "$line" | awk '{ print $3 }')"
+        [ -z "$fstype_fstab" ] && return 1
+        options="$(echo "$line" | awk '{ print $4 }')"
+        [ -z "$options" ] && return 1
+        dump="$(echo "$line" | awk '{ print $5 }')"
+        [ -z "$dump" ] && return 1
+        pass="$(echo "$line" | awk '{ print $6 }')"
+        [ -z "$pass" ] && return 1
+        if [ "$rootdev_fstab" != "$rootdev" ]; then
+          # change root partition if necessary
+          echo "Setze Rootpartition: $rootdev."
+          rootdev_fstab="$rootdev"
+          line="$rootdev_fstab $mntpnt $fstype_fstab $options $dump $pass"
+          changed=yes
+        fi # rootdev
+        # check for changed filesytem type if partition was formatted
+        fstype_mount="$(cat /proc/mounts | grep "^$rootdev" | awk '{ print $3 }')"
+        [ -z "$fstype_mount" ] && return 1
+        if [ "$fstype_fstab" != "$fstype_mount" ]; then
+          # change filesystem
+          echo "Setze Dateisystem: $fstype_mount."
+          fstype_fstab="$fstype_mount"
+          line="$rootdev_fstab $mntpnt $fstype_fstab $options $dump $pass"
+          changed=yes
+        fi # fstype
+      fi # mntpnt
+    fi # line
+    echo "$line" >> /tmp/fstab
+  done </mnt/etc/fstab # reading fstab
+  if [ -n "$changed" ]; then
+    mv -f /mnt/etc/fstab /mnt/etc/fstab.bak
+    mv -f /tmp/fstab /mnt/etc
+  fi
+}
+
+
+# restore windows activation tokens
+restore_winact(){
+  # get image name
+  [ -s  /mnt/.linbo ] && local imagename="$(cat /mnt/.linbo)"
+  # if an image is not yet created do nothing
+  if [ -z "$imagename" ]; then
+    echo "Skipping reactivation, system is not synchronized."
+    return
+  fi
+
+  local archive
+  local tarchive
+  local item
+
+  # without linbo server
+  if localmode || [ -z "$MACADDR" ] || [ "$MACADDR" = "OFFLINE" ]; then
+    tarchive="$(cd /cache && ls *.$imagename.winact.tar.gz 2> /dev/null)"
+    # get mac address from archive name
+    for item in $tarchive; do
+      MACADDR="$(echo $item | awk -F\. '{ print $1 }')"
+      if ifconfig -a | grep -q "$MACADDR"; then
+        archive="$item"
+        break
+      fi
+    done
+  else # with linbo server
+    archive="$MACADDR.$imagename.winact.tar.gz"
+    # get server ip address
+    echo -n "Request reactivation data from $LINBOSERVER ... "
+    # get token archive from linbo server
+    rsync "$LINBOSERVER"::linbo/winact/"$archive" /cache &> /dev/null
+    if [ -s "/cache/$archive" ]; then
+      echo "Ok!"
+    else
+      echo "Skipping reactivation, no data!"
+      return
+    fi
+
+    # request windows/office productkeys
+    local keyfile="$(ifconfig -a | md5sum | awk '{ print $1 }').winkey"
+    rsync "$LINBOSERVER"::linbo/winact/"$keyfile" /cache &> /dev/null
+    [ -s "/cache/$keyfile" ] && source "/cache/$keyfile"
+
+    # create windows key batchfile
+    local cache_batchfile="/cache/$imagename.winact.cmd"
+    # remove old batchfile
+    rm -f "$cache_batchfile"
+    # create new one if keys are provided
+    if [ -n "$winkey" ]; then
+      echo "cscript.exe %SystemRoot%\\System32\\slmgr.vbs -ipk $winkey" > "$cache_batchfile"
+    fi
+    # add office key handling to batchfile if office token is in archive
+    if gunzip -c "/cache/$archive" | tar -t | grep -qi office 2> /dev/null; then
+      if [ -n "$officekey" ]; then
+        # get path to ospp.vbs
+        local ospp="$(ls /mnt/[Pp][Rr][Oo][Gg][Rr][Aa][Mm]\ [Ff][Ii][Ll][Ee][Ss]*/[Mm][Ii][Cc][Rr][Oo][Ss][Oo][Ff][Tt]\ [Oo][Ff][Ff][Ii][Cc][Ee]/[Oo][Ff][Ff][Ii][Cc][Ee]*/[Oo][Ss][Pp][Pp].[Vv][Bb][Ss] 2> /dev/null)"
+        if [ -n "$ospp" ]; then
+          # compute windows path to office installation dir
+          local ospp_win_path="$(echo "$ospp" | sed 's|/mnt/|%SystemDrive%\\|' | sed 's|/|\\|g' )"
+          # write office activations commands to batchfile
+          echo "cscript.exe \"$ospp_win_path\" /inpkey:$officekey" >> "$cache_batchfile"
+          echo "cscript.exe \"$ospp_win_path\" /act" >> "$cache_batchfile"
+        fi
+      fi
+    fi
+    rm -f "$keyfile"
+  fi # localmode
+
+  # copy reactivation batchfile to windows partition
+  if [ -s "$cache_batchfile" ]; then
+    local win_batchfile="/mnt/linuxmuster-win/winact.cmd"
+    if [ -n "$winkey" -a -n "$officekey" ]; then
+      local keymsg="Windows- und Office-Keys"
+    elif [ -n "$winkey" ]; then
+      local keymsg="Windows-Key"
+    else
+      local keymsg="Office-Key"
+    fi
+    echo "Erstelle Reaktivierungskript mit $keymsg in $win_batchfile."
+    dos2unix "$cache_batchfile"
+    cp "$cache_batchfile" "$win_batchfile"
+  else # no keys, no batchfile
+    echo "Keine Produktkeys verfuegbar, erstelle kein Reaktivierungskript."
+  fi
+  if [ -n "$archive" -a -s "/cache/$archive" ]; then
+    echo "Stelle Windows-Aktivierungstokens wieder her."
+    if ! tar xf "/cache/$archive" -C /; then
+      echo "Fehler beim Entpacken von $archive!"
+      return 1
+    fi
+  fi
+}
+
+
+# restore imagefile targetdev [force]
+restore(){
+  echo -n "restore " ;  printargs "$@"
+  local RC=1
+  local imagefile="$1"
+  local imagediff="${imagefile%%.*}.qdiff"
+  local targetdev="$2"
+  local force="$3"
+  local fstype="$(fstype_startconf "$targetdev")"
+  local label="$(print_partlabel "$targetdev")"
+  # detect differential image file
+  [ -s "$imagediff" ] && imagefile="$imagediff"
+  echo "Unpacking: $imagefile -> $targetdev"
+  check_status "$targetdev" "$imagefile" || force="force"
+  if [ "$force" = "force" ]; then
+    linbo_format "$targetdev" "$fstype" "$label" | tee -a /tmp/linbo.log ; RC="$?"
+    if [ "$RC" != "0" ]; then
+      echo "Formatting of $targetdev failed!"
+      return "$RC"
+    fi
+    # do file sync in case of ext4 filesytem
+    [ "$fstype" = "ext4" ] && force=""
+  fi
+  if [ "$force" = "force" ]; then
+    echo "Forcing partition clone ..."
+    cp_image "$imagefile" "$targetdev" ; RC="$?"
+  else
+    echo "File sync ..."
+    sync_image "$imagefile" "$targetdev" ; RC="$?"
+  fi
+  if [ "$RC" = "0" ]; then
+    echo "Done."
+    # log hosts image status
+    local timestamp="$(getinfo /cache/$imagefile.info timestamp)"
+    log_image_status "$imagefile" "$timestamp" applied
+  else
+    echo "Error!"
+  fi
+  return "$RC"
+}
+
+
+# sync local
+# syncl baseimage rootdev [force]
+syncl(){
+  local RC="1"
+  local patchfile=""
+  local postsync=""
+  local rootdev="$2"
+  local disk="$(get_disk_from_partition "$rootdev")"
+  local bootdir
+  local imagefile="$1"
+  local imagebase="${imagefile%%.*}"
+  local imagetype="${imagefile##*.}"
+  local force="$3"
+  local efipart="$(print_efipart)"
+  local partname="$(basename "$rootdev")"
+  local guidfile
+  local device
+  local i
+
+  # don't sync in that case
+  if [ "$rootdev" = "$CACHE" ]; then
+    echo "Skipping local synchronisation. Image $imagefile will be started direct from cache."
+    return 0
+  fi
+
+  # begin syncing
+  echo "syncl $@" | tee -a /tmp/linbo.log
+
+  # mount cache and sync
+  linbo_mountcache || return 1
+  cd /cache
+  # start syncing image
+  restore "$imagefile" "$rootdev" $force ; RC="$?"
+  if [ "$imagetype" = "cloop" ]; then
+    patchfile="$imagefile.reg"
+    postsync="$imagefile.postsync"
+  else
+    patchfile="$imagebase.reg"
+    postsync="$imagebase.postsync"
+  fi
+
+  # mount os partition
+  if [ "$RC" = "0" ]; then
+    linbo_mount "$rootdev" /mnt 2>> /tmp/linbo.log ; RC="$?"
+  fi
+  # return on error
+  if [ "$RC" != "0" ]; then
+    echo "Cannot mount $rootdev!" | tee -a /tmp/linbo.log
+    sendlog
+    cd /
+    return "$RC"
+  fi
+
+  # detect windows os
+  [ -e /mnt/[Nn][Tt][Ll][Dd][Rr] -o -e /mnt/[Bb][Oo][Oo][Tt][Mm][Gg][Rr] -o -d /mnt/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Ss][Yy][Ss][Tt][Ee][Mm]32 ] && local is_win="yes"
+
+  # get hostname from cache if it is not in environment
+  if [ -z "$FQDN" ]; then
+    FQDN="$(cat /cache/hostname)"
+    HOSTNAME="$(echo "$FQDN" | awk -F \. '{ print $1 }')"
+    [ "$FQDN" = "$HOSTNAME" ] && FQDN=""
+  fi
+  [ -z "$HOSTNAME" ] && HOSTNAME="$(hostname)"
+
+  ## Prepare os filesystem, apply patches etc.
+
+  # restore guids in case of efi/gpt partitions
+  if [ -n "$efipart" ]; then
+    echo "UEFI system found."
+  else
+    echo "BIOS system found."
+  fi
+
+  # windows stuff begin
+  if [ -n "$is_win" ]; then
+
+    # do registry patching for windows systems
+    [ -s "$patchfile" ] && linbo_patch_registry "$patchfile" | tee /tmp/patch.log
+
+    # manage windows boot files
+    local bcd_backup
+
+    # efi
+    if [ -n "$efipart" ]; then
+      # detect efi boot dir backup
+      bootdir="$(ls -d /mnt/[Ee][Ff][Ii]/[Mm][Ii][Cc][Rr][Oo][Ss][Oo][ff][Tt]/[Bb][Oo][Oo][Tt] 2> /dev/null)"
+      # create efi boot dir from bios boot stuff if not exists
+      if [ -z "$bootdir" ]; then
+        bootdir="/mnt/EFI/Microsoft/Boot"
+        mkdir -p "$bootdir"
+        local oldbootdir="$(ls -d /mnt/[Bb][Oo][Oo][Tt] 2> /dev/null)"
+        if [ -n "$oldbootdir" ]; then
+          cp -r "$oldbootdir"/* "$bootdir/"
+        fi
+        local srcdir="$(ls -d /mnt/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Bb][Oo][Oo][Tt]/[Ee][Ff][Ii] 2> /dev/null)"
+        [ -n "$srcdir" ] && cp -r "$srcdir"/* "$bootdir/"
+      fi
+      bcd_backup="$bootdir"/BCD."$HOSTGROUP"."$partname"
+    else
+      # bios
+      bootdir="$(ls -d /mnt/[Bb][Oo][Oo][Tt])"
+      bcd_backup="$bootdir"/BCD."$HOSTGROUP"
+    fi
+
+    # restore bcd
+    if [ -s "$bcd_backup" ]; then
+      echo "Restoring windows bcd from $(basename "$bcd_backup")."
+      cp -f "$bcd_backup" "$bootdir"/BCD
+    fi
+
+    # restore disk boot sector
+    # detect old versions
+    local bsmbr="$bootdir"/bsmbr."$HOSTGROUP"
+    local bsmbr_old="$bootdir"/winmbr446."$HOSTGROUP"
+    [ -e "$bsmbr_old" ] && mv "$bsmbr_old" "$bsmbr"
+    [ -e "$bsmbr" ] || bsmbr="$bootdir"/winmbr."$HOSTGROUP"
+    [ -e "$bsmbr" ] || bsmbr="$bootdir"/win7mbr."$HOSTGROUP"
+    if [ -e "$bsmbr" ]; then
+      echo "Restoring windows bootloader from $(basename "$bsmbr")" | tee -a /tmp/linbo.log
+      case "$bsmbr" in
+        *bsmbr.*)
+          dd if="$bsmbr" of="$disk" bs=446 count=1 2>> /tmp/linbo.log
+          ;;
+        *winmbr.*)
+          dd if="$bsmbr" of="$disk" bs=1 count=4 seek=440 2>> /tmp/linbo.log
+          ;;
+        *win7mbr.*)
+          dd if="$bsmbr" of="$disk" bs=1 count=4 skip=440 2>> /tmp/linbo.log
+          ;;
+      esac
+    fi
+
+    # restore disk & partition uuids on efi systems
+    if [ -n "$efipart" ]; then
+      # restore old gptlabel
+      local gptlabel="$bootdir"/gptlabel."$HOSTGROUP"
+      # only if no disk guid file exists
+      if [ -s "$gptlabel" -a ! -s /mnt/.guid.disk ]; then
+        echo "Saving current gpt label."
+        local gptcurrent="/tmp/gptlabel.current"
+        dd if="$disk" of="$gptcurrent" bs=512 count=34 2>> /tmp/linbo.log
+        echo "Restoring old gpt label from $(basename "$gptlabel")." | tee -a /tmp/linbo.log
+        dd if="$gptlabel" of="$disk" bs=512 count=34 2>> /tmp/linbo.log
+        # get disk uuid from old gpt label
+        print_guid "$disk" > /mnt/.guid.disk
+        echo "Restoring current gpt label." | tee -a /tmp/linbo.log
+        dd if="$gptcurrent" of="$disk" bs=512 count=34 2>> /tmp/linbo.log
+      fi
+      # move old guid file for os partition in place
+      [ ! -s /mnt/.guid.part -a -s "/mnt/.guid.$partname" ] && mv "/mnt/.guid.$partname" /mnt/.guid.part
+      # restore partition & disk guids from according files
+      for i in disk efi part; do
+        case "$i" in
+          disk) device="$disk" ;;
+          efi) device="$efipart" ;;
+          part) device="$rootdev" ;;
+        esac
+        guidfile="/mnt/.guid.$i"
+        [ -s "$guidfile" ] && set_guid "$device" "$(cat "$guidfile")" | tee -a /tmp/image.log
+      done
+    fi
+
+    # restore ntfs id
+    [ -e "$bootdir"/ntfs.id ] && local ntfsid="$(ls "$bootdir"/ntfs.id 2> /dev/null)"
+    if [ -n "$ntfsid" -a -s "$ntfsid" ]; then
+      echo "Restoring ntfs-id $(basename "$ntfsid")."
+      dd if="$ntfsid" of="$rootdev" bs=8 count=1 seek=9 2>> /tmp/linbo.log
+    fi
+
+    # update linuxmuster-win scripts and restore windows activation
+    if [ -d /cache/linuxmuster-win ]; then
+      update_win "$rootdev" || RC="1"
+      if [ "$RC" = "0" ]; then
+        restore_winact || RC="1"
+      fi
+    fi
+
+  fi # windows stuff end
+
+  # linux stuff begin
+
+  # grub efi
+  if [ -n "$efipart" -a -d /mnt/boot/grub ]; then
+    mkdir -p /mnt/boot/efi
+    mount "$efipart" /mnt/boot/efi
+    local item
+    for item in /dev /dev/pts /proc /sys; do
+      mount --bind "$item" /mnt"$item"
+    done
+    chroot /mnt update-grub
+    for item in /sys /proc /dev/pts /dev; do
+      umount /mnt"$item"
+    done
+    umount /mnt/boot/efi
+  fi
+
+  # hostname
+  if [ -f /mnt/etc/hostname ]; then
+    if [ -n "$HOSTNAME" ]; then
+      echo "Setting hostname -> $HOSTNAME."
+      echo "$HOSTNAME" > /mnt/etc/hostname
+    fi
+  fi
+
+  # copy ssh keys
+  if [ -d /mnt/etc/dropbear ]; then
+    cp /etc/dropbear/* /mnt/etc/dropbear
+    if [ -s /mnt/root/.ssh/authorized_keys ]; then
+      local sshkey="$(cat /.ssh/authorized_keys)"
+      grep -q "$sshkey" /mnt/root/.ssh/authorized_keys || cat /.ssh/authorized_keys >> /mnt/root/.ssh/authorized_keys
+    else
+      mkdir -p /mnt/root/.ssh
+      cp /.ssh/authorized_keys /mnt/root/.ssh
+    fi
+    chmod 600 /mnt/root/.ssh/authorized_keys
+  fi
+
+  # patch dropbear config with port 2222 and disable password logins
+  if [ -s /mnt/etc/default/dropbear ]; then
+    sed -e 's|^NO_START=.*|NO_START=0|
+            s|^DROPBEAR_EXTRA_ARGS=.*|DROPBEAR_EXTRA_ARGS=\"-s -g\"|
+    s|^DROPBEAR_PORT=.*|DROPBEAR_PORT=2222|' -i /mnt/etc/default/dropbear
+  fi
+
+  # fstab
+  [ -f /mnt/etc/fstab ] && patch_fstab "$rootdev"
+
+  # linux stuff end
+
+  # source postsync script
+  [ -s "/cache/$postsync" ] && . "/cache/$postsync"
+
+  # finally do minimal boot configuration
+  mk_boot || RC=1
+
+  # all done
+  sync; sync; sleep 1
+  umount /mnt || umount -l /mnt
+
+  # restore partition labels
+  linbo_label "all"
+
+  sendlog
+  cd /
+  return "$RC"
+}
+
+
+# sync from server
+# syncr baseimage
+syncr(){
+  #echo "### syncr $@"
+
+  local imagefile="$1"
+  local imagediff="${imagefile%%.*}.qdiff"
+
+  if remote_cache "$CACHE"; then
+    echo "Cache $CACHE is not local, skipping remote image update."
+  else
+    linbo_mountcache || return 1
+    cd /cache
+
+    # try to download baseimage
+    linbo_download_image "$imagefile" || return 1
+
+    # try to download corresponding diff image if there is one
+    # remove local diff image if the server does not provide one
+    linbo_download_image "$imagediff" || rm -f "$imagediff"*
+
+    sendlog
+    cd /
+  fi
+}
+
+#### functions end ####
+
+
+# print help
+[ -z "$1" -o "$1" = "help" ] && usage 0
+
+# get environment
+source /usr/share/linbo/shell_functions
+
+# check parameters
+if isinteger "$1"; then
+  osnr="$1"
+  source /conf/os.$osnr &> /dev/null || usage 1
+  [ "$2" = "force" ] && force="force"
+else
+  # get os parameters with legacy compatibility (server cachedev baseimage image bootdev rootdev kernel initrd append [force])
+  for item in $@; do
+    validip "$item" && continue
+    [ "$item" = "$CACHE" ] && continue
+    if [ -b "$item" -a -z "$osnr" ]; then
+      osnr="$(osnr_startconf "$item")"
+      source /conf/os.$osnr &> /dev/null || usage 1
+      continue
+    fi
+    if [ -n "$osnr" ]; then
+      [ "$item" = "force" ] && force="force"
+      break
+    fi
+  done
+fi
+[ -z "$osnr" ] && usage 1
+
+# sync remote
+syncr "$baseimage" || exit 1
+
+# sync local
+syncl "$baseimage" "$root" "$force" || exit 1
+
+# start os if syncstart is set
+if [ -n "$SYNCSTART" ]; then
+  linbo_start "$osnr" || exit 1
+fi
+
+exit 0
