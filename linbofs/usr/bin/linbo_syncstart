@@ -1,0 +1,28 @@
+#!/bin/sh
+#
+# linbo_syncstart
+# thomas@linuxmuster.net
+# 20220614
+#
+
+# usage info
+usage(){
+  echo
+  echo "Synchronizes and starts an operating system either defined by start.conf"
+  echo "position number or by root partition devicename."
+  echo
+  echo "Usage: linbo_syncstart <#> [force] | <root> [force] | [help]"
+  echo
+  echo "The operating system is either defined by start.conf position number or by"
+  echo "root partition devicename. \"force\" forces a full partition sync (optional)."
+  echo
+  exit 0
+}
+
+# print help
+[ -z "$1" -o "$1" = "help" ] && usage
+
+export SYNCSTART="yes"
+linbo_sync $@
+
+exit $?
