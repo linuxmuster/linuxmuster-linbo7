@@ -1,0 +1,23 @@
+#!/bin/sh
+#
+# linbo_mac [-h|help|--help]
+# prints mac address
+# thomas@linuxmuster.net
+# 20220610
+#
+
+usage(){
+  echo
+  echo "Prints mac address."
+  echo
+  echo "Usage: linbo_mac [help]"
+  echo
+  exit 0
+}
+
+case "$1" in
+  help) usage ;;
+  *) if [ -n "$MACADDR" ]; then echo "$MACADDR"; else echo "OFFLINE"; fi ;;
+esac
+
+exit 0
