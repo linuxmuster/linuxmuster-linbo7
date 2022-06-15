@@ -1,0 +1,27 @@
+#!/bin/sh
+#
+# linbo_forcesyncstart
+# thomas@linuxmuster.net
+# 20220614
+#
+
+# usage info
+usage(){
+  echo
+  echo "Forces a full synchronisation of an operating system and starts it."
+  echo
+  echo "Usage: linbo_forcesyncstart <#> | <root> | [help]"
+  echo
+  echo "The operating system is either defined by start.conf position number or"
+  echo "by root partition devicename."
+  echo
+  exit 0
+}
+
+# print help
+[ -z "$1" -o "$1" = "help" ] && usage
+
+export SYNCSTART="yes"
+linbo_forcesync "$1" "force"
+
+exit $?
