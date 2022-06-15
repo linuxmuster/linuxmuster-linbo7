@@ -2,7 +2,7 @@
 #
 # linbo_patch_registry
 # thomas@linuxmuster.net
-# 20220611
+# 20220613
 #
 
 usage(){
@@ -11,7 +11,7 @@ usage(){
   echo "Patches windows registry."
   echo
   echo "Usage:"
-  echo"  linbo_patch_registry <regfile> [windowspartition] | [help]"
+  echo "  linbo_patch_registry <regfile> [windowspartition] | [help]"
   echo
   echo "It is assumed that the windows partition is mounted under /mnt or"
   echo "specified as the second parameter."
@@ -26,17 +26,18 @@ usage(){
 # get environment
 source /usr/share/linbo/shell_functions
 
+echo "### $(basename $0 $@)"
+
 # registryfile to process
 regfile="$1"
 [ -s "$regfile" ] || usage 1
 regtmp="/tmp/$(basename "$regfile")"
+mntpnt="/mnt"
 
 # check specified partition
 if [ -n "$2" ]; then
   [ -b "$2" ] || usage 1
-  if ismounted "$2" /mnt rw; then
-    mntpnt="/mnt"
-  else
+  if ! ismounted "$2" /mnt rw; then
     mntpnt="/tmp/mnt"
     linbo_mount "$2" "$mntpnt" || usage 1
     mounted="yes"
