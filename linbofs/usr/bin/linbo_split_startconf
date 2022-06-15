@@ -1,0 +1,46 @@
+#!/bin/sh
+#
+# split start.conf in machine parseable chunks
+# thomas@linuxmuster.net
+# 20220602
+#
+
+# check for complete start.conf
+if grep -qi ^'\[os\]' /start.conf; then
+  echo "Splitting start.conf to /conf."
+else
+  echo "Not splitting minimal start.conf."
+  exit
+fi
+
+prefix="/tmp/start.conf."
+pc=0
+oc=0
+
+# split sections, remove comments
+grep ^"[\[a-zA-Z]" /start.conf | sed 's|# .*||' | awk '{$1=$1};1' | csplit -s -z -f "$prefix" - '/^\[/' '{*}'
+
+# where to place the chunks
+rm -rf /conf
+mkdir -p /conf
+
+# process chunks
+for item in "$prefix"*; do
+  section="$(grep ^"\[" "$item" | awk -F\[ '{print $2}' | awk -F\] '{print $1}' | tr A-Z a-z)"
+  case "$section" in
+    linbo) cfgfile="/conf/linbo" ;;
+    partition)
+      pc=$(( pc + 1 ))
+      dev="$(grep -iw ^dev "$item" | awk -F\= '{print $2}' | awk '{$1=$1};1')"
+      cfgfile="/conf/part.$pc.${dev/\/dev\//}"
+      ;;
+    os)
+      oc=$(( oc + 1 ))
+      cfgfile="/conf/os.$oc"
+      ;;
+    *) continue ;;
+  esac
+  # write chunk
+  [ -z "$QUIET" ] && echo " * $(basename $cfgfile)"
+  grep -v ^"\[" "$item" | sed -e 's|[ ]*=[ ]*|="|' -e 's|$|"|' | awk -F'=' '{print tolower($1) "=" $2}' > "$cfgfile"
+done
