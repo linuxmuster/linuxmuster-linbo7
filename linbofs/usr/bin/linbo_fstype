@@ -1,0 +1,23 @@
+#!/bin/sh
+#
+# linbo_fstype
+# thomas@linuxmuster.net
+# 20220610
+#
+
+usage(){
+  local RC="$1"
+  echo
+  echo "Prints filesystem type of a partition."
+  echo
+  echo "Usage: linbo_fstype <partition> | [help]"
+  echo
+  exit "$RC"
+}
+
+# print help
+[ -z "$1" -o "$1" = "help" ] && usage 0
+
+[ -b "$1" ] || usage 1
+
+blkid -o export "$1" | grep ^TYPE | awk -F\= '{print $2}'
