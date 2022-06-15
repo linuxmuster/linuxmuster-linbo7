@@ -1,0 +1,103 @@
+#!/bin/sh
+#
+# linbo_label
+# thomas@linuxmuster.net
+# 20220610
+#
+
+
+#### functions begin ####
+
+usage(){
+  local RC="$1"
+  echo
+  echo "Labels all partitions or only one defined either by start.conf position"
+  echo "number or by devicename."
+  echo
+  echo "Usage: linbo_label <all> | <#> | <devicename> | [help]"
+  echo
+  exit "$RC"
+}
+
+
+# mk_label partition
+mk_label(){
+  if [ -b "$1" ]; then
+    local dev="$1"
+  else
+    echo "Partition $dev is no block device!" | tee -a /tmp/linbo.log
+    return
+  fi
+  local fstype="$(fstype_startconf "$dev")"
+  if [ -z "$fstype" ]; then
+    echo "Partition $dev has no fstype!" | tee -a /tmp/linbo.log
+    return
+  fi
+  local label="$(partlabel_startconf "$dev")"
+  if [ -z "$label" ]; then
+    echo "Partition $dev has no label!" | tee -a /tmp/linbo.log
+    return
+  fi
+  local RC="0"
+  case "$fstype" in
+    swap) mkswap -L "$label" "$dev" || RC=1 ;;
+    ext2|ext3|ext4) e2label "$dev" "$label" || RC=1 ;;
+    [Nn][Tt][Ff][Ss]*) ntfslabel -f "$dev" "$label" || RC=1 ;;
+    *[Ff][Aa][Tt]*) fatlabel "$dev" "$label" 2> /dev/null || RC=1 ;;
+    *) RC="1" ;;
+  esac
+  msg="Partition $dev - fstype $fstype --> label $label ... "
+  if [ "$RC" = "0" ]; then
+    echo "$msg OK!" | tee -a /tmp/linbo.log
+  else
+    echo "$msg Failed!" | tee -a /tmp/linbo.log
+  fi
+  return "$RC"
+}
+
+#### functions end ####
+
+
+# get environment
+source /usr/share/linbo/shell_functions
+
+# print help
+[ -z "$1" -o "$1" = "help" ] && usage 0
+
+echo "linbo_label $@" | tee -a /tmp/linbo.log
+
+FAILED="/tmp/.label.failed"
+rm -f "$FAILED"
+
+# partition number is given
+if isinteger "$1"; then
+  source "$(ls /conf/part.$1.*)" &> /dev/null || usage 1
+  mk_label "$dev" 2>&1 | tee -a /tmp/linbo.log || usage 1
+
+# partition is given
+elif [ -b "$1" ]; then
+  mk_label "$1" | tee -a /tmp/linbo.log || usage 1
+
+# all partitions
+elif [ "$1" = "all" ]; then
+  ls -1 /conf/part.* | awk -F\. '{print $3}' | sed 's|^|/dev/|' | while read dev; do
+    mk_label "$dev" 2>&1 | tee -a /tmp/linbo.log || touch "$FAILED"
+  done
+
+else
+  usage 1
+fi
+
+# trigger label recognition
+udevadm trigger
+
+if [ ! -e /dev/disk/by-label ]; then
+  echo "No partition labels found!" | tee -a /tmp/linbo.log
+  touch "$FAILED"
+fi
+
+sendlog
+
+if [ -e "$FAILED" ]; then
+  exit 1
+fi
