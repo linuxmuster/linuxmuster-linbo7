@@ -1,0 +1,82 @@
+#!/bin/sh
+#
+# linbo_initcache [serverip] [cachedev] [downloadtype] | [-h|help|--help]
+# thomas@linuxmuster.net
+# 20220610
+#
+
+usage(){
+  echo
+  echo "Installs all necessary files into linbo's cache."
+  echo
+  echo "Usage: linbo_initcache [help]"
+  echo
+  echo "Note: Legacy options ([serverip] [cachedev] [downloadtype]) are deprecated"
+  echo "and will be ignored."
+  echo
+  exit 0
+}
+
+# print help
+[ "$1" = "help" ] && usage
+
+# get environment
+source /usr/share/linbo/shell_functions
+
+# get downloadtype
+source /conf/linbo || exit 1
+[ -z "$downloadtype" ] && downloadtype="rsync"
+
+# do not execute in localmode
+if localmode; then
+  echo "Local mode detected!"
+  exit 0
+fi
+
+# skip if cache is on remote fs
+if remote_cache "$CACHE"; then
+  echo "Cache $CACHE is not local, skipping update."
+  exit 0
+fi
+
+# if FORMAT is set, format cache partition
+if [ -n "$FORMAT" ]; then
+  echo "Formatting cache partition $CACHE ..."
+  linbo_format "$CACHE" 2>> /tmp/linbo.log || exit 1
+fi
+linbo_mountcache "$CACHE" || exit 1
+cd /cache
+
+# clean up obsolete linbofs files
+rm -f linbofs64.lz*
+rm -f linbo64*
+
+# clean up obsolete image files
+images="$(images_startconf)"
+for img in *.qcow2 *.cloop; do
+  [ -e "$img" ] || continue
+  found=0
+  for uimg in $images; do
+    if [ "$img" = "$uimg" ]; then
+      found=1
+      break
+    fi
+  done
+  if [ "$found" = "0" ]; then
+    echo "Removing related image files of ${img%%.*}." | tee -a /tmp/image.log
+    rm -f "${img%%.*}".*
+  fi
+done
+
+# update image files
+for img in $images; do
+  if [ -n "$img" ]; then
+    linbo_download_image "$img" "$downloadtype" || exit 1
+  fi
+done
+
+# linbo & gui update
+linbo_update || exit 1
+linbo_update_gui || exit 1
+
+exit 0
