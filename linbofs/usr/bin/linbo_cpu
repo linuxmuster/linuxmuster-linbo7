@@ -1,0 +1,23 @@
+#!/bin/sh
+#
+# linbo_cpu
+# thomas@linuxmuster.net
+# 20220610
+#
+
+usage(){
+  echo
+  echo "Prints cpu model (without options) and no. of cores."
+  echo
+  echo "Usage: linbo_cpu [-c|--cores] | [help]"
+  echo
+  exit 0
+}
+
+case "$1" in
+  help) usage ;;
+  -c|--cores) grep -c ^'model name' /proc/cpuinfo ;;
+  *) grep ^'model name' /proc/cpuinfo | head -1 | sed 's,model.*:\ ,,' ;;
+esac
+
+exit $?
