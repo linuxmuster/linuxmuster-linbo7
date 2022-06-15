@@ -1,0 +1,24 @@
+#!/bin/sh
+#
+# linbo_fakestart
+# thomas@linuxmuster.net
+# 20220610
+#
+
+usage(){
+  echo
+  echo "Starts os defined by start.conf position number or root partition."
+  echo "Initiates a \"dry run\" for debugging purposes."
+  echo
+  echo "Usage: linbo_fakestart <#> | <rootpartition> | [help]"
+  echo
+  exit 0
+}
+
+# print help
+[ -z "$1" -o "$1" = "help" ] && usage
+
+export FAKESTART="yes"
+linbo_start "$@"
+
+exit $?
