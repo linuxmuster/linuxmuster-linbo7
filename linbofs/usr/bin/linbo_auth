@@ -1,0 +1,58 @@
+#!/bin/sh
+#
+# linbo_auth
+# thomas@linuxmuster.net
+# 20220609
+#
+
+usage(){
+  echo
+  echo "Authenticates linbo user."
+  echo
+  echo "Usage:"
+  echo "  linbo_auth <password> | [help]"
+  echo
+  echo "For compatibility reasons legacy options are also accepted:"
+  echo "  linbo_auth <server> <user> <password>"
+  echo
+  exit 0
+}
+
+# print help
+[ -z "$1" -o "$1" = "help" ] && usage
+
+# get environment
+source /usr/share/linbo/shell_functions
+
+# check params with legacy compatibility (serverip user password)
+LINBOUSER="linbo"
+# last parameter is password in any case
+export RSYNC_PASSWORD="$(echo "$@" | awk '{print $NF}')"
+
+if ! localmode; then
+  echo "Logging $LINBOUSER in on $LINBOSERVER..."
+  rm -f "$TMP"
+  rsync "$LINBOUSER@$LINBOSERVER::linbo-upload" >/dev/null 2>"$TMP" ; RC="$?"
+elif [ -e /etc/linbo_passwd ]; then
+  echo "Offline authentication ..."
+  md5passwd="$(echo -n "$RSYNC_PASSWORD" | md5sum | awk '{ print $1 }')"
+  linbo_md5passwd="$(cat /etc/linbo_passwd)"
+  if [ "$md5passwd" = "$linbo_md5passwd" ]; then
+    RC=0
+  else
+    echo "Password does not match!" >"$TMP" ; RC=1
+  fi
+else
+  echo "Unable to authenticate local!" >"$TMP" ; RC=1
+fi
+if [ "$RC" != "0" ]; then
+  echo "Failed: $(cat "$TMP")" >&2
+  echo "Wrong password or missing password file?" >&2
+else
+  echo "Password matches."
+  # temporary workaround for password
+  echo -n "$RSYNC_PASSWORD" > /tmp/linbo.passwd
+fi
+rm -f "$TMP"
+
+exit "$RC"
