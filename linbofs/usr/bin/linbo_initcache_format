@@ -1,0 +1,23 @@
+#!/bin/sh
+#
+# linbo_initcache_format
+# thomas@linuxmuster.net
+# 20220610
+#
+
+usage(){
+  echo
+  echo "Formats the cache partition and installs all necessary files into it."
+  echo
+  echo "Usage: linbo_initcache_format [help]"
+  echo
+  exit 0
+}
+
+# print help
+[ "$1" = "help" ] && usage
+
+export FORMAT="yes"
+linbo_initcache $@
+
+exit $?
