@@ -1,0 +1,77 @@
+#!/bin/sh
+#
+# linbo_register
+# thomas@linuxmuster.net
+# 20220611
+#
+
+
+usage(){
+  RC="$1"
+  echo "Registers current client on the server."
+  echo
+  echo "Usage:"
+  echo "  linbo_register <password> <room> <name> <ip> <group> [role] | [help]"
+  echo
+  echo "Default value for role is \"classroom-studentcomputer\". <clientip> can be"
+  echo "\"DHCP\". The username is fixed to \"linbo\"."
+  echo
+  exit "$RC"
+}
+
+
+# print help
+[ -z "$1" -o "$1" = "help" ] && usage 0
+
+# get environment
+source /usr/share/linbo/shell_functions
+
+# check variables
+if [ "$MACADDR" = "OFFLINE" -o -z "$MACADDR" ]; then
+  echo "Client is offline!"
+  usage 1
+fi
+
+# check params with legacy compatibility (serverip user password room ...)
+if [ -z "$1" ] || validip "$1"; then shift; fi
+[ -z "$1" -o "$1" = "linbo" ] && shift
+USERNAME="linbo"
+export RSYNC_PASSWORD="$1"
+if validhostname "$2"; then
+  ROOM="$2"
+else
+  echo "Room name $2 is not valid!"
+  usage 1
+fi
+if validhostname "$3"; then
+  CLIENTNAME="$3"
+else
+  echo "Client name $3 is not valid!"
+  usage 1
+fi
+if [ "$4" = "DHCP" ] || validip "$4"; then
+  CLIENTIP="$4"
+else
+  echo "Client ip $4 is not valid!"
+  usage 1
+fi
+if validhostname "$5"; then
+  HOSTGROUP="$5"
+else
+  echo "Hostgroup name $5 is not valid!"
+  usage 1
+fi
+if validhostname "$6"; then
+  ROLE="$6"
+else
+  ROLE="classroom-studentcomputer"
+fi
+
+csvline="$ROOM;$CLIENTNAME;$HOSTGROUP;$MACADDR;$CLIENTIP;;;;$ROLE;;1"
+
+echo "$csvline" > "/tmp/${CLIENTNAME}.new"
+
+echo "Uploading ${CLIENTNAME}.new to $LINBOSERVER ..."
+interruptible rsync --progress -HaP "/tmp/${CLIENTNAME}.new" "${USERNAME}@${LINBOSERVER}::linbo-upload/${CLIENTNAME}.new"
+
+exit "$?"
