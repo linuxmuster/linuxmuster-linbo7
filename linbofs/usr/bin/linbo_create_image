@@ -1,0 +1,296 @@
+#!/bin/sh
+#
+# linbo_create_image
+# thomas@linuxmuster.net
+# 20220611
+#
+
+
+#### functions begin ####
+
+# usage info
+usage(){
+  local RC="$1"
+  echo
+  echo "Creates a base or differential image (option \"diff\") of an operating system"
+  echo "either defined by start.conf postition number or by root partition."
+  echo
+  echo "Usage:"
+  echo "  linbo_create_image <#> [diff] | [help]"
+  echo "  linbo_create_image <root> [diff] | [help]"
+  echo
+  echo "For compatibility reasons legacy options are also accepted. In this case"
+  echo "the image type is defined by the filename:"
+  echo "  linbo_create_image <cache> <imagefilename> <root>"
+  echo
+  exit "$RC"
+}
+
+
+# save_efi_bcd targetdir efipart
+# saves the windows efi file to os partition
+save_efi_bcd(){
+  local targetdir="$1"
+  local efipart="$2"
+  local efimnt="/cache/boot/efi"
+  mkdir -p "$efimnt"
+  mount "$efipart" "$efimnt" || return 1
+  local sourcedir="$(ls -d "$efimnt"/[Ee][Ff][Ii]/[Mm][Ii][Cc][Rr][Oo][Ss][Oo][Ff][Tt]/[Bb][Oo][Oo][Tt] 2> /dev/null)"
+  if [ -z "$sourcedir" ]; then
+    echo "$sourcedir not found. Cannot copy windows efi bootfiles to $targetdir."
+    umount "$efimnt" || umount -l "$efimnt"
+    return 1
+  fi
+  echo "Copying windows efi bootfiles from $sourcedir to $targetdir."
+  mkdir -p "$targetdir"
+  local RC=0
+  rsync -r "$sourcedir/" "$targetdir/" || RC="1"
+  umount "$efimnt" || umount -l "$efimnt"
+  [ "$RC" = "1" ] && echo "Copying of windows efi bootfiles failed!"
+  return "$RC"
+}
+
+
+# prepare_fs directory partition
+# Removes all files from /etc/rsync.exclude and saves win boot configuration in
+# the root directory of the os.
+prepare_fs(){
+  (
+    # remove excluded files
+    cd "$1" || return 1
+    local item
+    grep -v ^# /etc/rsync.exclude | while read item; do
+      if ls $item &> /dev/null; then
+        echo -n "Removing $item ... "
+        rm -rf $item
+        echo "done."
+      fi
+    done
+    # save win bcd & mbr
+    local targetdir
+    # in case of efi save the windows efi files
+    local efipart="$(print_efipart)"
+    if [ -n "$efipart" ]; then
+      # save partition & disk uuids
+      echo "Saving partition guids."
+      print_guid "$efipart" > /mnt/.guid.efi
+      print_guid "$2" > /mnt/.guid.part
+      local disk="$(get_disk_from_partition "$2")"
+      print_guid "$disk" > /mnt/.guid.disk
+      if [ "$(linbo_fstype $2)" = "ntfs" ]; then
+        targetdir="$(ls -d [Ee][Ff][Ii]/[Mm][Ii][Cc][Rr][Oo][Ss][Oo][Ff][Tt]/[[Bb][Oo][Oo][Tt] 2> /dev/null)"
+        [ -z "$targetdir" ] && targetdir="EFI/Microsoft/Boot"
+        save_efi_bcd "$targetdir" "$efipart" | tee -a /tmp/linbo_image.log
+      fi
+    else
+      targetdir="$(ls -d [Bb][Oo][Oo][Tt] 2> /dev/null)"
+    fi
+    if [ -n "$targetdir" ]; then
+      local bcd="$(ls $targetdir/[Bb][Cc][Dd] 2> /dev/null)"
+      if [ -n "$bcd" -a -n "$HOSTGROUP" ]; then
+        echo "Saving windows bcd for group $group."
+        # BCD group specific and partition specific on efi systems
+        if [ -n "$efipart" ]; then
+          cp -f "$bcd" "$bcd"."$HOSTGROUP"."$(basename "$2")"
+        else
+          cp -f "$bcd" "$bcd"."$HOSTGROUP"
+        fi
+        # boot sector backup group specific
+        # delete obsolete mbr backups
+        rm -f "$targetdir/winmbr.$HOSTGROUP" "$targetdir/win7mbr.$HOSTGROUP" "$targetdir/winmbr446.$HOSTGROUP" "$targetdir/bsvbr.$HOSTGROUP"
+        local disk="$(get_disk_from_partition "$2")"
+        local bsmbr="$targetdir/bsmbr.$HOSTGROUP"
+        # save bootloader sectors
+        echo "Saving bootloader sectors for group $HOSTGROUP."
+        dd if="$disk" of="$bsmbr" bs=446 count=1 2>> /tmp/linbo.log
+        # ntfs partition id
+        echo "Saving ntfs id."
+        local ntfsid="$targetdir/ntfs.id"
+        dd if="$2" of="$ntfsid" bs=8 count=1 skip=9 2>> /tmp/linbo.log
+      fi
+    fi
+  )
+}
+
+
+# mk_baseimage rootdev imagefile
+mk_baseimage(){
+  local rootdev="$1"
+  local imagefile="$2"
+  echo "Filling up partition with zeroes..." | tee -a /tmp/image.log
+  # Create nulled files of size 1GB, should work on any FS.
+  local count=0
+  while true; do
+    # tschmitt: log errors to image.log
+    interruptible dd if=/dev/zero of="/mnt/zero$count.tmp" bs=1024k count=1000 2>>/tmp/image.log || break
+    [ -s "/mnt/zero$count.tmp" ] || break
+    let count++
+    echo "$(du -ch /mnt/zero*.tmp | tail -1 | awk '{ print $1 }') zeroed ... " | tee -a /tmp/image.log
+  done
+  # Sync is asynchronous, unless started twice at least.
+  sync ; sync ; sync
+  rm -f /mnt/zero*.tmp
+  umount /mnt || umount -l /mnt
+  echo "Starting compression of $rootdev -> $imagefile (full partition, ${size}K)."
+  echo "qemu-img convert -p -c -f raw -O qcow2 $rootdev $imagefile"
+  interruptible qemu-img convert -p -c -f raw -O qcow2 "$rootdev" "$imagefile" ; RC="$?"
+  if [ "$RC" != "0" ]; then
+    echo "Creation of $imagefile failed. :("
+    return "$RC"
+  fi
+  # remove diffimage files in case of new baseimage
+  rm -f "${imagefile/.qcow2/.qdiff}"*
+}
+
+
+# mk_diffimage rootdev imagefile
+mk_diffimage(){
+  local rootdev="$1"
+  local imagefile="$2"
+  # create imagefile if it is not yet there
+  if [ ! -e "$imagefile" ]; then
+    qemu-img create -f qcow2 -b "${imagefile/.qdiff/.qcow2}" -F qcow2 "$imagefile" || return 1
+  fi
+  # connect imagefile to nbd device
+  qemu-nbd --disconnect /dev/nbd0
+  qemu-nbd --connect /dev/nbd0 "$imagefile" || return 1
+  mkdir -p /image
+  # mount image filesystem
+  if ! mount /dev/nbd0 /image; then
+    qemu-nbd --disconnect /dev/nbd0
+    return 1
+  fi
+  echo "Start syncing differences of $rootdev -> $imagefile."
+  interruptible rsync -HAa --exclude="/.linbo" --exclude-from="/etc/rsync.exclude" --delete --delete-excluded  /mnt/ /image 2>&1 ; RC="$?"
+  umount /image || umount -l /image
+  qemu-nbd --disconnect /dev/nbd0
+  [ "$RC" = "0" ] && return
+  echo "Creation of $imagefile failed. :("
+  rm -f "$imagefile"*
+  return "$RC"
+}
+
+
+# mk_qcow2 rootdev imagefile
+mk_qcow2(){
+  local rootdev="$1"
+  local imagefile="$2"
+  local imageext="${imagefile/*.}"
+  [ "$(pwd)" = "/cache" ] || cd /cache
+  echo "## $(date) : Starting creation of $imagefile." | tee -a /tmp/image.log
+  # kill torrent process for this image
+  local pid="$(ps w | grep ctorrent | grep "$imagefile.torrent" | grep -v grep | awk '{ print $1 }')"
+  [ -n "$pid" ] && kill "$pid"
+  # remove torrent files
+  [ -e "/cache/$imagefile.torrent" ] && rm -f "/cache/$imagefile.torrent"
+  [ -e "/cache/$imagefile.complete" ] && rm -f "/cache/$imagefile.complete"
+  local RC=1
+  local size="$(get_partition_size $rootdev)"
+  if [ -z "$size" ]; then
+    echo "Cannot get size of $rootdev!" | tee -a /tmp/image.log
+    return 1
+  fi
+  linbo_mount "$rootdev" /mnt | tee -a /tmp/linbo.log ; RC="$?"
+  if [ "$RC" != "0" ]; then
+    echo "Cannot mount $rootdev!"
+    return "$RC"
+  fi
+  echo "Preparing partition $rootdev (size=${size}K) for compression..." | tee -a /tmp/image.log
+  prepare_fs /mnt "$rootdev" | tee -a /tmp/image.log ; RC="$?"
+  if [ "$RC" != "0" ]; then
+    echo "Cannot prepare $rootdev!"
+    return "$RC"
+  fi
+  case "$imageext" in
+    qcow2) mk_baseimage "$rootdev" "$imagefile" | tee -a /tmp/image.log ; RC="$?" ;;
+    qdiff) mk_diffimage "$rootdev" "$imagefile" | tee -a /tmp/image.log ; RC="$?" ;;
+    *) echo "Unknown image type!" ; RC="1" ;;
+  esac
+  if [ "$RC" != "0" ]; then
+    umount /mnt || umount -l /mnt
+    return "$RC"
+  fi
+  # mount rootdevice after image creation
+  linbo_mount "$rootdev" /mnt | tee -a /tmp/image.log ; RC="$?"
+  if [ "$RC" != "0" ]; then
+    echo "Mounting of $rootdev failed. :(" | tee -a /tmp/image.log
+    return "$RC"
+  fi
+  # save imagename on partition
+  echo "${imagefile/.*}" > /mnt/.linbo
+  umount /mnt || umount -l /mnt
+  # create info file
+  local imgsize="$(get_filesize $imagefile)"
+  linbo_mkinfo "$imagefile" "$rootdev"
+  echo "Done." | tee -a /tmp/image.log
+  ls -l "$rootdev"
+  touch "$imagefile".complete
+  # create torrent file
+  linbo_mktorrent "$imagefile" || RC="1"
+  echo "## $(date) : Creation of $imagefile finished." | tee -a /tmp/image.log
+  return "$RC"
+}
+
+#### functions end ####
+
+
+# print help
+[ -z "$1" -o "$1" = "help" ] && usage 0
+
+# start.conf is needed
+if [ ! -s /start.conf ]; then
+  echo "Fatal: start.conf not found!"
+  exit 1
+fi
+
+# get environment
+source /usr/share/linbo/shell_functions
+
+# check os number options
+if isinteger "$1"; then
+  osnr="$1"
+
+# check legacy options (cache imagefile rootpartition)
+elif [ -z "$1" -o "$1" = "$CACHE" ]; then
+  # cache partition given as first parameter
+  shift
+
+  # check image filename
+  case "$1" in
+    *.qcow2) shift ;;
+    *.qdiff) shift ; diff="yes" ;;
+  esac
+
+fi
+
+# first parameter is root partition finally
+[ -b "$1" ] && osnr=$(osnr_startconf "$1")
+
+# read os parameters
+source /conf/os.$osnr &> /dev/null || usage 1
+
+# check differential image
+if [ "$2" = "diff" -o -n "$diff" ]; then
+  imagefile="${baseimage/.qcow2/.qdiff}"
+else
+  imagefile="$baseimage"
+fi
+
+linbo_mountcache || exit 1
+
+cd /cache
+
+echo "Creating image $imagefile of partition $root ..." | tee -a /tmp/image.log
+mk_qcow2 "$root" "$imagefile" | tee -a /tmp/image.log ; RC="$?"
+
+if [ "$RC" = "0" ]; then
+  echo "Done." | tee -a /tmp/image.log
+else
+  echo "Failed." | tee -a /tmp/image.log
+fi
+
+sendlog
+
+cd /
+
+exit "$RC"
