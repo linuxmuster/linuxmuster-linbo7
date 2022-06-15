@@ -1,7 +1,7 @@
 # busybox ash profile
 #
 # thomas@schmitt.tk
-# 20220602
+# 20220615
 
 # prompt
 export PS1='\h: \w # '
@@ -16,6 +16,7 @@ export PATH='/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
 source /.env
 
 [ -n "$IP" ] && myip="| IP: $IP"
+[ -n "$MACADDR" ] && mymac="| MAC: $MACADDR"
 
 # logo
 echo
@@ -27,7 +28,7 @@ echo '| |      | | | . ` |  _ <| |  | |'
 echo '| |____ _| |_| |\  | |_) | |__| |'
 echo '|______|_____|_| \_|____/ \____/'
 echo
-echo "$LINBOFULLVER $myip $myname"
+echo "$LINBOFULLVER $myip $mymac $myname"
 echo
 uname -a | sed -e "s| $HOSTNAME||"
 echo
