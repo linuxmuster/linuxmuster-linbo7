@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20220602
+# 20220615
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -422,7 +422,7 @@ network(){
     # time sync
     print_status "Starting time sync ..."
     #( ntpd -n -q -p "$SERVER" && hwclock --systohc ) &
-    ntpd -g -n -q -p "$LINBOSERVER" &
+    ntpd -q -p "$LINBOSERVER"
     #date
     # get onboot linbo-remote commands, if there are any
     local item
