@@ -1,0 +1,23 @@
+#!/bin/sh
+#
+# linbo_partition_format
+# thomas@linuxmuster.net
+# 20220609
+#
+
+usage(){
+  echo
+  echo "Partitions the hard drive and formats the partitions according to start.conf."
+  echo
+  echo "Usage: linbo_partition_format [help]"
+  echo
+  exit 0
+}
+
+# print help
+[ "$1" = "help" ] && usage
+
+export FORMAT="yes"
+linbo_partition $@
+
+exit $?
