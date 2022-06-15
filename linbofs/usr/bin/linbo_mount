@@ -1,0 +1,63 @@
+#!/bin/sh
+#
+# linbo_mount
+# thomas@linuxmuster.net
+# 20220613
+#
+
+usage(){
+  local RC="$1"
+  echo
+  echo "Mounts a partition."
+  echo
+  echo "Usage: linbo_mount <partition> <mountpoint> [-r] | [help]"
+  echo
+  exit "$RC"
+}
+
+# print help
+[ -z "$1" -o "$1" = "help" ] && usage 0
+
+echo "## linbo_mount $@"
+
+# read common shell functions
+source /usr/share/linbo/shell_functions
+
+# get options
+type="$(linbo_fstype $1)"
+[ -z "$type" ] && usage 1
+partition="$1"
+destdir="$2"
+[ "$3" = "-r" ] && ro=",ro"
+
+if grep -q ^"$partition $destdir" /proc/mounts; then
+  remount="remount,"
+  [ -z "$ro" ] && ro=",rw"
+fi
+
+case "$type" in
+  ntfs) options="-i -t ntfs3 -o ${remount}acl,noatime,discard${ro}" ;;
+  vfat) options="-i -t $type -o ${remount}defaults${ro}" ;;
+  *) options="-i -t $type -o ${remount}acl,user_xattr${ro}" ;;
+esac
+
+# mount partition
+mount $options $partition $destdir
+
+# check success
+RC="1"
+grep -q ^"$partition $destdir" /proc/mounts && RC="0"
+
+# second try (do ntfsfix before in case of ntfs rw mount)
+if [ "$RC" != "0" -a "$type" = "ntfs" ]; then
+  echo "Windows partition seems in bad shape. Trying ntfsfix to solve this issue."
+  ntfsfix -bd "$partition"
+  mount $options $partition $destdir
+# second try with default options for other filesystems
+elif [ "$RC" != "0" ]; then
+  mount $partition $destdir
+fi
+# check success again
+grep -q ^"$partition $destdir" /proc/mounts && RC="0"
+
+exit "$RC"
