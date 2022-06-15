@@ -1,0 +1,66 @@
+#!/bin/sh
+#
+# linbo_preregister
+# thomas@linuxmuster.net
+# 20220611
+#
+
+
+usage(){
+  echo
+  echo "Computes the closest next hostname to facilitate the client registration."
+  echo
+  echo "Usage: linbo_preregister [help]"
+  echo
+  exit 0
+}
+
+
+# print help
+[ "$1" = "help" ] && usage
+
+# get environment
+source /usr/share/linbo/shell_functions
+
+LAST_REGISTERED="/tmp/last_registered"
+cd "$(dirname "$LAST_REGISTERED")"
+linbo_download "$(basename "$LAST_REGISTERED")"
+cd /
+LASTWORKSTATION="$(grep ^[a-z0-9] "$LAST_REGISTERED" | tail -n 1)"
+
+if [ "$LASTWORKSTATION" == "" ]; then
+  echo ",,," > /tmp/newregister
+  rm -f "$LAST_REGISTERED"
+  exit 0
+fi
+
+LASTGROUP="$(echo $LASTWORKSTATION | cut -d ";" -f 3)"
+LASTROOM="$(echo $LASTWORKSTATION | cut -d ";" -f 1)"
+LASTHOST="$(echo $LASTWORKSTATION | cut -d ";" -f 2)"
+LASTIP="$(echo $LASTWORKSTATION | cut -d ";" -f 5)"
+
+# get next ip address
+if [ "$LASTIP" = "DHCP" ]; then
+  NEXTIP="DHCP"
+else
+  NEXTIP="$(echo -n $LASTIP | cut -d "." -f 1-3).$(($(echo $LASTIP | cut -d "." -f 4)+1))"
+fi
+
+# get next hostname
+HOSTNAMECOUNTER="$(echo $LASTHOST | grep -Eo "[0-9]+$")"
+if [ ! "$HOSTNAMECOUNTER" == "" ]; then
+  NEXTCOUNT=$(expr $HOSTNAMECOUNTER + 1)
+  # Left fill with zeroes
+  while [ "${#NEXTCOUNT}" -lt "${#HOSTNAMECOUNTER}" ]; do
+    NEXTCOUNT=0$NEXTCOUNT
+  done
+
+  # Build new hostname
+  NEXTHOST="$(echo -n $LASTHOST | sed "s/${HOSTNAMECOUNTER}$//g")$NEXTCOUNT"
+else
+  NEXTHOST="$LASTHOST"
+fi
+rm -f "$LAST_REGISTERED"
+echo "$LASTROOM,$LASTGROUP,$NEXTHOST,$NEXTIP" > /tmp/newregister
+
+exit 0
