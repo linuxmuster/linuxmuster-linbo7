@@ -1,0 +1,112 @@
+#!/bin/sh
+#
+# linbo_mountcache [-r] | [help]
+# thomas@linuxmuster.net
+# 20220610
+#
+
+
+#### functions begin ####
+
+usage(){
+  local RC="$1"
+  echo
+  echo "Mounts the cache partition. \"-r\" mounts/remounts readonly."
+  echo
+  echo "Usage: linbo_mountcache [-r] | [help]"
+  echo
+  exit "$RC"
+}
+
+
+# find cache partition
+findcache(){
+  local item
+  local dev
+  mkdir -p /tmp/mnt
+  for item in /dev/disk/by-id/*part*; do
+    dev="$(readlink "$item" | sed 's|../../|/dev/|')"
+    if mount "$dev" /tmp/mnt &> /dev/null; then
+      if [ -s /tmp/mnt/linbo64 ]; then
+        export CACHE="$dev"
+        umount /tmp/mnt &> /dev/null
+        break
+      fi
+      umount /tmp/mnt &> /dev/null
+    fi
+  done
+}
+
+#### functions end ####
+
+
+# print help
+[ "$1" = "help" ] && usage 0
+
+#echo "linbo_mountcache $@"
+
+# get cache partition, otherwise use environment variable
+[ -z "$1" -o -b "$1" ] && shift
+[ -z "$CACHE" ] && findcache
+[ -b "$CACHE" ] || usage 1
+
+# get readonly option
+[ "$1" = "-r" ] && ro="$1"
+
+RC="0"
+
+# Avoid duplicate mounts by just preparing read/write mode
+mount_opts="$(grep " /cache " /proc/mounts | awk '{ print $4 }')"
+if [ -n "$mount_opts" ]; then
+  RW=""
+  echo "$mount_opts" | grep -q ".*rw.*" && RW="true"
+  case "$ro" in
+    -r) [ -n "$RW" ] && mount -o remount,ro /cache 2>> /tmp/linbo.log ; RC="$?" ;;
+    *) [ -n "$RW" ] || mount -o remount,rw /cache 2>> /tmp/linbo.log ; RC="$?" ;;
+  esac
+  exit "$RC"
+fi
+case "$CACHE" in
+  *:*) # NFS
+    server="${CACHE%%:*}"
+    dir="${CACHE##*:}"
+    echo "Mounting cache partition per nfs from $CACHE ..."
+    # -o nolock is EXTREMELY important here, otherwise mount.nfs will timeout waiting for portmap
+    mount $ro -t nfs -o nolock,rsize=8192,wsize=8192,hard,intr "$CACHE" /cache 2>> /tmp/linbo.log
+    RC="$?"
+    ;;
+  \\\\*\\*|//*/*) # CIFS/SAMBA
+    server="${CACHE%\\*}";  server="${server%/*}"; server="${server#\\\\}"; server="${server#//}"
+    echo "Mounting cache partition per cifs from $CACHE ..."
+    # unix extensions have to be disabled
+    echo 0 > /proc/fs/cifs/LinuxExtensionsEnabled 2>/dev/null
+    # mount.cifs (3) pays attention to $PASSWD
+    # this does not work: $RSYNC_PASSWORD is not available and mount.cifs does not pay attention to $PASSWD
+    #export PASSWD="$RSYNC_PASSWORD"
+    #mount $2 -t cifs -o username=linbo,nolock "$CACHE" /cache 2>/dev/null
+    # temporary workaround for password
+    [ -s /tmp/linbo.passwd ] && PASSWD="$(cat /tmp/linbo.passwd 2>/dev/null)"
+    [ -z "$PASSWD" -a -s /tmp/rsyncd.secrets ] && PASSWD="$(grep ^linbo /tmp/rsyncd.secrets | awk -F\: '{ print $2 }' 2>/dev/null)"
+    mount $ro -t cifs -o username=linbo,password="$PASSWD",nolock "$CACHE" /cache 2>> /tmp/linbo.log
+    RC="$?"
+    if [ "$RC" != "0" ]; then
+      echo "Authentication failure."
+      mount $ro -t cifs -o nolock,guest,sec=none "$CACHE" /cache 2>> /tmp/linbo.log
+      RC="$?"
+      if [ "$RC" != "0" ]; then
+        echo "Guest access does not work also."
+      fi
+    fi
+    ;;
+  /dev/*) # cache
+    echo "Mounting cache partition $CACHE ..."
+    linbo_mount "$CACHE" /cache $ro 2>> /tmp/linbo.log ; RC="$?"
+    ;;
+  *) # Yet unknown
+    echo "Unknown source for cache partition: $CACHE." >&2
+    ;;
+esac
+
+[ "$RC" = "0" ] || echo "Failed to mount cache partition $CACHE!" >&2
+
+exit "$RC"
