@@ -1,0 +1,22 @@
+#!/bin/sh
+#
+# linbo_bat
+# thomas@linuxmuster.net
+# 20220610
+#
+
+usage(){
+  echo
+  echo "Prints battery status in %."
+  echo
+  echo "Usage: linbo_bat [help]"
+  echo
+  exit 0
+}
+
+case "$1" in
+  help) usage ;;
+  *) find /sys/class/power_supply/ -name 'BAT*' -exec cat {}/capacity \; | head -n 1 ;;
+esac
+
+exit $?
