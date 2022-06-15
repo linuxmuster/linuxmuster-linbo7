@@ -1,0 +1,87 @@
+#!/bin/sh
+#
+# linbo_upload
+# thomas@linuxmuster.net
+# 20220609
+#
+
+usage(){
+  local RC="$1"
+  echo
+  echo "Uploads a file from the cache to the server. Linbo user password is necessary."
+  echo
+  echo "Usage:"
+  echo "  linbo_upload <password> <file> | [help]"
+  echo
+  echo "For compatibility reasons legacy options are also accepted:"
+  echo "  linbo_upload <server> <user> <password> <cache> <file>"
+  echo
+  exit "$RC"
+}
+
+# print help
+[ -z "$1" -o "$1" = "help" ] && usage 0
+
+# get environment
+source /usr/share/linbo/shell_functions
+
+# do not execute in localmode
+if localmode; then
+  echo "Local mode detected, no upload possible!"
+  exit 0
+fi
+
+# check params with legacy compatibility (serverip user password cache file)
+if [ -z "$1" ] || validip "$1"; then shift; fi
+[ -z "$1" -o "$1" = "linbo" ] && shift
+LINBOUSER="linbo"
+export RSYNC_PASSWORD="$1" ; shift
+[ -z "$1" -o -b "$1" ] && shift
+FILE="$1"
+
+if remote_cache "$CACHE"; then
+  echo "Cache $CACHE is not local, no upload for $FILE." | tee -a /tmp/linbo.log
+  sendlog
+  exit 1
+fi
+
+linbo_mountcache || exit 1
+cd /cache
+
+RC="0"
+if [ -e "$FILE" ]; then
+  filelist="$FILE"
+  ext="${FILE##*.}"
+  # expand filelist in case of qcow2|qdiff file
+  #echo "### filetype: $ext ###"
+  if [ "$ext" = "qcow2" -o "$ext" = "qdiff" ]; then
+    imagebase="${FILE%.$ext}"
+    subdir="images/$imagebase/"
+    for item in info desc torrent; do
+      [ -s "${FILE}.${item}" ] && filelist="$filelist ${FILE}.${item}"
+    done
+  fi
+  echo "Uploading $filelist to $LINBOSERVER ..." | tee -a /tmp/linbo.log
+  for item in $filelist; do
+    interruptible rsync --log-file=/tmp/rsync.log --progress -Ha $RSYNC_PERMISSIONS --partial "$item" "$LINBOUSER@$LINBOSERVER::linbo-upload/${subdir}${item}"
+    # because return code is always 0 this is necessary
+    grep -q "rsync error" /tmp/rsync.log && RC=1
+    cat /tmp/rsync.log >> /tmp/linbo.log
+    rm /tmp/rsync.log
+    [ "$RC" = "0" ] || break
+  done
+else
+  RC=1
+  echo "File $FILE does not exist." | tee -a /tmp/linbo.log
+fi
+
+if [ "$RC" = "0" ]; then
+  echo "Successfully uploaded $filelist to $LINBOSERVER." | tee -a /tmp/linbo.log
+else
+  echo "Failed to upload $filelist to $LINBOSERVER." | tee -a /tmp/linbo.log
+fi
+
+cd /
+sendlog
+
+exit "$RC"
