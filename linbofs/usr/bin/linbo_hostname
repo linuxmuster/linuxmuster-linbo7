@@ -1,0 +1,38 @@
+#!/bin/sh
+#
+# linbo_hostname [-f|--full] | [-h|help|--help]
+# prints hostname
+# thomas@linuxmuster.net
+# 20220610
+#
+
+usage(){
+  echo
+  echo "Prints hostname."
+  echo
+  echo "Usage: linbo_hostname [-f|--full] | [-h|help|--help]"
+  echo
+  exit 0
+}
+
+# print help
+[ "$1" = "help" ] && usage
+
+# get environment
+source /usr/share/linbo/shell_functions
+
+if localmode; then
+  mount | grep -q " /cache " && cache_mounted="yes"
+  [ -z "$cache_mounted" ] && linbo_mountcache
+  [ -s /cache/hostname ] || exit 1
+  FQDN="$(cat /cache/hostname)"
+  HOSTNAME="${FQDN%%.*}"
+  [ -z "$cache_mounted" ] && umount /cache
+fi
+
+case "$1" in
+  -f|--full) echo "$FQDN" ;;
+  *) echo "$HOSTNAME" ;;
+esac
+
+exit 0
