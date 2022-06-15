@@ -1,0 +1,27 @@
+#!/bin/sh
+#
+# linbo_listimages
+# thomas@linuxmuster.net
+# 20220610
+#
+
+usage(){
+  echo
+  echo "Lists cached images."
+  echo
+  echo "Usage: linbo_listimages [help]"
+  echo
+  exit 0
+}
+
+# print help
+[ "$1" = "help" ] && usage
+
+mount | grep -q " /cache " && cache_mounted="yes"
+[ -z "$cache_mounted" ] && linbo_mountcache
+
+ls -1 /cache/*.[cq][lcd][oi][owf][p2f] | sed 's|/cache/||' ; RC="$?"
+
+[ -z "$cache_mounted" ] && umount /cache
+
+exit "$RC"
