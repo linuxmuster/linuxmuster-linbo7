@@ -1,0 +1,68 @@
+#!/bin/sh
+#
+# linbo_mkinfo
+# thomas@linuxmuster.net
+# 20220610
+#
+
+usage(){
+  RC="$1"
+  echo
+  echo "Creates image info file."
+  echo
+  echo "Usage: linbo_mkinfo <imagefile> <rootpartition> | [help]"
+  echo
+  exit "$RC"
+}
+
+# print help
+[ -z "$1" -o "$1" = "help" ] && usage 0
+
+# get environment
+source /usr/share/linbo/shell_functions
+
+echo "### linbo_mkinfo $1 $2"
+
+linbo_mountcache || exit 1
+
+curdir="$(pwd)"
+cd /cache
+
+# check options
+[ -s "$1" ] || usage 1
+[ -b "$2" ] || usage 1
+
+imagefile="$1"
+rootdev="$2"
+partsize="$(get_partition_size "$rootdev")"
+imagesize="$(get_filesize "$imagefile")"
+timestamp="$(date +%Y%m%d%H%M)"
+log_image_status "$imagefile" "$timestamp"
+
+cat <<EOF > "$imagefile".info
+["$imagefile" Info File]
+timestamp="$timestamp"
+image="$imagefile"
+imagesize="$imagesize"
+partition="$rootdev"
+partitionsize="$partsize"
+EOF
+
+# save timestamp of backingfile to info file of differential image
+RC="0"
+backingfile="$(qemu-img info --output=json "$imagefile" | grep full-backing-filename | awk -F\" '{print $4}')"
+if [ -n "$backingfile" ]; then
+  backingfile_timestamp="$(grep ^timestamp "$backingfile".info | awk -F\" '{print $2}')"
+  if [ -n "$backingfile_timestamp" ]; then
+    cat <<EOF >> "$imagefile".info
+backingfile_timestamp="$backingfile_timestamp"
+EOF
+  else
+    echo "Cannot get backingfile timestamp!"
+    RC="1"
+  fi
+fi
+
+cd "$curdir"
+
+exit "$RC"
