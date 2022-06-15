@@ -1,0 +1,14 @@
+#!/bin/sh
+#
+# linbo_version
+# thomas@linuxmuster.net
+# 20220608
+#
+
+case "$1" in
+  help) echo "Usage: linbo_version [-s|--short] | [help]" ;;
+  -s|--short) echo "$LINBOVER" ;;
+  *) echo "$LINBOFULLVER" ;;
+esac
+
+exit 0
