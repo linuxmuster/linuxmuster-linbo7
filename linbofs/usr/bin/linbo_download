@@ -1,0 +1,54 @@
+#!/bin/sh
+#
+# linbo_download
+# thomas@linuxmuster.net
+# 20220610
+#
+
+usage(){
+  local RC="$1"
+  echo
+  echo "Downloads a file from the server into the current directory."
+  echo
+  echo "Usage: linbo_download [server] <file> [important] | [help]"
+  echo
+  echo "\"server\" is deprecated and can be ommitted. \"important\" increases verbosity."
+  echo
+  exit "$RC"
+}
+
+# print help
+[ -z "$1" -o "$1" = "help" ] && usage 0
+
+# get environment
+source /usr/share/linbo/shell_functions
+
+# do not execute in localmode
+if localmode; then
+  echo "Local mode detected!"
+  exit 0
+fi
+
+# check params
+if [ -z "$1" ] || validip "$1"; then shift; fi
+FILE="$1"
+IMPORTANT="$2"
+
+[ -z "$FILE" ] && usage 1
+
+# downloads files from server into current directory
+RC=1
+[ -n "$IMPORTANT" ] && echo "RSYNC Download $LINBOSERVER -> $FILE..."
+rm -f "$TMP"
+interruptible rsync -HaLz --partial --progress "$LINBOSERVER::linbo/$FILE" "$(basename $FILE)" 2>"$TMP"; RC="$?"
+if [ "$RC" != "0" ]; then
+  # Delete incomplete/defective/non-existent file (maybe we should check for returncode=23 first?)
+  rm -f "$FILE" 2>/dev/null
+  if [ -n "$IMPORTANT" ]; then
+    # Verbose error message if file was important
+    cat "$TMP" >&2
+    echo "File $FILE could not be downloaded." >&2
+  fi
+fi
+rm -f "$TMP"
+exit "$RC"
