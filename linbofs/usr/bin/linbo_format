@@ -1,0 +1,86 @@
+#!/bin/sh
+#
+# linbo_format
+# thomas@linuxmuster.net
+# 20220610
+#
+
+usage(){
+  local RC="$1"
+  echo
+  echo "Formats a partition defined either by start.conf no. or by devicename."
+  echo
+  echo "Usage:"
+  echo "  linbo_format <#> | <partition> | [help]"
+  echo
+  exit "$RC"
+}
+
+# print help
+[ -z "$1" -o "$1" = "help" ] && usage 0
+
+# get environment
+source /usr/share/linbo/shell_functions
+
+# partition number given
+if isinteger "$1"; then
+  partnr="$1"
+# partition given
+else
+  partnr="$(partnr_startconf "$1")"
+fi
+
+# get partition parameters
+source $(ls /conf/part.$partnr.* 2> /dev/null) &> /dev/null || usage 1
+
+# create label option per filesystem
+if [ -n "$label" ]; then
+  case "$fstype" in
+    swap|ext2|ext3|ext4|[Nn][Tt][Ff][Ss]*) label="-L $label" ;;
+    *[Ff][Aa][Tt]*) label="-n $label" ;;
+    *) ;;
+  esac
+fi
+
+# create format command per filesystem
+case "$fstype" in
+  [Ss][Ww][Aa][Pp]) fcmd="mkswap $label $dev" ;;
+  [Rr][Ee][Ii][Ss][Ee][Rr][Ff][Ss]) fcmd="mkreiserfs $label -f -f $dev" ;;
+  [Ee][Xx][Tt][234]) fcmd="mkfs.$fstype -F $label $dev" ;;
+  [Nn][Tt][Ff][Ss]) fcmd="mkfs.ntfs $label -Q $dev" ;;
+  *[Ff][Aa][Tt]*) fcmd="mkdosfs $label -F 32 $dev" ;;
+  *) echo "Unknown fstype!" ; exit 1 ;;
+esac
+
+# start formatting
+echo -n "Formatting $dev with $fstype ..."
+[ -b "$dev" ] || sleep 5
+$fcmd 2>> /tmp/linbo.log 1>> /tmp/linbo.log ; RC="$?"
+if [ "$RC" != "0" ]; then
+  echo -n " Partition is not yet ready - trying again ..."
+  sleep 2
+  $fcmd 2>> /tmp/linbo.log 1>> /tmp/linbo.log ; RC="$?"
+fi
+if [ "$RC" = "0" ]; then
+  echo " OK!"
+  # issue 85
+  [ -n "$label" ] && udevadm trigger
+  # install linbo and grub in cache
+  if [ "$CACHE" = "$dev" ]; then
+    rm -f /tmp/.* &> /dev/null
+    linbo_update
+    linbo_update_gui
+    mk_boot
+    if linbo_mountcache; then
+      echo "Saving start.conf in cache."
+      cp /start.conf /cache
+      # save hostname for offline use
+      echo "Saving hostname $FQDN in cache."
+      echo "$FQDN" > /cache/hostname
+    fi
+  fi
+else
+  echo " Failed!"
+fi
+
+exit "$RC"
