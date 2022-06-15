@@ -1,0 +1,23 @@
+#!/bin/sh
+#
+# linbo_netmask
+# thomas@linuxmuster.net
+# 20220610
+#
+
+usage(){
+  echo
+  echo "Prints netmask or bitmask."
+  echo
+  echo "Usage: linbo_netmask [-b|--bitmask] | [help]"
+  echo
+  exit 0
+}
+
+case "$1" in
+  help) echo usage ;;
+  -b|--bitmask) if [ -n "$MASK" ]; then echo "$MASK"; else echo "OFFLINE"; fi ;;
+  *) if [ -n "$SUBNET" ]; then echo "$SUBNET"; else echo "OFFLINE"; fi ;;
+esac
+
+exit $?
