@@ -1,0 +1,266 @@
+#!/bin/sh
+#
+# linbo_download_image
+# thomas@linuxmuster.net
+# 20220613
+#
+
+
+#### functions begin ####
+
+usage(){
+  local RC="$1"
+  echo
+  echo "Downloads a newer imagefile from server into the cache, if there is one."
+  echo
+  echo "Usage: linbo_download_image <imagefile> | [help]"
+  echo
+  exit "$RC"
+}
+
+
+# Download main file and supplementary files
+# download_all server mainfile additional_files...
+download_all(){
+  local RC=0
+  linbo_download "$1" important; RC="$?"
+  if [ "$RC" != "0" ]; then
+    rm -f "$1"
+    return "$RC"
+  fi
+  shift
+  local file=""
+  for file in "$@"; do
+    linbo_download "$file"
+  done
+  return "$RC"
+}
+
+
+# torrent_watchdog image timeout
+torrent_watchdog(){
+  local image="$1"
+  local complete="$image".complete
+  local torrent="$image".torrent
+  local logfile=/tmp/"$image".log
+  local timeout="$2"
+  local line=""
+  local line_old=""
+  local int=10
+  local RC=1
+  local c=0
+  while [ $c -lt $timeout ]; do
+    sleep $int
+    # check if torrent is complete
+    [ -e "$complete" ] && { RC=0; break; }
+    line="$(tail -1 "$logfile" | awk '{ print $3 }')"
+    [ -z "$line_old" ] && line_old="$line"
+    if [ "$line_old" = "$line" ]; then
+      [ $c -eq 0 ] || echo -e "\nTorrent watchdog: download of $image stalls since $c seconds." >&2 | tee -a /tmp/image.log
+      c=$(($c+$int))
+    else
+      line_old="$line"
+      c=0
+    fi
+  done
+  rm -f "$logfile"
+  echo
+  if [ "$RC" = "0" ]; then
+    echo "Image $image downloaded successfully." | tee -a /tmp/image.log
+  else
+    ps w | grep -v grep | grep -q ctorrent && killall -9 ctorrent
+    echo "Cancelled download of $image because of timeout." >&2 | tee -a /tmp/image.log
+  fi
+  return "$RC"
+}
+
+
+# download_torrent imagefile
+download_torrent(){
+  local imagefile="$1"
+  local torrent="$imagefile".torrent
+  local complete="$imagefile".complete
+  local RC=1
+  [ -e "$torrent" ] || return "$RC"
+  [ -z "$IP" -o "$IP" = "OFFLINE" ] && return "$RC"
+  # default values
+  local SEEDHOURS=100000
+  local MAXPEERS=100
+  local MINPEERS=1
+  local MAXUP
+  local MAXDOWN
+  local SLICESIZE=128
+  local TIMEOUT=300
+  local OPTIONS
+  [ -e /torrent-client.conf ] && . /torrent-client.conf
+  local pid="$(ps w | grep ctorrent | grep "$torrent" | grep -v grep | awk '{ print $1 }')"
+  [ -n "$pid" ] && kill "$pid"
+  local CTOPTS="-I $IP -m $MINPEERS -M $MAXPEERS -z $SLICESIZE"
+  [ -n "$OPTIONS" ] && CTOPTS="$CTOPTS $OPTIONS"
+  [ -n "$MAXUP" ] && CTOPTS="$CTOPTS -U $MAXUP"
+  [ -n "$MAXDOWN" ] && CTOPTS="$CTOPTS -D $MAXDOWN"
+  echo "Torrent options: $CTOPTS" >> /tmp/image.log
+  echo "Starting torrent service for $imagefile." | tee -a /tmp/image.log
+  local logfile=/tmp/"$imagefile".log
+  if [ ! -e "$complete" ]; then
+    rm -f "$imagefile" "$torrent".bf
+    torrent_watchdog "$imagefile" "$TIMEOUT" &
+    interruptible ctorrent -e 0 $CTOPTS -X "touch $complete" "$torrent" | tee -a "$logfile"
+  fi
+  # start seeder if download is complete
+  if [ -e "$complete" ]; then
+    RC=0
+    ctorrent -e $SEEDHOURS $CTOPTS -f -d "$torrent"
+  fi
+  return "$RC"
+}
+
+
+# get_multicast_port file
+get_multicast_port(){
+  local file=""
+  local serverport=""
+  local relax=""
+  while read file serverport relax; do
+    if [ "$file" = "$1" ]; then
+      echo "${serverport##*:}"
+      return 0
+    fi
+  done </multicast.list
+  return 1
+}
+
+
+# download_multicast port file
+download_multicast(){
+  echo "MULTICAST Download $INTERFACE($LINBOSERVER):$1 -> $2"
+  echo "udp-receiver --log /tmp/image.log --nosync --nokbd --interface $INTERFACE --rcvbuf 4194304 --portbase $1 --file $2"
+  interruptible udp-receiver --log /tmp/image.log --nosync --nokbd --interface "$INTERFACE" --rcvbuf 4194304 --portbase "$1" --file "$2" 2>&1 ; RC="$?"
+  return "$RC"
+}
+
+#### functions end ####
+
+
+# print help
+[ -z "$1" -o "$1" = "help" ] && usage 0
+
+# get environment
+source /usr/share/linbo/shell_functions
+
+# do not execute in localmode
+if localmode; then
+  echo "Local mode detected!"
+  exit 0
+fi
+
+# check params
+if [ -z "$1" ] || validip "$1"; then shift; fi
+FILE="$1"
+
+[ -z "$FILE" ] && usage 1
+
+echo "### $(basename $0) $@"
+
+source /conf/linbo &> /dev/null || exit 1
+
+case "$downloadtype" in
+  multicast|rsync|torrent) ;;
+  *) downloadtype="rsync" ;;
+esac
+
+imagebase="${FILE%%.*}"
+imagetype="${FILE##*.}"
+[ "$imagetype" != "cloop" ] && subdir="images/$imagebase/"
+infofile="${FILE}.info"
+
+# check server for changed files
+if [ -s "$infofile" -a -s "$FILE" ]; then
+  # move info file
+  mv -f "$infofile" "${infofile}.bak"
+  # download infofile, first try from subdir
+  if ! linbo_download "${subdir}${infofile}"; then
+    # remove differential image files if download fails
+    # (means there is no diff image on the server)
+    if [ "$imagetype" = "qdiff" ]; then
+      rm -f "/cache/${FILE}"*
+      return 0
+    fi
+    linbo_download "$infofile" || exit 1
+  fi
+  # compare
+  diff -q "$infofile" "${infofile}.bak" || DOWNLOAD="yes"
+  rm -f "${infofile}.bak"
+else
+  DOWNLOAD="yes"
+fi
+
+# check also FILE size to know whether image download is needed
+if [ -z "$DOWNLOAD" ]; then
+  fs1="$(getinfo "$infofile" imagesize | sed 's|\"||g')"
+  fs2="$(get_filesize "$FILE")"
+  [ -z "$fs1" -o -z "$fs2" -o "$fs1" != "$fs2" ] && DOWNLOAD="yes"
+fi
+
+if [ -n "$DOWNLOAD" ]; then
+  # download os related supplemental files
+  if [ "$imagetype" = "qcow2" -o "$imagetype" = "cloop" ]; then
+    download_all "${subdir}${FILE}.desc" \
+      "${subdir}${FILE}.info" \
+      "${subdir}${FILE}.reg" \
+      "${subdir}${FILE}.postsync" \
+      "${subdir}${imagebase}.reg" \
+      "${subdir}${imagebase}.postsync"
+  elif [ "$imagetype" = "qdiff" ]; then
+    download_all "${subdir}${FILE}.desc" \
+      "${subdir}${FILE}.info"
+  else
+    echo "Unknown image type $imagetype."
+    exit 1
+  fi
+# if image file is unchanged compared to server version end here
+else
+  echo "$FILE has not changed, nothing to do."
+  # in case of downloadtype torrent, start seeding
+  if [ "$downloadtype" = "torrent" ]; then
+    [ -s "${FILE}.torrent" ] || linbo_download "${subdir}${FILE}.torrent"
+    download_torrent "$FILE"
+  fi
+  exit 0
+fi
+
+# download image file
+RC=0
+rm -f "${FILE}.complete"
+case "$downloadtype" in
+  torrent)
+    # remove old image and torrents before download starts
+    rm -f "$FILE" "${FILE}.torrent.bf"
+    # download torrent file
+    linbo_download "${subdir}${FILE}.torrent" important || RC="1"
+    if [ "$RC" = "0" ]; then
+      download_torrent "$FILE" || RC="1"
+    fi
+    ;;
+  multicast)
+    if [ -s /multicast.list ]; then
+      MPORT="$(get_multicast_port "$FILE")"
+      if [ -n "$MPORT" ]; then
+        download_multicast "$MPORT" "$FILE" || RC="1"
+      else
+        echo "Cannot get multicast port, no multicast download possible." >&2
+        RC=1
+      fi
+    else
+      echo "multicast.list not found, no multicast download possible." >&2
+      RC=1
+    fi
+    ;;
+esac
+# download per rsync also as a fallback if other download types failed
+if [ "$RC" != "0" -o "$downloadtype" = "rsync" ]; then
+  RC="0"
+  linbo_download "${subdir}${FILE}" important || RC="1"
+fi
+
+exit "$RC"
