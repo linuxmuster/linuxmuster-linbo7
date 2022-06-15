@@ -1,0 +1,31 @@
+#!/bin/sh
+#
+# linbo_writefile
+# thomas@linuxmuster.net
+# 20220611
+#
+
+usage(){
+  echo
+  echo "Writes file to cache."
+  echo
+  echo "Usage: linbo_writefile <filename> [sourcefile] | [help]"
+  echo
+  exit 0
+}
+
+# print help
+[ -z "$1" -o "$1" = "help" ] && usage
+
+# shift cache parameter if given
+[ -z "$1" -o -b "$1" ] && shift
+
+linbo_mountcache || exit 1
+
+if [ -e "$2" ]; then
+  cp -a "$2" "/cache/$1"
+else
+  cat > "/cache/$1"
+fi
+
+exit "$?"
