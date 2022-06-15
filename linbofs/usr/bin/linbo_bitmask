@@ -1,0 +1,22 @@
+#!/bin/sh
+#
+# linbo_bitmask [help]
+# prints netmask
+# thomas@linuxmuster.net
+# 20220610
+#
+
+usage(){
+  echo
+  echo "Prints bitmask."
+  echo
+  echo "Usage: linbo_bitmask [help]"
+  echo
+  exit 0
+}
+
+[ "$1" = "help" ] && usage
+
+linbo_netmask -b
+
+exit $?
