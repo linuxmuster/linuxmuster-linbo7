@@ -1,0 +1,242 @@
+#!/bin/sh
+#
+# linbo_partition [-h|help|--help]
+# thomas@linuxmuster.net
+# 20220609
+#
+
+
+#### functions begin ####
+
+usage(){
+  echo
+  echo "Partitions the hard drive according to start.conf."
+  echo
+  echo "Usage: linbo_partition [help]"
+  echo
+  exit 0
+}
+
+
+# convert all units to MiB and ensure partability by 2048
+convert_size(){
+  local unit="$(echo $1 | sed 's|[^a-zA-Z]*||g')"
+  local size="$(echo ${1/$unit} | awk -F\[,.] '{ print $1 }')"
+  local unit="$(echo $unit | tr A-Z a-z | head -c1)"
+  case "$unit" in
+    k) size=$(( $size / 2048 * 2 )) ;;
+    m) size=$(( $size / 2 * 2 )) ;;
+    g) size=$(( $size * 1024 )) ;;
+    t) size=$(( $size * 1024 * 1024 )) ;;
+    *) return 1 ;;
+  esac
+  echo $size
+}
+
+
+# partition with parted, invoked by partition() for each disk
+# if environment variable FORMAT is set, partitions will be formatted
+# mk_parted <table>
+mk_parted(){
+  local table="$1"
+  [ -s "$table" ] || return 1
+  local disk="/dev/$(basename "$table")"
+  [ -b "$disk" ] || return 1
+  local lastnr="$(grep -c ^"$disk" "$table")"
+  local dev
+  local label
+  local start
+  local partstart
+  local end
+  local partend
+  local extend
+  local extpartend
+  local size
+  local unit="MiB"
+  local id
+  local fstype
+  local partname
+  local partflag
+  local disklabel="msdos"
+  local parttype="primary"
+  local bootable
+  local RC=0
+  local CMD="parted -s -a opt $disk mkpart"
+
+  # efi system -> gpt label
+  stringinstring "efi" "$SYSTEMTYPE" && disklabel="gpt"
+  echo "Creating new $disklabel partition table on $disk."
+
+  # first overwrite mbr
+  dd if=/dev/zero of=$disk bs=512 count=1 || RC="1"
+
+  # second create partition label
+  parted -s "$disk" mklabel "$disklabel" || RC="1"
+
+  local n=0
+  echo "partition label size id fstype bootable"
+  while read dev label size id fstype bootable; do
+    n=$(( n + 1 ))
+    echo "$n: $dev $label $size $id $fstype $bootable"
+    [ "$fstype" = "-" ] && fstype=""
+    [ "$label" = "-" ] && label=""
+    partname="" ; partflag=""
+
+    # begin of first partition
+    if [ $n -eq 1 ]; then
+      start=1
+    else
+      if [ "$parttype" = "extended" -o "$parttype" = "logical" ]; then
+        parttype="logical"
+        # add 1 MiB to logical partition start position
+        start=$(( $end + 1 ))
+      else
+        # start of next partition is the end of the partition before
+        start=$end
+      fi
+    fi
+    partstart=$start$unit
+
+    # handle size if not set
+    if [ "$size" = "-" ]; then
+      partend="100%"
+      extpartend="$partend"
+    else
+      isinteger "$size" && size="$size"k
+      size="$(convert_size $size)"
+      # don't increase the end counter in case of extended partition
+      case "$id" in
+        5|05) extend=$(( $start + $size )) ; extpartend=$extend$unit ;;
+        * ) end=$(( $start + $size )) ; partend=$end$unit ;;
+      esac
+    fi
+
+    # handle partition name
+    if [ -n "$label" -a "$disklabel" = "gpt" ]; then
+      partname="$label"
+    else
+      partname="$parttype"
+    fi
+
+    # handle last logical partition if size was not set and size for extended was set
+    [ "$n" = "$lastnr" -a "$parttype" = "logical" -a "$partend" = "100%" -a -n "$extend" ] && partend=$extend$unit
+
+    # create partitions
+    case "$id" in
+      c01|0c01) $CMD '"Microsoft reserved partition"' $partstart $partend || RC=1 ; partflag="msftres" ;;
+      5|05)
+        parttype="extended"
+        $CMD $parttype $partstart $extpartend || RC=1
+        if [ "$RC" = "0" ]; then
+          # correct parted's idea of the extended partition id
+          echo -e "t\n$n\n5\nw\n" | fdisk "$disk" 2>> /tmp/linbo.log 1>> /tmp/linbo.log || RC=1
+        fi
+        ;;
+      6|06|e|0e) $CMD $partname fat16 $partstart $partend || RC=1 ;;
+      7|07)
+        if [ "$disklabel" = "gpt" ]; then
+          $CMD '"Basic data partition"' NTFS $partstart $partend || RC=1
+          partflag="msftdata"
+        else
+          $CMD $partname NTFS $partstart $partend || RC=1
+        fi
+        ;;
+      b|0b|c|0c) $CMD $partname fat32 $partstart $partend || RC=1 ;;
+      ef)
+        if [ "$disklabel" = "gpt" ]; then
+          $CMD '"EFI system partition"' fat32 $partstart $partend || RC=1
+          partflag="boot"
+        else
+          $CMD $partname fat32 $partstart $partend || RC=1
+          if [ "$RC" = "0" ]; then
+            # correct parted's idea of the efi partition id on msdos disklabel
+            echo -e "t\n$n\nef\nw\n" | fdisk "$disk" 2>> /tmp/linbo.log 1>> /tmp/linbo.log || RC=1
+          fi
+        fi
+        ;;
+      82) $CMD $partname linux-swap $partstart $partend || RC=1 ;;
+      83) $CMD $partname $fstype $partstart $partend || RC=1 ;;
+      *) $CMD $partname $partstart $partend || RC=1 ;;
+    esac
+
+    # set bootable flag
+    if [ "$bootable" = "yes" ]; then
+      if [ "$disklabel" = "msdos" ]; then
+        echo -e "a\n$n\nw\n" | fdisk "$disk" 2>> /tmp/linbo.log 1>> /tmp/linbo.log || RC=1
+      else
+        # note: with gpt disklabel only one partition can own the bootable
+        # flag, so the last one wins if multiple boot flags were set
+        parted -s "$disk" set $n boot on || RC="1"
+      fi
+    fi
+
+    # set other flags
+    if [ -n "$partflag" ]; then
+      parted -s "$disk" set $n $partflag on || RC="1"
+    fi
+
+    # format partition
+    if [ -n "$FORMAT" -a -n "$fstype" ]; then
+      linbo_format "$dev" || RC="1"
+    fi
+
+  done < "$table"
+
+  if [ "$RC" = "0" ]; then
+    echo "Finished partitioning of $disk successfully!"
+  else
+    echo "Failed to partition $disk! For details see ${HOSTNAME}_linbo.log."
+  fi
+  return "$RC"
+}
+
+#### functions end ####
+
+
+# print help
+[ "$1" = "help" ] && usage 0
+
+# get environment
+source /usr/share/linbo/shell_functions
+
+# process all partitions defined in start.conf
+# if FORMAT is set, partitions will be formatted
+if ! ls /conf/part.* &> /dev/null; then
+  echo "Cannot read partition information."
+  exit 1
+fi
+
+killalltorrents
+
+cd /
+mount | grep -q ' /cache ' && umount /cache &> /dev/null && sleep 3
+if mount | grep -q ' /cache '; then
+  echo "Cannot unmount /cache." >&2
+  exit 1
+fi
+
+# collect partition infos from start.conf and write them to table
+table="/tmp/partitions"
+RC="0"
+rm -f "$table"
+for item in /conf/part.*; do
+  source "$item"
+  [ -z "$label" ] && label="-"
+  [ -z "$fstype" ] && fstype="-"
+  [ -z "$size" ] && size="-"
+  [ -z "$bootable" ] && bootable="-"
+  echo "$dev $label $size $id $fstype $bootable" >> "$table"
+  dev=""; label=""; id=""; fstype=""; size=""; bootable=""
+done
+
+# get all disks from start.conf
+disks="$(get_disks_startconf)"
+
+# sort table by disks and partitions
+for disk in $disks; do
+  diskname="${disk#\/dev\/}"
+  grep ^"$disk" "$table" | sort > "/tmp/$diskname"
+  mk_parted "/tmp/$diskname" || RC="1"
+done
+
+exit "$RC"
