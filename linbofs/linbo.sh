@@ -4,7 +4,7 @@
 # (C) Klaus Knopper 2007
 # License: GPL V2
 # thomas@linuxmuster.net
-# 20220508
+# 20220615
 #
 
 # Reset fb color mode
@@ -12,7 +12,8 @@ RESET="]R"
 # Clear and reset Screen
 CLEAR="c"
 
-source /.env
+# get environment
+source /usr/share/linbo/shell_functions
 
 # plymouth
 if [ -x "/sbin/plymouthd" -a -n "$SPLASH" ]; then
@@ -57,16 +58,30 @@ else # handle missing gui problem
   else
     export myname="| Name: $HOSTNAME"
     source /.profile
+    echo "Console boot menue of group $HOSTGROUP"
+    echo "----------------------------------------"
+    count=0
+    for item in /conf/os.*; do
+      source "$item"
+      count=$(( count + 1 ))
+      echo "[$count] Start $name"
+      count=$(( count + 1 ))
+      echo "[$count] Sync & start $name"
+    done
+    echo "----------------------------------------"
+    echo "[R] Reboot"
+    echo "[S] Shutdown"
     echo
-    echo -e "\nPress [1] to reboot or [2] to shutdown."
-    echo
-    answer="0"
-    while [ "$answer" != "1" -a "$answer" != "2" ]; do
-      read answer
+    while true; do
+      answer=$(stty -icanon -echo; dd ibs=1 count=1 2>/dev/null)
       case "$answer" in
-        1) /sbin/reboot ;;
-        2) /sbin/poweroff ;;
-        *) ;;
+        r|R) /sbin/reboot ;;
+        s|S) /sbin/poweroff ;;
+        *)
+          isinteger $answer || continue
+          osnr=$(($answer-$(($answer/2))))
+          if iseven $answer; then linbo_syncstart $osnr; else linbo_start $osnr; fi
+          ;;
       esac
     done
   fi
