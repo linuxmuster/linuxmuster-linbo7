@@ -35,8 +35,6 @@ else
   make -j2 bzImage modules || exit 1
   # remove initramfs config link
   rm -f "$SRC/initramfs_kernel.conf"
-  # remove cloop module
-  rm -f "$CLMODULE"
 fi
 
 echo "Linking LINBO kernel to /srv/linbo/linbo64 ..."
