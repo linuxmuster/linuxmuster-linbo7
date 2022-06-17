@@ -1,0 +1,7 @@
+# r8168 build environment
+
+R81NAME="r8168"
+R81URL="https://github.com/mtorromeo/r8168.git"
+R81DIR="$SRC/$R81NAME"
+R81SRCDIR="$R81DIR/src"
+R81MOD="$R81SRCDIR/r8168.ko"

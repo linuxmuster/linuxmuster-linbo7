@@ -8,9 +8,20 @@ mkdir -p "$KMODTMPDIR"
 cd "$KSRCDIR"
 make INSTALL_MOD_PATH="$KMODTMPDIR" modules_install || exit 1
 
-# install cloop module
-KBLOCKDIR="$KMODTMPDIR/lib/modules/$KVERS/kernel/drivers/block"
-mkdir -p "$KBLOCKDIR"
+# get r8168
+echo "Cloning $R81NAME source ..."
+[ -d "$R81DIR" ] && rm -rf "$R81DIR"
+cd "$SRC"
+git clone "$R81URL" || exit 1
 
-# depmod
+# compile r8168
+echo "Compiling $R81NAME ..."
+cd "$R81SRCDIR" || exit 1
+make -C "$KSRCDIR" M="$(pwd)" modules
+[ -s "$R81MOD" ] || exit 1
+
+# install r8168
+cp "$R81MOD" "$KMODTMPDIR/lib/modules/$KVERS/kernel/drivers/net/ethernet" || exit 1
+
+# final depmod
 depmod -a -b "$KMODTMPDIR" "$KVERS" || exit 1
