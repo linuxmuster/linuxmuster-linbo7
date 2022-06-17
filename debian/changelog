@@ -1,3 +1,12 @@
+linuxmuster-linbo7 (4.0.28-0) lmn71; urgency=low
+
+  * linbo_cmd, start(): changed kexec type to bzImage64 (f38f683).
+  * Refactor linbo warmstart (aa42b23, 4f29b4b).
+  * Update kernel to 5.10.123 (b7b27d2).
+  * Add r8168 module (336d81f).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 17 Jun 2022 17:47:00 +0200
+
 linuxmuster-linbo7 (4.0.27-0) lmn71; urgency=low
 
   * Fix restore of windows efi boot files (#70).
