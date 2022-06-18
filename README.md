@@ -3,14 +3,14 @@
 <img src="https://raw.githubusercontent.com/linuxmuster/linuxmuster-artwork/master/linbo/linbo_logo_small.svg" alt="linbo icon" width="200"/>
 
 # linuxmuster-linbo7 (next generation)
- is the free and opensource imaging solution for linuxmuster.net 7. It handles Windows 10 and Linux 64bit operating systems. Via TFTP and Grub's PXE implementation it boots a small linux system (linbofs) with a [gui](https://github.com/linuxmuster/linuxmuster-linbo-gui), which can manage all the imaging tasks on the client. Console tools are also available to manage clients and imaging remotely via the server.
+ is the free and opensource imaging solution for linuxmuster.net 7. It handles Windows 10 (TM) and Linux 64bit operating systems. Via TFTP and Grub's PXE implementation it boots a small linux system (linbofs) with a [gui](https://github.com/linuxmuster/linuxmuster-linbo-gui), which can manage all the imaging tasks on the client. Console tools are also available to manage clients and imaging remotely via the server.
 
  ## Features
  * Kernel >5.18.
  * qcow2 image format.
  * Differential images.
  * Complete [refactoring of linbo_cmd](https://github.com/linuxmuster/linuxmuster-linbo7/issues/72).
- * switch to new ntfs3 kernel driver.
+ * switch to new ntfs3 kernel driver, allows file sync for ntfs partitions.
 
 ## Important notices:
 * Currently the code in this repo is not for production use. For the currently stable version go to [branch 4.0](https://github.com/linuxmuster/linuxmuster-linbo7/tree/4.0).
@@ -72,7 +72,7 @@
   ```
 Note:
 * <#>: start.conf position number of operating system.
-* qdiff: option to indicate a differential image, if omitted as baseimage will be created.
+* qdiff: option to indicate a differential image, if omitted a baseimage will be created.
 * Further infos about the new linbo commands see [refactor linbo_cmd #72](https://github.com/linuxmuster/linuxmuster-linbo7/issues/72).
 
 ## Build environment
