@@ -30,7 +30,7 @@
 ## Differential imaging
 * Differential imagefile uses the qcow2 baseimage as so called *backingstore*.
 * Differential image gets extension `qdiff`: `image.qdiff` -> `image.qcow2`.
-* the diffimage will be created in the same directory as the baseimage, so they are virtually "bundled".
+* The diffimage will be created in the same directory as the baseimage, so they are virtually "bundled".
 * If a diffimage exists for a baseimage, the diffimage is used for the restore.
 * If you remove the diffimage on the server, it is also deleted on the client during the sync and only the baseimage is used for the restore.
 * When uploading a new diffimage, any existing old diffimage is moved to a backup folder.
@@ -102,7 +102,7 @@ Or for better convenience use the new [linbo-build-docker](https://github.com/li
 
 ## Usage infos
 
-### Kernel parameter
+### New kernel parameters
 Parameter  |  Description
 --|--
 nogui  |  Does not start linbo_gui (for debugging purposes), console only mode.
