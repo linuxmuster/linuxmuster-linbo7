@@ -51,13 +51,6 @@
 * images are placed in subdirectories of /srv/linbo/images.
 * More performant image deployment based on ctorrent and [opentracker](https://erdgeist.org/arts/software/opentracker/).
 
-## In planning:
-* start.conf in yaml format.
-* step by step changeover of the scripting to python.
-* differential imaging.
-* switch to new ntfs3 kernel driver.
-* secure boot support.
-
 ## Build environment
 
 ### Source tree structure
@@ -90,7 +83,7 @@ Or for better convenience use the 18.04 branch of the [linbo-build-docker](https
 are defined in the start.conf file (see [examples](https://github.com/linuxmuster/linuxmuster-linbo7/tree/4.0/serverfs/srv/linbo/examples)) of the hardware group:
 `KernelOptions = quiet splash`
 The command `linuxmuster-import-devices` writes the parameters into the grub configuration of the hardware group.
-Option  |  Description
+Parameter  |  Description
 --|--
 forcegrub  |  Forces grub boot on uefi systems (in case of uefi boot issues).
 noefibootmgr  |  Skips providing the EFI boot files and boot entries (in case of uefi boot issues).
