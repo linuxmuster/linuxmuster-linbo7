@@ -17,6 +17,7 @@ git clone "$R81URL" || exit 1
 # compile r8168
 echo "Compiling $R81NAME ..."
 cd "$R81SRCDIR" || exit 1
+patch -p0 < "$R81PATCH"
 make -C "$KSRCDIR" M="$(pwd)" modules
 [ -s "$R81MOD" ] || exit 1
 
