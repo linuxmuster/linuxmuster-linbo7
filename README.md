@@ -1,3 +1,5 @@
+
+
 <img src="https://raw.githubusercontent.com/linuxmuster/linuxmuster-artwork/master/linbo/linbo_logo_small.svg" alt="linbo icon" width="200"/>
 
 # linuxmuster-linbo7 (next generation)
@@ -14,11 +16,13 @@
 * Currently the code in this repo is not for production use. For the currently stable version go to [branch 4.0](https://github.com/linuxmuster/linuxmuster-linbo7/tree/4.0).
 * The [README](https://github.com/linuxmuster/linuxmuster-linbo7/tree/4.0#readme) for the stable version is still valid.
 * Packages were published in the [lmn72 testing repository](https://github.com/linuxmuster/deb).
+* At the moment the [linbo_gui](https://github.com/linuxmuster/linuxmuster-linbo-gui) is not compatible with Ubuntu 22.04 and will not work.
 
 ## Migration from linuxmuster.net 7.1
 * Perform a two step upgrade of the server from Ubuntu 18.04 to 20.04 and finally to 22.04 using `do-release-upgrade`.
 * Reconfigure the linuxmuster packages (webui package may fail for the moment):
   `dpkg-reconfigure sophomorix-samba linuxmuster-base7 linuxmuster-webui7`
+* Add the `nogui` kernel parameter to the global KernelOptions in start.conf to avoid starting linbo_gui, because this would lead to a non functional linbo client (needed as long as the linbo_gui is not compatible to 22.04). Don't forget to invoke `linuxmuster-import-devices` to apply the changes.
 * Reactivate the lmn71 repo `/etc/apt/sources-list.d/lmn71.list.distUpgrade`.
 * Add the lmn72 repo according to this [instruction](https://github.com/linuxmuster/deb/blob/main/README.md#setup).
 * Perform a dist-upgrade subsequently.
@@ -56,17 +60,20 @@
 * The entry `Image =` in start.conf becomes obsolete, because diffimage is always bundled with baseimage.
 * For image creation, you only specify whether you want to create a base image or a diffimage:
   ```
-  linbo-remote -c|-p create_qdiff:1 ...
-  linbo_wrapper create_qdiff:1
-  linbo_create_image 1 diff
+  linbo-remote -c|-p create_qdiff:<#> ...
+  linbo_cmd create <cache> <imagefile> <root>
+  linbo_create_image <#> qdiff
   ```
 * Image upload accordingly:
   ```
-  linbo-remote -c|-p upload_qdiff:1 ...
-  linbo_wrapper upload_qdiff:1
-  linbo_upload 'password' image.qdiff
+  linbo-remote -c|-p upload_qdiff:<#> ...
+  linbo_cmd upload <server> <user> <password> <cache> <imagefile>
+  linbo_upload <password> <imagefile>
   ```
-Note: Infos about the new linbo commands see [refactor linbo_cmd #72](https://github.com/linuxmuster/linuxmuster-linbo7/issues/72).
+Note:
+* <#>: start.conf position number of operating system.
+* qdiff: option to indicate a differential image, if omitted as baseimage will be created.
+* Further infos about the new linbo commands see [refactor linbo_cmd #72](https://github.com/linuxmuster/linuxmuster-linbo7/issues/72).
 
 ## Build environment
 
@@ -94,6 +101,12 @@ Note: Infos about the new linbo commands see [refactor linbo_cmd #72](https://gi
 Or for better convenience use the new [linbo-build-docker](https://github.com/linuxmuster/linbo-build-docker) environment.
 
 ## Usage infos
+
+### Kernel parameter
+Parameter  |  Description
+--|--
+nogui  |  Does not start linbo_gui (for debugging purposes), console only mode.
+nowarmstart  |  Suppresses linbo warmstart after downloading a new linbo kernel from the server (in case this causes problems). Note: The old parameter `warmstart=no` does the same and is still valid for compatibility reasons.
 
 ### linbo-remote
 gets two new commands for differential imaging:
