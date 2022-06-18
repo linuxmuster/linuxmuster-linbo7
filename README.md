@@ -13,7 +13,7 @@
 ## Important notices:
 * Currently the code in this repo is not for production use. For the currently stable version go to [branch 4.0](https://github.com/linuxmuster/linuxmuster-linbo7/tree/4.0).
 * The [README](https://github.com/linuxmuster/linuxmuster-linbo7/tree/4.0#readme) for the stable version is still valid.
-* Packages were published in the [lmn72 testing repository](see https://github.com/linuxmuster/deb).
+* Packages were published in the [lmn72 testing repository](https://github.com/linuxmuster/deb).
 
 ## Migration from linuxmuster.net 7.1
 * Perform a two step upgrade of the server from Ubuntu 18.04 to 20.04 and finally to 22.04 using `do-release-upgrade`.
@@ -32,22 +32,26 @@
 * When uploading a new diffimage, any existing old diffimage is moved to a backup folder.
 * When uploading a new baseimage, the old baseimage and diffimage (if any) are moved to a backup folder.
 * Diffimage is created file-based by rsync:
-  `qemu-img create -f qcow2 -b image.qcow2 image.qdiff`
-  `qemu-nbd --connect /dev/nbd0 image.qdiff`
-  `mount /dev/nbd0 /image`
-  `mount /dev/sda1 /mnt`
-  `rsync -HAa --exclude="/.linbo" --exclude-from="/etc/rsync.exclude" --delete --delete-excluded  /mnt/ /image`
-  `umount /mnt`
-  `umount /image`
-  `qemu-nbd --disconnect /dev/nbd0`
+  ```
+  qemu-img create -f qcow2 -b image.qcow2 image.qdiff
+  qemu-nbd --connect /dev/nbd0 image.qdiff
+  mount /dev/nbd0 /image
+  mount /dev/sda1 /mnt
+  rsync -HAa --exclude="/.linbo" --exclude-from="/etc/rsync.exclude" --delete --delete-excluded  /mnt/ /image
+  umount /mnt
+  umount /image
+  qemu-nbd --disconnect /dev/nbd0
+  ```
 * Diffimage wll be restored file-based:
-  `qemu-nbd -r --connect /dev/nbd0 image.qdiff`
-  `mount /dev/nbd0 /image`
-  `mount /dev/sda1 /mnt`
-  `rsync -HAa --exclude="/.linbo" --exclude-from="/etc/rsync.exclude" --delete --delete-excluded  /image/ /mnt`
-  `umount /mnt`
-  `umount /image`
-  `qemu-img --disconnect /dev/nbd0`
+  ```
+  qemu-nbd -r --connect /dev/nbd0 image.qdiff
+  mount /dev/nbd0 /image
+  mount /dev/sda1 /mnt
+  rsync -HAa --exclude="/.linbo" --exclude-from="/etc/rsync.exclude" --delete --delete-excluded  /image/ /mnt
+  umount /mnt
+  umount /image
+  qemu-img --disconnect /dev/nbd0
+  ```
 * This also works with Windows10 thanks to the new native ntfs3 driver.
 * The entry `Image =` in start.conf becomes obsolete, because diffimage is always bundled with baseimage.
 * For image creation, you only specify whether you want to create a base image or a diffimage:
