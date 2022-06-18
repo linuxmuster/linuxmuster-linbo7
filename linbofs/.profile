@@ -1,16 +1,7 @@
 # busybox ash profile
 #
 # thomas@schmitt.tk
-# 20220615
-
-# prompt
-export PS1='\h: \w # '
-
-# path
-export PATH='/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
-
-# aliases
-#alias mount="mount -i"
+# 20220618
 
 # environment
 source /.env
