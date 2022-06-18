@@ -2,7 +2,7 @@
 #
 # linbo_wrapper: wrapper for linbo commands
 # thomas@linuxmuster.net
-# 20220610
+# 20220618
 #
 
 SECRETS=/tmp/rsyncd.secrets
@@ -113,12 +113,12 @@ while [ "$#" -gt "0" ]; do
       source /conf/os.$osnr
       # differential image
       if [ "$cmd" = "create_qdiff" ]; then
-        diff="diff"
+        qdiff="qdiff"
         imagefile="${baseimage/.qcow2/.qdiff}"
       else
         imagefile="$baseimage"
       fi
-      linbo_create_image "$osnr" "$diff" || exit 1
+      linbo_create_image "$osnr" "$qdiff" || exit 1
       create_desc "$imagefile"
       ;;
 
