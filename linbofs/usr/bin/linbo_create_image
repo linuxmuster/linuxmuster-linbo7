@@ -2,7 +2,7 @@
 #
 # linbo_create_image
 # thomas@linuxmuster.net
-# 20220611
+# 20220618
 #
 
 
@@ -12,12 +12,12 @@
 usage(){
   local RC="$1"
   echo
-  echo "Creates a base or differential image (option \"diff\") of an operating system"
+  echo "Creates a base or differential image (option \"qdiff\") of an operating system"
   echo "either defined by start.conf postition number or by root partition."
   echo
   echo "Usage:"
-  echo "  linbo_create_image <#> [diff] | [help]"
-  echo "  linbo_create_image <root> [diff] | [help]"
+  echo "  linbo_create_image <#> [qdiff] | [help]"
+  echo "  linbo_create_image <root> [qdiff] | [help]"
   echo
   echo "For compatibility reasons legacy options are also accepted. In this case"
   echo "the image type is defined by the filename:"
@@ -258,7 +258,7 @@ elif [ -z "$1" -o "$1" = "$CACHE" ]; then
   # check image filename
   case "$1" in
     *.qcow2) shift ;;
-    *.qdiff) shift ; diff="yes" ;;
+    *.qdiff) shift ; qdiff="yes" ;;
   esac
 
 fi
@@ -270,7 +270,7 @@ fi
 source /conf/os.$osnr &> /dev/null || usage 1
 
 # check differential image
-if [ "$2" = "diff" -o -n "$diff" ]; then
+if [ "$2" = "qdiff" -o -n "$qdiff" ]; then
   imagefile="${baseimage/.qcow2/.qdiff}"
 else
   imagefile="$baseimage"
