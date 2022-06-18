@@ -58,14 +58,15 @@
   ```
   linbo-remote -c|-p create_qdiff:1 ...
   linbo_wrapper create_qdiff:1
-  linbo_cmd create /dev/sda4 image.qdiff /dev/sda1
+  linbo_create_image 1 diff
   ```
 * Image upload accordingly:
   ```
   linbo-remote -c|-p upload_qdiff:1 ...
   linbo_wrapper upload_qdiff:1
-  linbo_cmd upload 10.0.0.1 linbo geheim /dev/sda4 image.qdiff
+  linbo_upload 'password' image.qdiff
   ```
+Note: Infos about the new linbo commands see [refactor linbo_cmd #72](https://github.com/linuxmuster/linuxmuster-linbo7/issues/72).
 
 ## Build environment
 
