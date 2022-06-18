@@ -19,8 +19,8 @@
 * Perform a two step upgrade of the server from Ubuntu 18.04 to 20.04 and finally to 22.04 using `do-release-upgrade`.
 * Reconfigure the linuxmuster packages (webui package may fail for the moment):
   `dpkg-reconfigure sophomorix-samba linuxmuster-base7 linuxmuster-webui7`
-* Reactivate the lmn71 repo (`/etc/apt/sources-list.d/lmn71.list.distUpgrade`).
-* Add the lmn72 repo according to this instruction https://github.com/linuxmuster/deb/blob/main/README.md#setup
+* Reactivate the lmn71 repo `/etc/apt/sources-list.d/lmn71.list.distUpgrade`.
+* Add the lmn72 repo according to this [instruction](https://github.com/linuxmuster/deb/blob/main/README.md#setup).
 * Perform a dist-upgrade subsequently.
 
 ## Differential imaging
@@ -55,13 +55,17 @@
 * This also works with Windows10 thanks to the new native ntfs3 driver.
 * The entry `Image =` in start.conf becomes obsolete, because diffimage is always bundled with baseimage.
 * For image creation, you only specify whether you want to create a base image or a diffimage:
-  `linbo-remote -c|-p create_qdiff:1 ...`
-  `linbo_wrapper create_qdiff:1`
-  `linbo_cmd create /dev/sda4 image.qdiff /dev/sda1`
+  ```
+  linbo-remote -c|-p create_qdiff:1 ...
+  linbo_wrapper create_qdiff:1
+  linbo_cmd create /dev/sda4 image.qdiff /dev/sda1
+  ```
 * Image upload accordingly:
-  `linbo-remote -c|-p upload_qdiff:1 ...`
-  `linbo_wrapper upload_qdiff:1`
-  `linbo_cmd upload 10.0.0.1 linbo geheim /dev/sda4 image.qdiff`
+  ```
+  linbo-remote -c|-p upload_qdiff:1 ...
+  linbo_wrapper upload_qdiff:1
+  linbo_cmd upload 10.0.0.1 linbo geheim /dev/sda4 image.qdiff
+  ```
 
 ## Build environment
 
