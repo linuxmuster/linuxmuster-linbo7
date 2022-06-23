@@ -2,7 +2,7 @@
 #
 # linbo_download_image
 # thomas@linuxmuster.net
-# 20220613
+# 20220623
 #
 
 
@@ -189,7 +189,10 @@ if [ -s "$infofile" -a -s "$FILE" ]; then
     linbo_download "$infofile" || exit 1
   fi
   # compare
-  diff -q "$infofile" "${infofile}.bak" || DOWNLOAD="yes"
+  if ! diff -q "$infofile" "${infofile}.bak"; then
+    echo "Info files of $FILE differ."
+    DOWNLOAD="yes"
+  fi
   rm -f "${infofile}.bak"
 else
   DOWNLOAD="yes"
