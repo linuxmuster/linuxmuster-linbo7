@@ -1,3 +1,11 @@
+linuxmuster-linbo7 (4.1.0-alpha0) lmn72; urgency=low
+
+  * Change temporary mount point in linbo_size (fd03470).
+  * Fix verbosity of linbo_mount (bb1c91f).
+  * Fix download qcow2 always (165fe60).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 23 Mar 2022 18:30:00 +0100
+
 linuxmuster-linbo7 (4.1.0-0) lmn72; urgency=low
 
   * merged differential imaging from branch diffimage (cc78fd7...8969db1).
