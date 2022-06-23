@@ -2,30 +2,29 @@
 #
 # linbo_mount
 # thomas@linuxmuster.net
-# 20220613
+# 20220623
 #
 
 usage(){
-  local RC="$1"
   echo
   echo "Mounts a partition."
   echo
   echo "Usage: linbo_mount <partition> <mountpoint> [-r] | [help]"
   echo
-  exit "$RC"
+  exit 0
 }
 
 # print help
-[ -z "$1" -o "$1" = "help" ] && usage 0
+[ -z "$1" -o "$1" = "help" ] && usage
 
-echo "## linbo_mount $@"
+#echo "## linbo_mount $@"
 
 # read common shell functions
 source /usr/share/linbo/shell_functions
 
 # get options
 type="$(linbo_fstype $1)"
-[ -z "$type" ] && usage 1
+[ -z "$type" ] && exit 1
 partition="$1"
 destdir="$2"
 [ "$3" = "-r" ] && ro=",ro"
