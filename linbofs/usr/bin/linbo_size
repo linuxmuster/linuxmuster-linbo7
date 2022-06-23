@@ -2,7 +2,7 @@
 #
 # linbo_size <partition>
 # thomas@linuxmuster.net
-# 20220611
+# 20220623
 #
 
 usage(){
@@ -24,10 +24,11 @@ source /usr/share/linbo/shell_functions
 # get options
 [ -b "$1" ] || usage 1
 
-if linbo_mount "$1" /mnt -r 2>> /tmp/linbo.log; then
-  df -k /mnt 2>/dev/null | tail -1 | \
+mkdir -p /tmp/mnt
+if linbo_mount "$1" /tmp/mnt -r 2>> /tmp/linbo.log; then
+  df -k /tmp/mnt 2>/dev/null | tail -1 | \
     awk '{printf "%.1f/%.1fGB\n", $4 / 1048576, $2 / 1048576}' 2>/dev/null
-  umount /mnt
+  umount /tmp/mnt
 else
   d=$(get_partition_size "$1")
   if [ "$?" = "0" -a "$d" -ge 0 ] 2>/dev/null; then
