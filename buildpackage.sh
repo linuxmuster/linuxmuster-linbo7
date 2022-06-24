@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # thomas@linuxmuster.net
-# 20220511
+# 20220624
 #
 
 MY_DIR="$(dirname $0)"
@@ -21,3 +21,5 @@ dpkg-buildpackage \
     -Isrc \
     -Ibuild.log \
     -Itmp 2>&1 | tee ../build.log
+
+exit $?
