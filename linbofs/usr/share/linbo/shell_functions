@@ -1,7 +1,7 @@
 # common linbo shell functions
 #
 # thomas@linuxmuster.net
-# 20220615
+# 20220624
 #
 
 set -o pipefail
@@ -914,7 +914,9 @@ mk_boot(){
     fi
   fi
   # umount efi partition if mounted
-  [ -n "$efipart" ] && umount /cache/boot/efi || RC="1"
+  if [ -n "$efipart" ]; then
+    umount /cache/boot/efi || RC="1"
+  fi
   return "$RC"
 }
 
