@@ -1,8 +1,9 @@
 linuxmuster-linbo7 (4.1.2-0) lmn72; urgency=low
 
   * Fix #74: Issue in umounting $efipart.
+  * Fix #76: Don't download control file from github.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 24 Mar 2022 18:26:00 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 24 Mar 2022 18:37:00 +0200
 
 linuxmuster-linbo7 (4.1.1-0) lmn72; urgency=low
 
