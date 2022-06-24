@@ -2,7 +2,7 @@
 #
 # linbo_preregister
 # thomas@linuxmuster.net
-# 20220611
+# 20220624
 #
 
 
@@ -29,7 +29,7 @@ cd /
 LASTWORKSTATION="$(grep ^[a-z0-9] "$LAST_REGISTERED" | tail -n 1)"
 
 if [ "$LASTWORKSTATION" == "" ]; then
-  echo ",,," > /tmp/newregister
+  echo ",,,"
   rm -f "$LAST_REGISTERED"
   exit 0
 fi
@@ -61,6 +61,6 @@ else
   NEXTHOST="$LASTHOST"
 fi
 rm -f "$LAST_REGISTERED"
-echo "$LASTROOM,$LASTGROUP,$NEXTHOST,$NEXTIP" > /tmp/newregister
+echo "$LASTROOM,$LASTGROUP,$NEXTHOST,$NEXTIP"
 
 exit 0
