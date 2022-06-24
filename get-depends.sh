@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # thomas@linuxmuster.net
-# 20210511
+# 20220624
 #
 
 set -e
@@ -13,7 +13,6 @@ if [ -z "$SUDO" ]; then
 fi
 
 PKGNAME="linuxmuster-linbo7"
-CONTROL_URL="https://raw.githubusercontent.com/linuxmuster/$PKGNAME/main/debian/control"
 
 echo "###############################################"
 echo "# Installing $PKGNAME build depends #"
@@ -35,5 +34,5 @@ $SUDO apt-get update && $SUDO apt-get -y dist-upgrade
 $SUDO apt-get -y install bash bash-completion ccache curl dpkg-dev || exit 1
 
 # install build depends
-BUILDDEPENDS="$(curl -s $CONTROL_URL | sed -n '/Build-Depends:/,/Package:/p' | grep -v ^Package | sed -e 's|^Build-Depends: ||' | sed -e 's|,||g')"
+BUILDDEPENDS="$(sed -n '/Build-Depends:/,/Package:/p' debian/control | grep -v ^Package | sed -e 's|^Build-Depends: ||' | sed -e 's|,||g')"
 $SUDO apt-get -y install $BUILDDEPENDS || exit 1
