@@ -128,7 +128,7 @@ while getopts ":b:c:dg:hi:lnp:r:uw:s:" opt; do
         [ -n "$IP" ] && HOSTNAME="$(nslookup "$IP" 2> /dev/null | head -1 | awk '{ print $4 }' | awk -F\. '{ print $1 }' | sed "s/^$SCHOOL-//g")"
         if [ -n "$HOSTNAME" ]; then
           # check for pxe flag, only use linbo related pxe flags 1 & 2
-          pxe="$(grep -i ^[a-z0-9] $WIMPORTDATA | grep ";$HOSTNAME;" | awk -F\; '{ print $11 }')"
+          pxe="$(grep -i ^[a-z0-9] $WIMPORTDATA | grep -i ";$HOSTNAME;" | awk -F\; '{ print $11 }')"
           if [ "$pxe" != "1" -a "$pxe" != "2" ]; then
             echo "Skipping $i, not a pxe host!"
             continue
@@ -416,15 +416,18 @@ if [ -n "$WAIT" ]; then
     # get mac address of client from devices.csv
     macaddr="$(get_mac "$(echo $i | sed "s/^$SCHOOL-//g")")"
     ipaddr="$(get_ip "$(echo $i | sed "s/^$SCHOOL-//g")")"
+    
+    if validip "$i"; then
+      hostip="$i"
+    else
+      hostip="$(get_ip "$i")"
+    fi
     # use broadcast address
     if [ -n "$USEBCADDR" ]; then
-      if validip "$i"; then
-        hostip="$i"
-      else
-        hostip="$(get_ip "$i")"
-      fi
       bcaddr=$(get_bcaddress "$hostip")
       [ -n "$bcaddr" ] && WOL="$WOL -i $bcaddr"
+    else
+      [ -n "$hostip" ] && WOL="$WOL -i $hostip"
     fi
 
     [ -n "$DIRECT" ] && $WOL "$macaddr"
