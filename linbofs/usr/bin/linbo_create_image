@@ -2,7 +2,7 @@
 #
 # linbo_create_image
 # thomas@linuxmuster.net
-# 20220618
+# 20220714
 #
 
 
@@ -246,34 +246,33 @@ fi
 # get environment
 source /usr/share/linbo/shell_functions
 
-# check os number options
+# check os number option
 if isinteger "$1"; then
   osnr="$1"
 
-# check legacy options (cache imagefile rootpartition)
-elif [ -z "$1" -o "$1" = "$CACHE" ]; then
-  # cache partition given as first parameter
-  shift
+# check rootdev option
+elif [ -b "$1" -a "$1" != "$CACHE" ]; then
+  osnr="$(osnr_startconf "$1")"
 
-  # check image filename
-  case "$1" in
-    *.qcow2) shift ;;
-    *.qdiff) shift ; qdiff="yes" ;;
-  esac
+# check legacy options (cache imagefile rootdev)
+else
+  for item in $@; do
+    [ "$item" = "$CACHE" ] && continue
+    case "$item" in *.qcow2|*.qdiff) imagefile="$item" ; continue ;; esac
+    [ -b "$item" ] && root="$item"
+  done
 
 fi
 
-# first parameter is root partition finally
-[ -b "$1" ] && osnr=$(osnr_startconf "$1")
-
-# read os parameters
-source /conf/os.$osnr &> /dev/null || usage 1
-
-# check differential image
-if [ "$2" = "qdiff" -o -n "$qdiff" ]; then
-  imagefile="${baseimage/.qcow2/.qdiff}"
-else
-  imagefile="$baseimage"
+# read os config parameters if osnr is known
+if [ -n "$osnr" ]; then
+  source /conf/os.$osnr &> /dev/null || usage 1
+  # check differential image
+  if [ "$2" = "qdiff" ]; then
+    imagefile="${baseimage/.qcow2/.qdiff}"
+  else
+    imagefile="$baseimage"
+  fi
 fi
 
 linbo_mountcache || exit 1
