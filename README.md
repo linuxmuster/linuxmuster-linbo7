@@ -16,13 +16,11 @@
 * Currently the code in this repo is not for production use. For the currently stable version go to [branch 4.0](https://github.com/linuxmuster/linuxmuster-linbo7/tree/4.0).
 * The [README](https://github.com/linuxmuster/linuxmuster-linbo7/tree/4.0#readme) for the stable version is still valid.
 * Packages were published in the [lmn72 testing repository](https://github.com/linuxmuster/deb).
-* At the moment the [linbo_gui](https://github.com/linuxmuster/linuxmuster-linbo-gui) is not compatible with Ubuntu 22.04 and will not work.
 
 ## Migration from linuxmuster.net 7.1
 * Perform a two step upgrade of the server from Ubuntu 18.04 to 20.04 and finally to 22.04 using `do-release-upgrade`.
-* Reconfigure the linuxmuster packages (webui package may fail for the moment):
+* Reconfigure the linuxmuster packages:
   `dpkg-reconfigure sophomorix-samba linuxmuster-base7 linuxmuster-webui7`
-* Add the `nogui` kernel parameter to the global KernelOptions in start.conf to avoid starting linbo_gui, because this would lead to a non functional linbo client (needed as long as the linbo_gui is not compatible to 22.04). Don't forget to invoke `linuxmuster-import-devices` to apply the changes.
 * Reactivate the lmn71 repo `/etc/apt/sources-list.d/lmn71.list.distUpgrade`.
 * Add the lmn72 repo according to this [instruction](https://github.com/linuxmuster/deb/blob/main/README.md#setup).
 * Perform a dist-upgrade subsequently.
@@ -46,7 +44,7 @@
   umount /image
   qemu-nbd --disconnect /dev/nbd0
   ```
-* Diffimage wll be restored file-based:
+* Diffimage will be restored file-based:
   ```
   qemu-nbd -r --connect /dev/nbd0 image.qdiff
   mount /dev/nbd0 /image
@@ -74,6 +72,11 @@ Note:
 * <#>: start.conf position number of operating system.
 * qdiff: option to indicate a differential image, if omitted a baseimage will be created.
 * Further infos about the new linbo commands see [refactor linbo_cmd #72](https://github.com/linuxmuster/linuxmuster-linbo7/issues/72).
+
+### In the gui
+* Log in to the admin section.
+* Press the big os button.
+* Select "Create differential image."
 
 ## Build environment
 
