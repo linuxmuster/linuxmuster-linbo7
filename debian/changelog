@@ -1,8 +1,9 @@
 linuxmuster-linbo7 (4.0.29-0) lmn71; urgency=low
 
   * linbo-remote wake-on-lan fixes (see #77).
+  * removed libdevmapper-dev from build deps.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 15 Jul 2022 15:31:00 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 15 Jul 2022 15:58:00 +0200
 
 linuxmuster-linbo7 (4.0.28-0) lmn71; urgency=low
 
