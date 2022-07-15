@@ -45,6 +45,7 @@ usage(){
   echo " -r <room>          All hosts of this room will be processed."
   echo " -p <cmd1,cmd2,...> Create an onboot command file executed automatically"
   echo "                    once next time the client boots."
+  echo " -u                 Obsolete, exists for compatibility reasons."
   echo " -w <sec>           Send wake-on-lan magic packets to the client(s)"
   echo "                    and wait <sec> seconds before executing the"
   echo "                    commands given with \"-c\" or in case of \"-p\" after"
@@ -104,7 +105,7 @@ list(){
 }
 
 # process cmdline
-while getopts ":b:c:dg:hi:lnp:r:w:s:" opt; do
+while getopts ":b:c:dg:hi:lnp:r:uw:s:" opt; do
 
   # debug
   #echo "### opt: $opt $OPTARG"
@@ -146,6 +147,7 @@ while getopts ":b:c:dg:hi:lnp:r:w:s:" opt; do
     g) GROUP=$OPTARG ;;
     p) ONBOOT=$OPTARG  ;;
     r) ROOM=$OPTARG ;;
+    u) ;;
     w) WAIT=$OPTARG
       isinteger "$WAIT" || usage ;;
     n) NOAUTO=yes ;;
