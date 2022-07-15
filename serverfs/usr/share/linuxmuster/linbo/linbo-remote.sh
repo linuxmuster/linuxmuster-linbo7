@@ -413,21 +413,24 @@ if [ -n "$WAIT" ]; then
   for i in $HOSTS; do
     [ -n "$BETWEEN" -a "$c" != "0" ] && do_wait between
     echo -n " $i ... "
+    # strip school from hostname
+    host="$(echo "$i" | sed "s|^$SCHOOL-||")"
     # get mac address of client from devices.csv
-    macaddr="$(get_mac "$(echo $i | sed "s/^$SCHOOL-//g")")"
+    macaddr="$(get_mac "$host")"
     # get ip address of host
-    ipaddr="$(get_ip "$(echo $i | sed "s/^$SCHOOL-//g")")"
+    ipaddr="$(get_ip "$host")"
+    validip "$ipaddr" || ipaddr="$(arp -a "$host" | awk -F\( '{print $2}' | awk -F\) '{print $1}')"
     # get broadcast address
-    bcaddr=$(get_bcaddress "$ipaddr")
-    # create wol command if broadcast address exists
-    [ -n "$bcaddr" ] && WOL="$WOL -i $bcaddr"
+    validip "$ipaddr" && bcaddr=$(get_bcaddress "$ipaddr")
+    # create wol command if broadcast address is valid
+    validip "$bcaddr" && WOL="$WOL -i $bcaddr"
 
     [ -n "$DIRECT" ] && $WOL "$maccaddr"
     if [ -n "$ONBOOT" ]; then
       # reboot linbo-clients which are already online
-      if is_online "$i"; then
+      if is_online "$host"; then
         echo "Client is already online, rebooting ..."
-        $SSH "$i" reboot &> /dev/null
+        $SSH "$host" reboot &> /dev/null
       else
         $WOL "$macaddr"
       fi
