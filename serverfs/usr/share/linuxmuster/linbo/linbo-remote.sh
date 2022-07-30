@@ -3,7 +3,7 @@
 # exec linbo commands remote per ssh
 #
 # thomas@linuxmuster.net
-# 20220715
+# 20220730
 # GPL V3
 #
 
@@ -418,12 +418,21 @@ if [ -n "$WAIT" ]; then
     # get ip address of host
     ipaddr="$(get_ip "$host")"
     validip "$ipaddr" || ipaddr="$(arp -a "$host" | awk -F\( '{print $2}' | awk -F\) '{print $1}')"
+    # check mac address
+    validmac "$macaddr" || macaddr="$(get_mac_dhcp "$ipaddr")"
     # get broadcast address
     validip "$ipaddr" && bcaddr=$(get_bcaddress "$ipaddr")
     # create wol command if broadcast address is valid
     validip "$bcaddr" && WOL="$WOL -i $bcaddr"
 
-    [ -n "$DIRECT" ] && $WOL "$maccaddr"
+    if [ -n "$DIRECT" ]; then
+      if validmac "$macaddr"; then
+        $WOL "$maccaddr"
+      else
+        echo "$maccaddr is no valid mac address!"
+        continue
+      fi
+    fi
     if [ -n "$ONBOOT" ]; then
       # reboot linbo-clients which are already online
       if is_online "$host"; then
