@@ -1,3 +1,10 @@
+linuxmuster-linbo7 (4.0.31-0) lmn71; urgency=low
+
+  * helperfunctions.sh: fixed broadcast address is not recognized as valid ip in some cases (2be903e).
+  * update kernel to 5.10.135 (xxxxxxx).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 3 Aug 2022 22:05:00 +0200
+
 linuxmuster-linbo7 (4.0.30-0) lmn71; urgency=low
 
   * Improved mac address handling in linbo-remote (4ee69c0).
