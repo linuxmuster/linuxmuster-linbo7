@@ -2,7 +2,7 @@
 # helperfunctions for linbo scripts
 #
 # thomas@linuxmuster.net
-# 20220114
+# 20220803
 #
 
 # get linuxmuster environment variables
@@ -38,7 +38,15 @@ isinteger(){
 
 # check valid ip
 validip(){
-  (expr match "$1"  '\(\([1-9]\|[1-9][0-9]\|1[0-9]\{2\}\|2[0-4][0-9]\|25[0-4]\)\.\([0-9]\|[1-9][0-9]\|1[0-9]\{2\}\|2[0-4][0-9]\|25[0-4]\)\.\([0-9]\|[1-9][0-9]\|1[0-9]\{2\}\|2[0-4][0-9]\|25[0-4]\)\.\([1-9]\|[1-9][0-9]\|1[0-9]\{2\}\|2[0-4][0-9]\|25[0-4]\)$\)') &> /dev/null || return 1
+  local i
+  if expr "$1" : '[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*$' >/dev/null; then
+    for i in 1 2 3 4; do
+      [ $(echo "$1" | cut -d. -f$i) -gt 255 ] && return 1
+    done
+    return 0
+  else
+    return 1
+  fi
 }
 
 # test valid mac address syntax
