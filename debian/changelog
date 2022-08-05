@@ -1,3 +1,9 @@
+linuxmuster-linbo7 (4.0.32-0) lmn71; urgency=low
+
+  * Fix typo in linbo-remote.sh (922175a).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 5 Aug 2022 20:45:00 +0200
+
 linuxmuster-linbo7 (4.0.31-0) lmn71; urgency=low
 
   * helperfunctions.sh: fixed broadcast address is not recognized as valid ip in some cases (2be903e).
