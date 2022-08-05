@@ -3,7 +3,7 @@
 # exec linbo commands remote per ssh
 #
 # thomas@linuxmuster.net
-# 20220730
+# 20220805
 # GPL V3
 #
 
@@ -427,9 +427,9 @@ if [ -n "$WAIT" ]; then
 
     if [ -n "$DIRECT" ]; then
       if validmac "$macaddr"; then
-        $WOL "$maccaddr"
+        $WOL "$macaddr"
       else
-        echo "$maccaddr is no valid mac address!"
+        echo "$macaddr is no valid mac address!"
         continue
       fi
     fi
