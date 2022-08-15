@@ -9,15 +9,20 @@ cd "$KSRCDIR"
 make INSTALL_MOD_PATH="$KMODTMPDIR" modules_install || exit 1
 
 # get r8168
-echo "Cloning $R81NAME source ..."
+echo "Cloning r8168 source ..."
 [ -d "$R81DIR" ] && rm -rf "$R81DIR"
 cd "$SRC"
 git clone "$R81URL" || exit 1
+[ -d "$R81DKMSDIR" ] && rm -rf "$R81DKMSDIR"
+git clone "$R81DKMSURL" || exit 1
 
 # compile r8168
-echo "Compiling $R81NAME ..."
+echo "Compiling r8168 ..."
 cd "$R81SRCDIR" || exit 1
-patch -p0 < "$R81PATCH"
+# apply necessary patches
+for i in $R81DKMSDIR/*.patch; do
+  patch -p2 < "$i" || exit 1
+done
 make -C "$KSRCDIR" M="$(pwd)" modules
 [ -s "$R81MOD" ] || exit 1
 

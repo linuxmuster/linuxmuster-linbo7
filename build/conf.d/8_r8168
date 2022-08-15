@@ -1,9 +1,11 @@
 # r8168 build environment
 
-R81NAME="r8168"
+# module source
 R81URL="https://github.com/mtorromeo/r8168.git"
-R81DIR="$SRC/$R81NAME"
+R81DIR="$SRC/r8168"
 R81SRCDIR="$R81DIR/src"
 R81MOD="$R81SRCDIR/r8168.ko"
-# kernel 5.18 compatibility patch (https://github.com/mtorromeo/r8168/issues/40)
-R81PATCH="$BUILDPATCHES/r8168_5.18.patch"
+
+# patches
+R81DKMSURL="https://aur.archlinux.org/r8168-dkms.git"
+R81DKMSDIR="$SRC/r8168-dkms"
