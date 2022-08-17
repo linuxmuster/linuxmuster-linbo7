@@ -1,3 +1,15 @@
+linuxmuster-linbo7 (4.1.9-0) lmn72; urgency=low
+
+  * Update kernel to 5.19.1 (b850801).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 15 Aug 2022 14:03:00 +0200
+
+linuxmuster-linbo7 (4.1.8-0) lmn72; urgency=low
+
+  * Fix typo in linbo-remote.sh (653d9d7).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 5 Aug 2022 21:29:00 +0200
+
 linuxmuster-linbo7 (4.1.7-0) lmn72; urgency=low
 
   * helperfunctions.sh: fixed broadcast address is not recognized as valid ip in some cases (11346aa).
