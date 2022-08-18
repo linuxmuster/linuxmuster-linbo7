@@ -6,7 +6,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20220617
+# 20220818
 # GPL v3
 #
 
@@ -2631,7 +2631,7 @@ download_img_if_changed(){
   localmode && return 0
   local server="$1"
   local imagefile="$2"
-  local imagebase="$(echo "$imagefile" | awk -F\. '{print $1}')"
+  local imagebase="$(basename "$imagefile" | sed 's/\(.*\)\..*/\1/')"
   local subdir="images/$imagebase/"
   local infofile="${imagefile}.info"
   local dltype="$3"
