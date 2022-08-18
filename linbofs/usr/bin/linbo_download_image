@@ -2,7 +2,7 @@
 #
 # linbo_download_image
 # thomas@linuxmuster.net
-# 20220623
+# 20220818
 #
 
 
@@ -169,7 +169,7 @@ case "$downloadtype" in
   *) downloadtype="rsync" ;;
 esac
 
-imagebase="${FILE%%.*}"
+imagebase="$(basename "$FILE" | sed 's/\(.*\)\..*/\1/')"
 imagetype="${FILE##*.}"
 [ "$imagetype" != "cloop" ] && subdir="images/$imagebase/"
 infofile="${FILE}.info"
