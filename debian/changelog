@@ -1,3 +1,10 @@
+linuxmuster-linbo7 (4.1.10-0) lmn72; urgency=low
+
+  * Fix download error with imagefilename containing dots (3cab702).
+  * Update kernel to 5.19.2 (d886e3f).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 18 Aug 2022 22:42:00 +0200
+
 linuxmuster-linbo7 (4.1.9-0) lmn72; urgency=low
 
   * Update kernel to 5.19.1 (b850801).
