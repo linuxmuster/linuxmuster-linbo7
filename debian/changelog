@@ -1,3 +1,10 @@
+linuxmuster-linbo7 (4.0.33-0) lmn71; urgency=low
+
+  * Fix download error with imagefilename containing dots (7f15ee4).
+  * update kernel to 5.10.136 (31b6a85).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 18 Aug 2022 20:40:00 +0200
+
 linuxmuster-linbo7 (4.0.32-0) lmn71; urgency=low
 
   * Fix typo in linbo-remote.sh (922175a).
