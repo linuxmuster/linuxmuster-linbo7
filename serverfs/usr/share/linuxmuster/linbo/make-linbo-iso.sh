@@ -3,7 +3,7 @@
 # create bootable linbo isos
 #
 # thomas@linuxmuster.net
-# 20210224
+# 20220824
 # GPL V3
 #
 
@@ -54,6 +54,7 @@ cp "$LINBOCFG" "$GRUBPREFIX/linbo.cfg"
 for i in linbo64 linbofs64.lz linbo_gui64_7.tar.lz linbo-version; do
  cp "$LINBODIR/$i" "$ISOCACHE"
 done
+cp "$GRUBDIR"/ipxe.* "$ISOCACHE"
 sed -i 's|"LINBO Start-Menue"|"LINBO Start-Menue (EFI-Modus)"|' "$GRUBTHEMETXT"
 
 # isolinux stuff
