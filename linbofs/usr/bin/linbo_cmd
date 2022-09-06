@@ -6,7 +6,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20220818
+# 20220906
 # GPL v3
 #
 
@@ -3054,10 +3054,6 @@ initcache(){
   cd /cache
   shift; shift; shift
 
-  # clean up obsolete linbofs files
-  rm -f linbofs64.lz*
-  rm -f linbo64*
-
   # clean up obsolete image files
   used_images="$(grep -i ^baseimage /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
   #used_images="$used_images $(grep -i ^image /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
@@ -3084,6 +3080,7 @@ initcache(){
   done
 
   # linbo & gui update
+  rm -f /tmp/.update.done
   update "$server" "$cachedev"
   linbo_update_gui
 }
