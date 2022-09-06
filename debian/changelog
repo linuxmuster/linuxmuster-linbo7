@@ -1,3 +1,10 @@
+linuxmuster-linbo7 (4.0.34-0) lmn71; urgency=low
+
+  * Fix initcache does not update linbo kernel & initrd (197f7cc).
+  * Update kernel to 5.10.141 (37e01d8).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 6 Sep 2022 22:06:00 +0200
+
 linuxmuster-linbo7 (4.0.33-0) lmn71; urgency=low
 
   * Fix download error with imagefilename containing dots (7f15ee4).
