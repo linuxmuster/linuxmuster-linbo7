@@ -2,7 +2,7 @@
 #
 # linbo_initcache [serverip] [cachedev] [downloadtype] | [-h|help|--help]
 # thomas@linuxmuster.net
-# 20220610
+# 20220906
 #
 
 usage(){
@@ -47,10 +47,6 @@ fi
 linbo_mountcache "$CACHE" || exit 1
 cd /cache
 
-# clean up obsolete linbofs files
-rm -f linbofs64.lz*
-rm -f linbo64*
-
 # clean up obsolete image files
 images="$(images_startconf)"
 for img in *.qcow2 *.cloop; do
@@ -76,6 +72,7 @@ for img in $images; do
 done
 
 # linbo & gui update
+rm -f /tmp/.update.done
 linbo_update || exit 1
 linbo_update_gui || exit 1
 
