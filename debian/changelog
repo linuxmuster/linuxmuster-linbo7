@@ -1,3 +1,10 @@
+linuxmuster-linbo7 (4.1.11-0) lmn72; urgency=low
+
+  * Fix initcache does not download linbo kernel & initrd (c5f86c3).
+  * Update kernel to 5.19.7 (00c835f).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 6 Sep 2022 22:52:00 +0200
+
 linuxmuster-linbo7 (4.1.10-0) lmn72; urgency=low
 
   * Fix download error with imagefilename containing dots (3cab702).
