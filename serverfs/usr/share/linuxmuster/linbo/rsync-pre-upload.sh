@@ -6,7 +6,7 @@
 # and installs a new version.
 #
 # thomas@linuxmuster.net
-# 20220327
+# 20220908
 # GPL v3
 #
 
@@ -30,7 +30,7 @@ BACKUP="${FILE}.BAK"
 PIDFILE="/tmp/rsync.$RSYNC_PID"
 
 # Save filename for post-script and exit, if it is a new host data file
-EXT="$(echo $FILE | grep -o '\.[^.]*$')"
+EXT="${BASENAME##*.}"
 
 # fetch host & domainname
 do_rsync_hostname
@@ -42,14 +42,14 @@ echo "FILE: $FILE"
 echo "PIDFILE: $PIDFILE"
 echo "EXT: $EXT"
 
-if [ "$EXT" = ".new" ]; then
+if [ "$EXT" = "new" ]; then
   [ -e "$PIDFILE" ] && rm -f "$PIDFILE"
   echo "$FILE" > "$PIDFILE"
   exit 0
 fi
 
 # create image directory in case of qcow2
-[ "$EXT" = ".qcow2" -o "$EXT" = ".qdiff" ] && mkdir -p "$DIRNAME"
+[ "$EXT" = "qcow2" -o "$EXT" = "qdiff" ] && mkdir -p "$DIRNAME"
 
 # Bailout with error if backup file exists (another process is uploading)
 if [ -e "$BACKUP" ]; then
