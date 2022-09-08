@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # thomas@linuxmuster.net
-# 20220114
+# 20220908
 #
 
 # read in linuxmuster specific environment
@@ -29,9 +29,11 @@ PIDFILE="/tmp/rsync.$RSYNC_PID"
 FILE="$(<$PIDFILE)"
 rm -f "$PIDFILE"
 BACKUP="${FILE}.BAK"
-BASE="${FILE##*/}" ; EXT="$BASE"; BASE="${BASE%%.*}" ; EXT="${EXT##$BASE}"
-IMGDIR="$LINBOIMGDIR/$BASE"
+EXT="${FILE##*.}"
 BASENAME="$(basename "$FILE")"
+BASE="$(echo "$BASENAME" | sed 's/\(.*\)\..*/\1/')"
+case "$EXT" in desc|info|macct|torrent) BASE="$(echo "$BASE" | sed 's/\(.*\)\..*/\1/')" ;; esac
+IMGDIR="$LINBOIMGDIR/$BASE"
 
 # fetch host & domainname
 do_rsync_hostname
@@ -48,7 +50,7 @@ if [ -s "$BACKUP" ]; then
   if [ "$RSYNC_EXIT_STATUS" = "0" ]; then
     echo "Upload of $BASENAME was successful." >&2
     case "$EXT" in
-      *.qcow2)
+      qcow2)
         # qcow2 is the first file of image upload, so place backup file in temporary dir
         # cause without info file we don't know the timestamp
         mkdir -p "$BAKTMP"
@@ -60,7 +62,7 @@ if [ -s "$BACKUP" ]; then
           cp -f "$IMGDIR"/*."$i" "$BAKTMP" &> /dev/null
         done
         chmod 600 "$BAKTMP"/*.macct &> /dev/null
-        ;;
+      ;;
       *)
         # next is the info file, so we can get the timestamp and create the final backup dir
         INFOFILE="$(ls $IMGDIR/*.info)"
@@ -78,7 +80,7 @@ if [ -s "$BACKUP" ]; then
             done
           fi
         fi
-        ;;
+      ;;
     esac
   else
     # If upload failed, move old file back from backup.
@@ -95,7 +97,7 @@ fi
 # do something depending on file type
 case "$EXT" in
 
-  *.qcow2)
+  qcow2)
     # restart multicast service if image file was uploaded.
     echo "Image file $BASENAME detected. Restarting multicast service if enabled." >&2
     /etc/init.d/linbo-multicast restart >&2
@@ -120,15 +122,15 @@ case "$EXT" in
       fi
     fi
 
-    ;;
+  ;;
 
-  *.torrent)
+  torrent)
     # restart torrent service if torrent file was uploaded.
     echo "Torrent file $BASENAME detected. Restarting linbo-torrent service." >&2
     linbo-torrent restart $BASENAME >&2
-    ;;
+  ;;
 
-  *.new)
+  new)
     # make row lmn7 compatible
     search=";;;;;1;1"
     replace=";;;;classroom-studentcomputer;;1;;;;;"
@@ -144,7 +146,7 @@ case "$EXT" in
       echo "$ROW" > "$LINBODIR/last_registered"
     fi
     rm $FILE
-    ;;
+  ;;
 
   *) ;;
 

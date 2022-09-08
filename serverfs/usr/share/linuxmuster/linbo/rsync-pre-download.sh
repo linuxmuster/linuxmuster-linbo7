@@ -19,12 +19,14 @@ FILE="${RSYNC_MODULE_PATH}/${RSYNC_REQUEST##$RSYNC_MODULE_NAME/}"
 PIDFILE="/tmp/rsync.$RSYNC_PID"
 echo "$FILE" > "$PIDFILE"
 
-BASE="${FILE##*/}" ; EXT="$BASE"; BASE="${BASE%%.*}" ; EXT="${EXT##$BASE}"
-case "$FILE" in
-  *.cloop*) IMGDIR="$LINBODIR" ;;
-  *.qcow2*) IMGDIR="$LINBOIMGDIR/$BASE" ;;
-esac
+EXT="${FILE##*.}"
 BASENAME="$(basename "$FILE")"
+BASE="$(echo "$BASENAME" | sed 's/\(.*\)\..*/\1/')"
+case "$EXT" in desc|info|macct|torrent) BASE="$(echo "$BASE" | sed 's/\(.*\)\..*/\1/')" ;; esac
+case "$EXT" in
+  cloop) IMGDIR="$LINBODIR" ;;
+  qcow2) IMGDIR="$LINBOIMGDIR/$BASE" ;;
+esac
 
 # fetch host & domainname
 do_rsync_hostname
@@ -45,7 +47,7 @@ echo "EXT: $EXT"
 case $EXT in
 
   # handle machine account password
-  *.macct)
+  macct)
     url="--url=/var/lib/samba/private/sam.ldb"
     LDBSEARCH="$(which ldbsearch) $url"
     LDBMODIFY="$(which ldbmodify) $url"
@@ -74,10 +76,10 @@ case $EXT in
         break
       fi
     done
-    ;;
+  ;;
 
   # fetch logfiles from client
-  *.log)
+  log)
     host_logfile="$(basename "$FILE")"
     echo "Upload request for $host_logfile."
     src_logfile="$(echo "$FILE" | sed -e "s|$LINBODIR/tmp/${compname}_|/tmp/|I")"
@@ -90,10 +92,10 @@ case $EXT in
     fi
     rm -f "$FILE"
     touch "$FILE"
-    ;;
+  ;;
 
   # fetch image status from client
-  *.status)
+  status)
     host_logfile="$(basename "$FILE")"
     echo "Upload request for $host_logfile."
     src_logfile="$(echo "$FILE" | sed -e "s|$LINBODIR/tmp/${compname}_|/tmp/|I")"
@@ -109,18 +111,18 @@ case $EXT in
     fi
     rm -f "$FILE"
     touch "$FILE"
-    ;;
+  ;;
 
   # patch image registry files with sambadomain if necessary
-  *.reg)
+  reg)
     search="Domain\"=\"$sambadomain\""
     if ! grep -q "$search" "$FILE"; then
       sed -i "s|Domain\"=.*|$search|g" "$FILE"
     fi
-    ;;
+  ;;
 
   # handle windows product key request
-  *.winkey)
+  winkey)
     # get key from workstations and write it to temporary file
     if [ -n "$compname" ]; then
       winkey="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print $2 " " $7 }' | grep -w $compname | awk '{ print $2 }' | tr a-z A-Z)"
@@ -128,7 +130,7 @@ case $EXT in
       [ -n "$winkey" ] && echo "winkey=$winkey" > "$FILE"
       [ -n "$officekey" ] && echo "officekey=$officekey" >> "$FILE"
     fi
-    ;;
+  ;;
 
   # handle windows activation tokens archive
   winact-upload)
@@ -169,7 +171,7 @@ case $EXT in
       echo "Sorry. Upload of $FILE failed."
     fi
     rm -f "$PIDFILE"
-    ;;
+  ;;
 
   # prepare download of local grub.cfg
   grub-local)
@@ -179,10 +181,10 @@ case $EXT in
     linbo_kopts="$(grep -iw ^kerneloptions "$startconf" | awk -F\= '{print $2}' | awk -F\# '{print $1}' | head -$nr | tail -1 | awk '{$1=$1};1')"
     append="$linbo_kopts localboot"
     sed -e "s|linux \$linbo_kernel .*|linux \$linbo_kernel $append|g" "$grubcfg_tpl" > "$FILE"
-    ;;
+  ;;
 
   # handle start.conf request
-  .conf_*)
+  conf_*)
     group="$(get_hostgroup "$compname")"
     startconf="$LINBODIR/start.conf.$group"
     if [ -n "$group" -a -s "$startconf" ]; then
@@ -190,7 +192,7 @@ case $EXT in
     else
       cp -L "$LINBODIR/start.conf" "$FILE"
     fi
-    ;;
+  ;;
 
   *) ;;
 
