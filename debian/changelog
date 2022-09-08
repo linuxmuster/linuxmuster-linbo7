@@ -1,3 +1,9 @@
+linuxmuster-linbo7 (4.1.12-0) lmn72; urgency=low
+
+  * Fixes for rsync scripts concerning to dots in image filenames and multicast service restart (dad0b4f).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 8 Sep 2022 20:33:00 +0200
+
 linuxmuster-linbo7 (4.1.11-0) lmn72; urgency=low
 
   * Fix initcache does not download linbo kernel & initrd (c5f86c3).
