@@ -100,7 +100,7 @@ case "$EXT" in
   qcow2)
     # restart multicast service if image file was uploaded.
     echo "Image file $BASENAME detected. Restarting multicast service if enabled." >&2
-    /etc/init.d/linbo-multicast restart >&2
+    linbo-multicast restart >&2
 
     # save samba passwords of host we made the new image
     LDBSEARCH="$(which ldbsearch)"
