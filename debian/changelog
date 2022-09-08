@@ -1,3 +1,11 @@
+linuxmuster-linbo7 (4.0.35-0) lmn71; urgency=low
+
+  * Fix #82: .macct file doesnt get uploaded when imagename contains dots (c93c44c).
+  * Update kernel to 5.10.142 (7679afc).
+  * Fix multicast restart in rsync-post-upload.sh (bd7bc65).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 8 Sep 2022 19:04:00 +0200
+
 linuxmuster-linbo7 (4.0.34-0) lmn71; urgency=low
 
   * Fix initcache does not update linbo kernel & initrd (197f7cc).
