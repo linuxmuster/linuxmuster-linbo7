@@ -1,3 +1,9 @@
+linuxmuster-linbo7 (4.0.36-0) lmn71; urgency=low
+
+  * Fix image directory in rsync-pre-download.sh (#82).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 9 Sep 2022 09:26:00 +0200
+
 linuxmuster-linbo7 (4.0.35-0) lmn71; urgency=low
 
   * Fix #82: .macct file doesnt get uploaded when imagename contains dots (c93c44c).
