@@ -2,7 +2,7 @@
 #
 # Pre-Download script for rsync/LINBO
 # thomas@linuxmuster.net
-# 20220908
+# 20220909
 #
 
 # read in linuxmuster specific environment
@@ -23,8 +23,8 @@ BASENAME="$(basename "$FILE")"
 EXT="${BASENAME##*.}"
 BASE="$(echo "$BASENAME" | sed 's/\(.*\)\..*/\1/')"
 case "$EXT" in desc|info|macct|torrent) BASE="$(echo "$BASE" | sed 's/\(.*\)\..*/\1/')" ;; esac
-case "$EXT" in
-  cloop) IMGDIR="$LINBODIR" ;;
+case "$FILE" in
+  *.cloop*) IMGDIR="$LINBODIR" ;;
   *) IMGDIR="$LINBOIMGDIR/$BASE" ;;
 esac
 
