@@ -10,7 +10,7 @@
 # read linuxmuster environment
 source /usr/share/linuxmuster/linbo/helperfunctions.sh || exit 1
 
-KNOWNCMDS="label partition format initcache sync start create_image create_rsync upload_image upload_rsync reboot halt"
+KNOWNCMDS="label partition format initcache sync start create_image upload_image reboot halt"
 DLTYPES="multicast rsync torrent"
 SSH="/usr/sbin/linbo-ssh -o BatchMode=yes -o StrictHostKeyChecking=no"
 SCP=/usr/sbin/linbo-scp
