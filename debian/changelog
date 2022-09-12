@@ -1,3 +1,11 @@
+linuxmuster-linbo7 (4.0.37-0) lmn71; urgency=low
+
+  * linbo_remote:
+    - reimplement -u option for use of broadcast address with wol (#77, b5b780c).
+    - remove obsolete commands from KNOWNCMDS (545dbc3).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 12 Sep 2022 20:01:00 +0200
+
 linuxmuster-linbo7 (4.0.36-0) lmn71; urgency=low
 
   * Fix image directory in rsync-pre-download.sh (#82).
