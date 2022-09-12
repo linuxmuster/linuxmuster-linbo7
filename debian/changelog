@@ -1,3 +1,9 @@
+linuxmuster-linbo7 (4.1.13-0) lmn72; urgency=low
+
+  * Fix image directory in rsync-pre-download.sh (159ee0b).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 9 Sep 2022 09:32:00 +0200
+
 linuxmuster-linbo7 (4.1.12-0) lmn72; urgency=low
 
   * Fixes for rsync scripts concerning to dots in image filenames and multicast service restart (dad0b4f).
