@@ -3,7 +3,7 @@
 # exec linbo commands remote per ssh
 #
 # thomas@linuxmuster.net
-# 20220805
+# 20220912
 # GPL V3
 #
 
@@ -45,7 +45,7 @@ usage(){
   echo " -r <room>          All hosts of this room will be processed."
   echo " -p <cmd1,cmd2,...> Create an onboot command file executed automatically"
   echo "                    once next time the client boots."
-  echo " -u                 Obsolete, exists for compatibility reasons."
+  echo " -u                 Use broadcast address for wol additionally."
   echo " -w <sec>           Send wake-on-lan magic packets to the client(s)"
   echo "                    and wait <sec> seconds before executing the"
   echo "                    commands given with \"-c\" or in case of \"-p\" after"
@@ -147,7 +147,7 @@ while getopts ":b:c:dg:hi:lnp:r:uw:s:" opt; do
     g) GROUP=$OPTARG ;;
     p) ONBOOT=$OPTARG  ;;
     r) ROOM=$OPTARG ;;
-    u) ;;
+    u) USEBCADDR=yes;;
     w) WAIT=$OPTARG
       isinteger "$WAIT" || usage ;;
     n) NOAUTO=yes ;;
@@ -422,10 +422,12 @@ if [ -n "$WAIT" ]; then
     validip "$ipaddr" || ipaddr="$(arp -a "$host" | awk -F\( '{print $2}' | awk -F\) '{print $1}')"
     # check mac address
     validmac "$macaddr" || macaddr="$(get_mac_dhcp "$ipaddr")"
-    # get broadcast address
-    validip "$ipaddr" && bcaddr=$(get_bcaddress "$ipaddr")
-    # create wol command if broadcast address is valid
-    validip "$bcaddr" && WOL="$WOL -i $bcaddr"
+    if [ -n "$USEBCADDR" ]; then
+      # get broadcast address
+      validip "$ipaddr" && bcaddr=$(get_bcaddress "$ipaddr")
+      # create wol command if broadcast address is valid
+      validip "$bcaddr" && WOL="$WOL -i $bcaddr"
+    fi
 
     if [ -n "$DIRECT" ]; then
       if validmac "$macaddr"; then
