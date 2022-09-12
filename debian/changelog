@@ -1,3 +1,10 @@
+linuxmuster-linbo7 (4.1.14-0) lmn72; urgency=low
+
+  * linbo_remote: reimplement -u option for use of broadcast address with wol (#77, 98f9459).
+  * Update kernel to 5.19.8 (344a9b1).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 12 Sep 2022 21:12:00 +0200
+
 linuxmuster-linbo7 (4.1.13-0) lmn72; urgency=low
 
   * Fix image directory in rsync-pre-download.sh (159ee0b).
