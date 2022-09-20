@@ -1,3 +1,10 @@
+linuxmuster-linbo7 (4.1.15-0) lmn72; urgency=low
+
+  * linbo_start(): return 1 if os cannot be startet with reboot (a82d108).
+  * Update kernel to 5.19.9 (ee85177).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 20 Sep 2022 13:06:00 +0200
+
 linuxmuster-linbo7 (4.1.14-0) lmn72; urgency=low
 
   * linbo_remote: reimplement -u option for use of broadcast address with wol (#77, 98f9459).
