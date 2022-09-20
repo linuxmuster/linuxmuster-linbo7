@@ -6,7 +6,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20220906
+# 20220920
 # GPL v3
 #
 
@@ -1463,7 +1463,7 @@ start(){
   # if no kernel is given, do not start
   if [ -z "$3" ]; then
     echo "There is nothing to start!"
-    return 0
+    return 1
   fi
   local INITRD
   local APPEND
