@@ -2,7 +2,7 @@
 #
 # linbo_start
 # thomas@linuxmuster.net
-# 20220614
+# 20220920
 #
 
 
@@ -91,7 +91,10 @@ if linbo_mount "$root" "$mntpnt" 2>> /tmp/linbo.log; then
   # install/update grub/efi stuff if cache is mounted
   if linbo_mountcache; then
     # prepare reboot if no warmstart
-    warmstart || mk_boot "$root" "$kernel" "$initrd" "$append" | tee -a /tmp/linbo.log
+    if ! warmstart; then
+      mk_boot "$root" "$kernel" "$initrd" "$append" | tee -a /tmp/linbo.log ; RC="$?"
+      [ "$RC" = "0" ] || exit 1
+    fi
     # update linuxmuster-win scripts and install start tasks
     [ "$(linbo_fstype "$root")" = "ntfs" -a -d /cache/linuxmuster-win ] && update_win "$root" | tee -a /tmp/linbo.log
   else
