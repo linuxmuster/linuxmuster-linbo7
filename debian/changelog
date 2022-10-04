@@ -1,3 +1,10 @@
+linuxmuster-linbo7 (4.0.39-0) lmn71; urgency=low
+
+  * Fix linbo_gui theming update in linbo_cmd (4afe1e4).
+  * Update kernel to 5.10.146 (a7b88ff).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 4 Oct 2022 16:13:00 +0200
+
 linuxmuster-linbo7 (4.0.38-0) lmn71; urgency=low
 
   * linbo_cmd fix: start() returns 1 if no kernel was given (2804e63).
