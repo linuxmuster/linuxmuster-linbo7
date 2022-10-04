@@ -6,7 +6,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20220920
+# 20221004
 # GPL v3
 #
 
@@ -2922,27 +2922,38 @@ update(){
     echo "LINBO is up-to-date."
   fi
 
-  # also look for other needed files
+  # update torrent files
+  echo "Downloading torrent and multicast control files."
   for i in "torrent-client.conf" "multicast.list"; do
-    echo "Downloading $i."
     rsync -L "$server::linbo/$i" "/$i" &> /dev/null
   done
 
-  # GUI icons
-  for i in linbo_wallpaper.png $(grep -i ^iconname /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }'); do
-    echo "Downloading $i."
-    rsync -L "$server::linbo/icons/$i" /icons &> /dev/null
+  # update gui files
+  mkdir -p /cache/icons
+  echo "Updating linbo_gui theming stuff."
+  linbo_gui_icons=$(grep -i ^iconname /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }')
+  linbo_gui_themefile=$(grep -m1 -i ^themeconffile ./start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }')
+  for i in $linbo_gui_icons $linbo_gui_themefile; do
+    rsync -L "$server::linbo/icons/$i" /cache/icons &> /dev/null
   done
-  rsync /icons/* /cache/icons
+  if [ -s /cache/icons/$linbo_gui_themefile ]; then
+    # if there is a themefile -> download all resources required for that theme
+    linbo_gui_theme_icons=$(sed -e '1,/^\[icons\]/ d' /icons/$linbo_gui_themefile | sed -e '/^\[.*\]/q' | sed '$d' | sed '/^$/d' | awk -F\= '{ print $2 }' | awk '{ print $1 }')
+    for i in $linbo_gui_theme_icons; do
+      rsync -L "$server::linbo/icons/$i" /cache/icons &> /dev/null
+    done
+  fi
+  mkdir -p /icons
+  rsync /cache/icons/* /icons
 
-  # get ipxe files from server
+  # update ipxe files
   echo "Updating ipxe file."
   case "$(systemtype)" in
     efi*) download "$server" boot/grub/ipxe.efi ;;
     *) download "$server" boot/grub/ipxe.lkrn ;;
   esac
 
-  # get grub configs from server
+  # update common grub configs
   echo "Updating common grub configuration."
   cfgfile="$myname.$group.grub.cfg"
   if download "$server" "boot/grub/spool/$cfgfile"; then
@@ -2951,7 +2962,7 @@ update(){
     echo "grub.cfg was updated."
   fi
 
-  # get host or group specific grub config from server
+  # update host or group specific grub configs
   echo "Updating host and group specific grub configuration."
   for i in "boot/grub/hostcfg/$myname.cfg" "boot/grub/$group.cfg"; do
     if download "$server" "$i"; then
@@ -2963,7 +2974,7 @@ update(){
     fi
   done
 
-  # keep grub themes also updated
+  # update grub themes
   echo -n "Updating grub themes ... "
   themesdir="/boot/grub/themes"
   mkdir -p "/cache$themesdir"
@@ -2975,7 +2986,7 @@ update(){
     echo "OK!"
   fi
 
-  # fetch also current linuxmuster-win scripts
+  # update linuxmuster-win scripts
   echo -n "Updating linuxmuster-win ... "
   [ -d /cache/linuxmuster-win ] || mkdir -p /cache/linuxmuster-win
   rsync -a --exclude=*.ex --delete --delete-excluded "$server::linbo/linuxmuster-win/" /cache/linuxmuster-win/ || RC=1
@@ -2985,6 +2996,7 @@ update(){
   else
     echo "OK!"
   fi
+
   # unix2dos and sambadomain fix
   [ -s /cache/hostname ] && sambadomain="$(awk -F\. '{print $2}' /cache/hostname | tr a-z A-Z)"
   for i in /cache/linuxmuster-win/*.reg; do
