@@ -2929,22 +2929,22 @@ update(){
   done
 
   # update gui files
-  mkdir -p /cache/icons
-  echo "Updating linbo_gui theming stuff."
-  linbo_gui_icons=$(grep -i ^iconname /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }')
-  linbo_gui_themefile=$(grep -m1 -i ^themeconffile ./start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }')
-  for i in $linbo_gui_icons $linbo_gui_themefile; do
-    rsync -L "$server::linbo/icons/$i" /cache/icons &> /dev/null
+  mkdir -p /icons
+  echo "Updating linbo_gui theminyg stuff."
+  linbo_gui_icons="$(grep -i ^iconname /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
+  linbo_gui_themefile="$(grep -m1 -i ^themeconffile ./start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }' | tail -1)"
+  for i in linbo_wallpaper.png $linbo_gui_icons $linbo_gui_themefile; do
+    rsync -L "$server::linbo/icons/$i" /icons &> /dev/null
   done
-  if [ -s /cache/icons/$linbo_gui_themefile ]; then
+  if [ -s /icons/$linbo_gui_themefile ]; then
     # if there is a themefile -> download all resources required for that theme
-    linbo_gui_theme_icons=$(sed -e '1,/^\[icons\]/ d' /cache/icons/$linbo_gui_themefile | sed -e '/^\[.*\]/q' | sed '$d' | sed '/^$/d' | awk -F\= '{ print $2 }' | awk '{ print $1 }')
+    linbo_gui_theme_icons=$(sed -e '1,/^\[icons\]/ d' /icons/$linbo_gui_themefile | sed -e '/^\[.*\]/q' | sed '$d' | sed '/^$/d' | awk -F\= '{ print $2 }' | awk '{ print $1 }')
     for i in $linbo_gui_theme_icons; do
-      rsync -L "$server::linbo/icons/$i" /cache/icons &> /dev/null
+      rsync -L "$server::linbo/icons/$i" /icons &> /dev/null
     done
   fi
-  mkdir -p /icons
-  rsync /cache/icons/* /icons
+  mkdir -p /cache/icons
+  rsync -a --delete /icons/ /cache/icons/
 
   # update ipxe files
   echo "Updating ipxe file."
