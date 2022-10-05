@@ -1,8 +1,8 @@
 linuxmuster-linbo7 (4.0.40-0) lmn71; urgency=low
 
-  * Fix linbo_gui theming update in linbo_cmd (e6a1d9a, #84).
+  * Another fix for linbo_gui theming update in linbo_cmd (e6a1d9a, ff4de2e, #84).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 5 Oct 2022 20:02:00 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 5 Oct 2022 20:43:00 +0200
 
 linuxmuster-linbo7 (4.0.39-0) lmn71; urgency=low
 
