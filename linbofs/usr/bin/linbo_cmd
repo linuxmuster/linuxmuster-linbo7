@@ -6,7 +6,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20221004
+# 20221005
 # GPL v3
 #
 
@@ -2938,7 +2938,7 @@ update(){
   done
   if [ -s /cache/icons/$linbo_gui_themefile ]; then
     # if there is a themefile -> download all resources required for that theme
-    linbo_gui_theme_icons=$(sed -e '1,/^\[icons\]/ d' /icons/$linbo_gui_themefile | sed -e '/^\[.*\]/q' | sed '$d' | sed '/^$/d' | awk -F\= '{ print $2 }' | awk '{ print $1 }')
+    linbo_gui_theme_icons=$(sed -e '1,/^\[icons\]/ d' /cache/icons/$linbo_gui_themefile | sed -e '/^\[.*\]/q' | sed '$d' | sed '/^$/d' | awk -F\= '{ print $2 }' | awk '{ print $1 }')
     for i in $linbo_gui_theme_icons; do
       rsync -L "$server::linbo/icons/$i" /cache/icons &> /dev/null
     done
