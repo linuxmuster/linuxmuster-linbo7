@@ -1,3 +1,10 @@
+linuxmuster-linbo7 (4.0.41-0) lmn71; urgency=low
+
+  * move linbo_gui theming update to linbo_update_gui (2baa737, #84).
+  * remove obsolete fbsplash code from init.sh (5027240).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 6 Oct 2022 15:56:00 +0200
+
 linuxmuster-linbo7 (4.0.40-0) lmn71; urgency=low
 
   * Another fix for linbo_gui theming update in linbo_cmd (e6a1d9a, ff4de2e, #84).
