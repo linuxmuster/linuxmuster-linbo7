@@ -6,7 +6,7 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20221005
+# 20221006
 # GPL v3
 #
 
@@ -1288,11 +1288,6 @@ prepare_grub(){
   # provide unicode font
   echo " * Providing grub environment ... "
   rsync "$grubsharedir/unicode.pf2" "$grubdir/unicode.pf2" || RC=1
-  #echo "Ok!"
-  # provide menu background image (obsolete)
-  #[ -l "$grubdir/linbo_wallpaper.png" ] || rm -f "$grubdir/linbo_wallpaper.png"
-  #ln -sf ../icons/linbo_wallpaper.png "$grubdir/linbo_wallpaper.png" || RC=1
-  #rsync /icons/linbo_wallpaper.png "$grubdir/linbo_wallpaper.png" || return 1
   #echo "Ok!"
   # reset grubenv
   if [ -s "$grubenv" ]; then
@@ -2922,29 +2917,18 @@ update(){
     echo "LINBO is up-to-date."
   fi
 
+  # update wallpaper
+  echo "Downloading linbo wallpaper."
+  [ -d icons ] || rm -rf icons ; mkdir -p icons
+  rsync -L "$server::linbo/icons/linbo_wallpaper.png" icons &> /dev/null
+  [ -d /icons ] || rm -rf /icons ; mkdir -p /icons
+  rsync icons/linbo_wallpaper.png /icons &> /dev/null
+
   # update torrent files
   echo "Downloading torrent and multicast control files."
   for i in "torrent-client.conf" "multicast.list"; do
     rsync -L "$server::linbo/$i" "/$i" &> /dev/null
   done
-
-  # update gui files
-  mkdir -p /icons
-  echo "Updating linbo_gui theminyg stuff."
-  linbo_gui_icons="$(grep -i ^iconname /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
-  linbo_gui_themefile="$(grep -m1 -i ^themeconffile ./start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }' | tail -1)"
-  for i in linbo_wallpaper.png $linbo_gui_icons $linbo_gui_themefile; do
-    rsync -L "$server::linbo/icons/$i" /icons &> /dev/null
-  done
-  if [ -s /icons/$linbo_gui_themefile ]; then
-    # if there is a themefile -> download all resources required for that theme
-    linbo_gui_theme_icons=$(sed -e '1,/^\[icons\]/ d' /icons/$linbo_gui_themefile | sed -e '/^\[.*\]/q' | sed '$d' | sed '/^$/d' | awk -F\= '{ print $2 }' | awk '{ print $1 }')
-    for i in $linbo_gui_theme_icons; do
-      rsync -L "$server::linbo/icons/$i" /icons &> /dev/null
-    done
-  fi
-  mkdir -p /cache/icons
-  rsync -a --delete /icons/ /cache/icons/
 
   # update ipxe files
   echo "Updating ipxe file."
