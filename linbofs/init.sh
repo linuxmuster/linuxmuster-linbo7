@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20220506
+# 20221006
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -607,7 +607,6 @@ network(){
       print_status "Starting time sync ..."
       #( ntpd -n -q -p "$server" && hwclock --systohc ) &
       ntpd -g -n -q -p "$server" &
-      #date
       # get onboot linbo-remote commands, if there are any
       for i in $hostname $ipaddr; do
         rsync -L "$server::linbo/linbocmd/$i.cmd" "/linbocmd" &> /dev/null
@@ -684,123 +683,6 @@ hwsetup(){
   touch /tmp/linbo-cache.done
 }
 
-# 32bit splashmode based on fbcon kernel patch
-fbconsplash(){
-  # convert wallpaper to splash image
-  pngtopnm /icons/linbo_wallpaper.png > /etc/splash.pnm
-
-  # no kernel messages, no screen blanking
-  setterm -msg off -cursor off -linewrap off -foreground green -blank 0 -powerdown 0
-  tput clear
-
-  # create pipes for progress bar and output
-  mkfifo /fbfifo
-  mkfifo /outfifo
-
-  # start fbsplash
-  fbsplash -i /etc/splash.conf -f /fbfifo -s /etc/splash.pnm &
-  fbsplash_pid="$!"
-
-  # start network and grab output
-  network > /outfifo &
-
-  # defaults for console output
-  YPOS=12
-  COLS=62
-  SEPLINE="$(for i in $(seq $COLS); do echo -n '-'; done)"
-  XPOS=19
-  MAXCOUNT=100
-  COUNTSTEP=12
-
-  # console output for network configuration
-  count=$COUNTSTEP
-  while read DATA; do
-    tput cup $YPOS $XPOS
-    printf "%${COLS}s"
-    tput cup $YPOS $XPOS
-    echo "$DATA"
-    [ $count -gt $MAXCOUNT ] && count=$MAXCOUNT
-    echo "$count" > /fbfifo
-    count=$(($count + $COUNTSTEP))
-  done < /outfifo
-  echo $MAXCOUNT > /fbfifo
-
-  # wait for network
-  while [ ! -e /tmp/linbo-network.done ]; do
-    sleep 1
-  done
-
-  # read downloaded onboot linbocmds (unnecessary)
-  #[ -e /linbocmd ] && linbocmd="$(cat /linbocmd)"
-
-  # console output for linbo commands
-  if [ -n "$linbocmd" ]; then
-
-    # start progress bar
-    ( count=0; while true; do sleep 1; echo $count > /fbfifo; count=$(($count + 10)); [ $count -gt $MAXCOUNT ] && count=0; done ) &
-    pb_pid="$!"
-
-    # iterate over on commandline given linbo commands
-    OIFS="$IFS"
-    IFS=","
-    n=1
-    for cmd in $linbocmd; do
-
-      # pause between commands
-      [ $n -gt 1 ] && sleep 3
-
-      # create pipe for command output
-      mkfifo /outfifo
-      # filter password
-      if echo "$cmd" | grep -q ^linbo:; then
-        msg="linbo_wrapper linbo:*****"
-      else
-        msg="linbo_wrapper $cmd"
-      fi
-
-      ( echo "$msg" ; /usr/bin/linbo_wrapper "$cmd" 2>&1 ; rm /outfifo ) > /outfifo &
-
-      # read and print output
-      header=""
-      while read DATA; do
-        # print header once
-        if [ -z "$header" ]; then
-          tput cup $(($YPOS - 2)) $XPOS
-          printf "%${COLS}s"
-          tput cup $(($YPOS - 2)) $XPOS
-          echo "${DATA:0:$COLS}"
-          tput cup $(($YPOS - 1)) $XPOS
-          echo "$SEPLINE"
-          header=yes
-        else
-          tput cup $YPOS $XPOS
-          printf "%${COLS}s"
-          tput cup $YPOS $XPOS
-          echo "${DATA:0:$COLS}"
-        fi
-        tput cup $YPOS $XPOS
-      done < /outfifo
-
-      n=$(( $n + 1 ))
-
-    done
-    IFS="$OIFS"
-  fi
-  echo $MAXCOUNT > /fbfifo
-
-  # kill progress bar
-  kill "$pb_pid"
-  ps w | grep -q " $pb_pid " && kill -9 "$pb_pid"
-
-  echo "exit\n" > /fbfifo
-  clear
-  setterm -default
-  kill "$fbsplash_pid"
-  rm -f /fbfifo
-
-  exit 0
-}
-
 
 # Main
 
@@ -822,9 +704,6 @@ else
   init_setup
   hwsetup
 fi
-
-# fork due to splash mode
-[ ! -x "/sbin/plymouthd" -a -n "$splash" ] && fbconsplash
 
 # start plymouth daemon
 if [ -x /sbin/plymouthd -a -n "$splash" ]; then
