@@ -3,7 +3,7 @@
 # download linbo_gui from server
 #
 # thomas@linuxmuster.net
-# 20220517
+# 20221028
 #
 
 if [ -e /tmp/.gui.done ]; then
@@ -26,6 +26,42 @@ print_status(){
     plymouth update --status="$msg"
   fi
   echo "$msg"
+}
+
+
+# update icons & theme
+update_icons(){
+  local item
+  local all_items
+  local linbo_gui_icons
+  local linbo_gui_themefile
+  local linbo_gui_themefile_icons
+  mkdir -p /cache/icons
+  echo "Updating linbo_gui icons & theming ..."
+  linbo_gui_icons="$(grep -i ^iconname /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
+  linbo_gui_themefile="$(grep -m1 -i ^themeconffile /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }' | tail -1)"
+  for item in $linbo_gui_icons $linbo_gui_themefile; do
+    rsync -L "$linbo_server::linbo/icons/$item" /cache/icons &> /dev/null
+  done
+  if [ -s "/cache/icons/$linbo_gui_themefile" ]; then
+    # if there is a themefile -> download all resources required for that theme
+    linbo_gui_themefile_icons="$(grep .svg "/cache/icons/$linbo_gui_themefile" | awk -F\= '{print $2}' | awk '{print $1}')"
+    for item in $linbo_gui_themefile_icons; do
+      rsync -L "$linbo_server::linbo/icons/$item" /cache/icons &> /dev/null
+    done
+  fi
+  # clean icons cache
+  all_items="$linbo_gui_icons $linbo_gui_themefile $linbo_gui_themefile_icons"
+  for item in `ls -1 /cache/icons/`; do
+    [ "$item" = "linbo_wallpaper.png" ] && continue
+    case "$all_items" in
+      *${item}*) continue ;;
+      *) rm -f "/cache/icons/$item" ;;
+    esac
+  done
+  # sync icons in place for gui
+  mkdir -p /icons
+  rsync -a --delete --exclude=linbo_wallpaper.png /cache/icons/ /icons/
 }
 
 
@@ -130,6 +166,8 @@ if [ -z "$offline" ]; then
        linbo_download "${gui_archive}.md5" 2>&1 | tee -a /cache/linbo.log
     fi
   fi
+
+  update_icons | tee -a /cache/linbo.log
 
 fi # offline
 

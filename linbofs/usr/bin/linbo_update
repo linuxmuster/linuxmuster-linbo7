@@ -2,7 +2,7 @@
 #
 # linbo_update
 # thomas@linuxmuster.net
-# 20220611
+# 20221028
 #
 
 usage(){
@@ -104,12 +104,12 @@ for i in "torrent-client.conf" "multicast.list"; do
   rsync -L "$LINBOSERVER::linbo/$i" "/$i" &> /dev/null
 done
 
-# GUI icons
-for i in linbo_wallpaper.png $(grep -h ^iconname /conf/os.* | awk -F\" '{print $2}' 2> /dev/null); do
-  echo "Downloading $i."
-  rsync -L "$LINBOSERVER::linbo/icons/$i" /icons &> /dev/null
-done
-rsync /icons/* /cache/icons
+# update wallpaper
+echo "Downloading linbo wallpaper."
+[ -d icons ] || rm -rf icons ; mkdir -p icons
+rsync -L "$server::linbo/icons/linbo_wallpaper.png" icons &> /dev/null
+[ -d /icons ] || rm -rf /icons ; mkdir -p /icons
+rsync icons/linbo_wallpaper.png /icons &> /dev/null
 
 # get ipxe files from server
 echo "Updating ipxe file."
