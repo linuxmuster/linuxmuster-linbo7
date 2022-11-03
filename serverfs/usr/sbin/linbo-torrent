@@ -1,105 +1,51 @@
 #!/bin/bash
 #
-# starts screen process for each valid torrent in LINBODIR
+# starts tmux sessions for each valid torrent in LINBODIR
 # thomas@linuxmuster.net
-# 20220404
+# 20221103
 #
 
 # read environment
 . /usr/share/linuxmuster/defaults.sh || exit 1
 THELPER=$LINBOSHAREDIR/linbo-torrenthelper.sh
 . $LINBOSHAREDIR/helperfunctions.sh || exit 1
-LINBOIMGEXT="qcow2 qdiff cloop"
+LINBOIMGEXT="qcow2 qdiff"
 
+# start of functions
 
 # help message
 usage(){
   echo
-  echo "Usage: $0 <start|stop|restart|reload|status|create|check> [torrent_filename|image_filename]"
+  echo "Info: linbo-torrent manages the torrent tmux sessions of linbo images."
+  echo
+  echo "Usage:"
+  echo " linbo-torrent <start|stop|restart|reload|status|create|check> [image_name]"
+  echo " linbo-torrent attach <image_name|session_name>"
   echo
   echo "Note:"
-  echo " * The commands start, stop and restart may have optionally a torrent filename"
-  echo "   as parameter. So the command is only processed to this certain file."
-  echo "   Without an explicit torrent filename the commands were processed to all"
-  echo "   torrent files found inside $LINBODIR and recursivly below $LINBOIMGDIR."
-  echo " * A torrent filename parameter is mandatory with the command check."
-  echo " * An image filename parameter is mandatory with the command create."
-  echo "   Only image files with the extensions qcow2, qdiff & cloop are processed."
+  echo " * Only qcow2 & qdiff image files located below $LINBOIMGDIR are processed."
+  echo " * The commands \"start\", \"stop\" and \"restart\" may have optionally an image"
+  echo "   filename as parameter. In this case the commands are only applied to the tmux"
+  echo "   session of the certain file. Without an explicit image filename the commands"
+  echo "   were applied to all image file sessions currently running."
+  echo " * An image filename parameter is mandatory with the commands \"check\", \"create\""
+  echo "   and \"attach\"."
+  echo " * \"check\" checks if the image file matches to the correspondig torrent."
+  echo " * \"create\" creates/recreates the torrent of a certain image file."
+  echo " * \"status\" shows a list of currently running torrent tmux sessions."
+  echo " * \"attach\" attaches a torrent tmux session of a certain image. An image or"
+  echo "   session name must be given as parameter."
+  echo "   Press [CTRL+B]+[D] to detach the session again."
+  echo " * \"reload\" is the identical to \"restart\" and is there for backwards compatibility."
   echo
   exit 1
 }
 
-
-# check second parameter
-if [ -n "$2" ] ; then
-  filename="$(basename "$2")"
-  extension="${filename##*.}"
-fi
-if [ "$1" = "create" ]; then
-  stringinstring "$extension" "$LINBOIMGEXT" || usage
-else
-  [ -n "$2" -a "$extension" != "torrent" ] && usage
-fi
-
-
-# start of functions
-
-# check for torrent screen and return pid
-torrent_pid(){
-  local torrent="$1"
-  local process="$(screen -ls | grep -w [0-9]*.$torrent)"
-  [ -z "$process" ] && return 0
-  # print pid if there is any
-  echo "$process" | awk -F\. '{print $1}' | awk '{print $1}'
-}
-
-# killing torrent screen
-kill_torrent(){
-  local torrent="$1"
-  local pid="$(torrent_pid "$torrent")"
-  [ -z "$pid" ] && return 0
-  kill "$pid"
-  pid="$(torrent_pid "$torrent")"
-  if [ -z "$pid" ]; then
-    echo "Screen process for $torrent terminated. "
-    return 0
-  else
-    echo "Failed to terminate screen process for $torrent."
-    return 1
-  fi
-}
-
-# reloading running ctorrent processes
-reload(){
-  local torrent
-  local pid
-  local line
-  local array
-  local num
-  local pos
-  local RC
-  # iterate over torrenthelper processes
-  ps ax | grep -v grep | grep -w ctorrent | grep -w torrent | while read line; do
-    read -ra array <<< "$line"
-    pid="${array[0]}"
-    num=${#array[@]}
-    pos=$(( $num - 1 ))
-    torrent="${array[$pos]}"
-    echo -n "Reloading $torrent ... "
-    RC=0
-    kill "$pid" || RC=1
-    if [ "$RC" = "0" ]; then
-      echo "Ok!"
-    else
-      echo "Failed!"
-    fi
-  done
-}
-
 # check torrent
 check(){
-  local torrent="$(basename "$TORRENTS")"
-  local tdir="$(dirname "$TORRENTS")"
+  local image="$(basename "$IMGLIST")"
+  local torrent="$image.torrent"
+  local tdir="$(dirname "$IMGLIST")"
   cd "$tdir"
   echo "Checking $torrent ..."
   if ctorrent -c "$torrent"; then
@@ -112,152 +58,153 @@ check(){
 
 # creates torrent files
 create(){
-  local image="$(basename "$TORRENTS")"
-  local tdir="$(dirname "$TORRENTS")"
+  local image="$(basename "$IMGLIST")"
+  local tdir="$(dirname "$IMGLIST")"
   local torrent="${image}.torrent"
-  local pid
+  local session="${torrent//./_}"
   # stop torrent service
-  linbo-torrent stop "$torrent"
+  linbo-torrent status | grep -q ^"$session" && linbo-torrent stop "$IMGLIST"
   # skip already running torrents
-  pid="$(torrent_pid "$torrent")"
-  if [ -n "$pid" ]; then
-    echo "$torrent is already running."
-    return 1
+  echo "Creating $torrent ..."
+  cd "$tdir"
+  rm -f "$torrent"
+  if ctorrent -t -u "http://$serverip:6969/announce" -s "$torrent" "$image" ; then
+    [ "$START" = "no" ] || linbo-torrent start "$IMGLIST"
   else
-    echo "Creating $torrent ..."
-    cd "$tdir"
-    rm -f "$torrent"
-    if ctorrent -t -u "http://$serverip:6969/announce" -s "$torrent" "$image" ; then
-      echo "Ok!"
-      linbo-torrent start "$torrent"
-    else
-      echo "Failed!"
-      exit 1
-    fi
+    echo "Failed!"
+    exit 1
   fi
 }
 
-# starts torrent screen processes
+# starts torrent tmux sessions
 start(){
-  local item=
+  local item
   local torrent
   local image
   local tdir
-  local pid
-  for item in $TORRENTS; do
-    torrent="$(basename "$item")"
-    image="${torrent/.torrent/}"
+  local session
+  for item in $IMGLIST; do
+    image="$(basename "$item")"
+    torrent="${image}.torrent"
     tdir="$(dirname "$item")"
+    session="${torrent//./_}"
     cd "$tdir"
     if [ ! -s "$image" ]; then
       echo "Image $image does not exist! Skipping this torrent."
       continue
     fi
     # skip already running torrents
-    pid="$(torrent_pid "$torrent")"
-    if [ -n "$pid" ]; then
-      echo "$torrent is already running."
+    if linbo-torrent status | grep -qw ^"$session"; then
+      echo "tmux session $session is already running."
       continue
+    fi
+    # create torrent file if there is none
+    if [ ! -e "$torrent" ]; then
+      START="no" linbo-torrent create "$item" || continue
+    fi
+    echo -n "Starting tmux session $session ... "
+    tmux new -ds "$session" "$THELPER $torrent ; exec $SHELL"
+    sleep 1
+    if linbo-torrent status | grep -qw ^"$session"; then
+      echo "Ok!"
     else
-      echo -n "Starting screen process for $torrent ... "
-      screen -dmS "$torrent" "$THELPER" "$torrent"
-      sleep 1
-      pid="$(torrent_pid "$torrent")"
-      if [ -n "$pid" ]; then
-        echo "$pid ... Ok!"
-      else
-        echo "Failed!"
-      fi
+      echo "Failed!"
     fi
   done
 }
 
 stop(){
-  local item="$1"
-  if [ -n "$item" ]; then
-    kill_torrent "$item"
+  if [ -n "$SESSION" ]; then
+    linbo-torrent status | grep -qw ^"$SESSION" || return
+    tmux kill-session -t "$SESSION"
   else
-    linbo-torrent status | awk '{print $1}' | while read item; do
-      kill_torrent "${item#[0-9]*.}"
+    local item
+    linbo-torrent status | awk -F\: '{print $1}' | while read item; do
+      tmux kill-session -t "$item"
     done
   fi
 }
 
-status(){
-  screen -ls | grep -w torrent
+attach(){
+  if ! tmux list-sessions | grep -qw "$SESSION"; then
+    echo "There is no session $SESSION."
+    exit 1
+  fi
+  echo "Hint: Detach tmux session with [CTRL+B]+[D]."
+  sleep 3
+  tmux attach -t "$SESSION"
 }
 
-find_torrents(){
-  local search="$1"
-  [ -z "$search" ] && search="*.torrent"
-  local TORRENTS="$(find "$LINBODIR" -maxdepth 1 -name "$search")"
-  if [ -n "$TORRENTS" ]; then
-    TORRENTS="$TORRENTS $(find "$LINBOIMGDIR" -maxdepth 2 -name "$search")"
-  else
-    TORRENTS="$(find "$LINBOIMGDIR" -maxdepth 2 -name "$search")"
+status(){
+  tmux list-sessions | grep _torrent
+}
+
+find_images(){
+  local search="$(basename "$1")"
+  if [ -n "$search" ]; then
+    find "$LINBOIMGDIR" -maxdepth 2 -name "$search"
+    return
   fi
-  echo $TORRENTS
+  local IMGLIST
+  for search in $LINBOIMGEXT; do
+    IMGLIST="$IMGLIST $(find "$LINBOIMGDIR" -maxdepth 2 -name \*.$search)"
+  done
+  # trim leading and trailing spaces
+  echo $IMGLIST | awk '{$1=$1};1'
 }
 
 # end of functions
 
-# not necessesary to find torrents with stop
-TORRENTS="$(find_torrents "$2")"
-if [ -z "$TORRENTS" -a "$1" != "stop" ] || [ -z "$TORRENTS" -a -n "$2" ]; then
-  echo "There are no torrent files to process."
-  exit 0
+# check parameters
+if [ -n "$2" ] ; then
+  # trap torrent parameter
+  image="${2/.torrent/}"
+  case "$image" in
+    *.qcow2|*.qdiff)
+      if [ -e "$image" ]; then
+        IMGLIST="$image"
+      else
+        IMGLIST="$(find_images "$image")"
+      fi
+      if [ ! -e "$IMGLIST" ]; then
+        echo "Image file $(basename $image) not found."
+        usage
+      fi
+      filename="$(basename "$IMGLIST")"
+      SESSION="${filename//./_}_torrent"
+      ;;
+    *_torrent)
+      if [ "$1" = "attach" ]; then
+        SESSION="$image"
+      else
+        usage
+      fi
+      ;;
+    *) usage ;;
+  esac
+else
+  case "$1" in
+    stop|status) ;;
+    attach|check|create) usage ;;
+    *)
+      IMGLIST="$(find_images)"
+      if [ -z "$IMGLIST" ]; then
+        echo "No linbo images found."
+        exit 0
+      fi
+      ;;
+  esac
 fi
 
 case "$1" in
   start) start ;;
-  stop) stop "$2" ;;
-  restart) stop "$2" ; start ;;
-  reload) reload ;;
+  stop) stop ;;
+  restart|reload) stop ; start ;;
   status) status ;;
   create) create ;;
   check) check ;;
+  attach) attach ;;
   *) usage ;;
 esac
 
 exit 0
-
-
-
-# check if torrent file is given
-if [ -n "$2" ]; then
-  # torrent file must have the correct extension
-  if [ "${2##*.}" != "torrent" ]; then
-    echo "$2 is not a torrent file!"
-    usage
-  fi
-  # corresponding image file must exist
-  image="${2/.torrent/}"
-  if [ ! -s "$image" ]; then
-    echo "Image file is missing!"
-    usage
-  fi
-  case "$1" in
-    create)
-      # in case of create the torrent file and may not already exist
-      if [ -e "$2" ]; then
-        echo "$2 exists already!"
-        usage
-      fi
-      ;;
-    start|stop|restart|check)
-      # torrent file must exist
-      if [ ! -s "$2" ]; then
-        echo "$2 does not exist!"
-        usage
-      fi
-      ;;
-    reload|status)
-      echo "Command $1 with torrent file is not supported!"
-      usage
-      ;;
-    *) ;;
-  esac
-  TORRENTS="$2"
-else
-  TORRENTS="$(ls -1 *.torrent)"
-fi
