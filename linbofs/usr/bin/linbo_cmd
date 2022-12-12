@@ -6,11 +6,12 @@
 # ssd/4k/8k support - jonny@bzt.de 06.11.2012 anpassung fuer 2.0.12
 #
 # thomas@linuxmuster.net
-# 20221006
+# 20221212
 # GPL v3
 #
 
 RSYNC_PERMISSIONS="--chmod=ug=rw,o=r"
+RSYNC_SKIP_COMPRESS="/7z/arc/arj/bz2/cab/cloop/deb/gz/gpg/iso/jar/jp2/jpg/jpeg/lz/lz4/lzma/lzo/png/qcow2/qdiff/qt/rar/rzip/s7z/sfx/svgz/tbz/tgz/tlz/txz/xz/z/zip/zst"
 UDEVADM="$(which udevadm)"
 
 trap bailout 1 2 3 10 12 13 15
@@ -100,7 +101,7 @@ sendlog(){
         [ -e /tmp/linbo-network.done ] || return 0
         echo "Veranlasse Upload von $i."
         logfile="/tmp/$(hostname)_$i"
-        rsync $(serverip)::linbo"$logfile" "/tmp/$i" 2>"$TMP" || true
+        rsync --skip-compress="$RSYNC_SKIP_COMPRESS" $(serverip)::linbo"$logfile" "/tmp/$i" 2>"$TMP" || true
       fi
     fi
   done
@@ -1115,7 +1116,7 @@ mk_winefiboot(){
       fi
       # copy whole windows efi stuff to efi partition
       echo "Restoring windows bootfiles on EFI partition."
-      rsync -r "$win_bootdir/" "$win_efidir/"
+      rsync --skip-compress="$RSYNC_SKIP_COMPRESS" -r "$win_bootdir/" "$win_efidir/"
     fi
   else
     echo "Failed to restore windows EFI bootfiles."
@@ -1180,7 +1181,7 @@ mk_efiboot(){
     local bootefi="$(ls $efibootdir/[Bb][Oo][Oo][Tt][Xx]64.[Ee][Ff][Ii] 2>/dev/null)"
     [ -z "$bootefi" ] && bootefi="$efibootdir/BOOTX64.EFI"
     mkdir -p "$efibootdir"
-    if ! rsync "$grubefi" "$bootefi"; then
+    if ! rsync --skip-compress="$RSYNC_SKIP_COMPRESS" "$grubefi" "$bootefi"; then
       echo "Failed to restore EFI standard boot."
       RC="1"
     else
@@ -1257,7 +1258,7 @@ prepare_reboot(){
     else
       # create reboot grubenv file on server
       local rebootstr="$(print_grubpart $partition)#${KERNEL}#${INITRD}#${APPEND}#.reboot"
-      rsync $(serverip)::linbo/"$rebootstr" /tmp 2>"$TMP" || true
+      rsync --skip-compress="$RSYNC_SKIP_COMPRESS" $(serverip)::linbo/"$rebootstr" /tmp 2>"$TMP" || true
     fi
   fi
 }
@@ -1360,7 +1361,7 @@ download(){
   local RC=1
   [ -n "$3" ] && echo "RSYNC Download $1 -> $2..."
   rm -f "$TMP"
-  interruptible rsync -HaLz --partial --progress "$1::linbo/$2" "$(basename $2)" 2>"$TMP"; RC="$?"
+  interruptible rsync --skip-compress="$RSYNC_SKIP_COMPRESS" -HaLz --partial --progress "$1::linbo/$2" "$(basename $2)" 2>"$TMP"; RC="$?"
   if [ "$RC" != "0" ]; then
     # Delete incomplete/defective/non-existent file (maybe we should check for returncode=23 first?)
     rm -f "$2" 2>/dev/null
@@ -1425,7 +1426,7 @@ update_win(){
   local RC="0"
   mkdir -p /mnt/linuxmuster-win
   # copy scripts to os rootdir
-  rsync -r /cache/linuxmuster-win/ /mnt/linuxmuster-win/ || RC="1"
+  rsync --skip-compress="$RSYNC_SKIP_COMPRESS" -r /cache/linuxmuster-win/ /mnt/linuxmuster-win/ || RC="1"
   if [ "$RC" = "0" ]; then
     touch "$doneflag"
     # restrict access rights on certain files and folders on windows partition
@@ -1585,7 +1586,7 @@ save_efi_bcd(){
   echo "Copying windows efi bootfiles from $sourcedir to $targetdir."
   mkdir -p "$targetdir"
   local RC=0
-  rsync -r "$sourcedir/" "$targetdir/" || RC="1"
+  rsync --skip-compress="$RSYNC_SKIP_COMPRESS" -r "$sourcedir/" "$targetdir/" || RC="1"
   umount "$efimnt" || umount -l "$efimnt"
   [ "$RC" = "1" ] && echo "Copying of windows efi bootfiles failed!"
   return "$RC"
@@ -1876,7 +1877,7 @@ sync_image(){
   # sync image
   echo "Syncing ... please wait ..."
   set -o pipefail
-  interruptible rsync "$ROPTS" --exclude="/.linbo" --exclude-from="/etc/rsync.exclude" --delete --delete-excluded --log-file=/tmp/image.log --log-file-format="" /image/ /mnt 2>&1 | tee -a /tmp/image.log ; RC="$?"
+  interruptible rsync --skip-compress="$RSYNC_SKIP_COMPRESS" "$ROPTS" --exclude="/.linbo" --exclude-from="/etc/rsync.exclude" --delete --delete-excluded --log-file=/tmp/image.log --log-file-format="" /image/ /mnt 2>&1 | tee -a /tmp/image.log ; RC="$?"
   set +o pipefail
   umount /image
   if [ "$RC" != "0" ]; then
@@ -2076,7 +2077,7 @@ restore_winact(){
     local serverip="$(grep ^linbo_server /tmp/dhcp.log | tail -1 | awk -F\' '{ print $2 }')"
     echo -n "Fordere Reaktivierungs-Daten von $serverip an ... "
     # get token archive from linbo server
-    rsync "$serverip"::linbo/winact/"$archive" /cache &> /dev/null
+    rsync --skip-compress="$RSYNC_SKIP_COMPRESS" "$serverip"::linbo/winact/"$archive" /cache &> /dev/null
     if [ -s "/cache/$archive" ]; then
       echo "OK!"
     else
@@ -2085,7 +2086,7 @@ restore_winact(){
     fi
     # request windows/office productkeys
     local keyfile="$(ifconfig -a | md5sum | awk '{ print $1 }').winkey"
-    rsync "$serverip"::linbo/winact/"$keyfile" /cache &> /dev/null
+    rsync --skip-compress="$RSYNC_SKIP_COMPRESS" "$serverip"::linbo/winact/"$keyfile" /cache &> /dev/null
     [ -s "/cache/$keyfile" ] && source "/cache/$keyfile"
     # create windows key batchfile
     local cache_batchfile="/cache/$imagename.winact.cmd"
@@ -2720,7 +2721,7 @@ authenticate(){
     export RSYNC_PASSWORD="$3"
     echo "Logging $2 in on $1..."
     rm -f "$TMP"
-    rsync "$2@$1::linbo-upload" >/dev/null 2>"$TMP" ; RC="$?"
+    rsync --skip-compress="$RSYNC_SKIP_COMPRESS" "$2@$1::linbo-upload" >/dev/null 2>"$TMP" ; RC="$?"
   elif [ -e /etc/linbo_passwd ]; then
     echo "Offline authentication ..."
     md5passwd="$(echo -n "$3" | md5sum | awk '{ print $1 }')"
@@ -2782,7 +2783,7 @@ upload(){
     fi
     echo "Uploading $filelist to $server ..." | tee -a /tmp/linbo.log
     for i in $filelist; do
-      interruptible rsync --log-file=/tmp/rsync.log --progress -Ha $RSYNC_PERMISSIONS --partial "$i" "$user@$server::linbo-upload/${subdir}${i}"
+      interruptible rsync --skip-compress="$RSYNC_SKIP_COMPRESS" --log-file=/tmp/rsync.log --progress -Ha $RSYNC_PERMISSIONS --partial "$i" "$user@$server::linbo-upload/${subdir}${i}"
       # because return code is always 0 this is necessary
       grep -q "rsync error" /tmp/rsync.log && RC=1
       cat /tmp/rsync.log >> /tmp/linbo.log
@@ -2920,14 +2921,14 @@ update(){
   # update wallpaper
   echo "Downloading linbo wallpaper."
   [ -d icons ] || rm -rf icons ; mkdir -p icons
-  rsync -L "$server::linbo/icons/linbo_wallpaper.png" icons &> /dev/null
+  rsync --skip-compress="$RSYNC_SKIP_COMPRESS" -L "$server::linbo/icons/linbo_wallpaper.png" icons &> /dev/null
   [ -d /icons ] || rm -rf /icons ; mkdir -p /icons
-  rsync icons/linbo_wallpaper.png /icons &> /dev/null
+  rsync --skip-compress="$RSYNC_SKIP_COMPRESS" icons/linbo_wallpaper.png /icons &> /dev/null
 
   # update torrent files
   echo "Downloading torrent and multicast control files."
   for i in "torrent-client.conf" "multicast.list"; do
-    rsync -L "$server::linbo/$i" "/$i" &> /dev/null
+    rsync --skip-compress="$RSYNC_SKIP_COMPRESS" -L "$server::linbo/$i" "/$i" &> /dev/null
   done
 
   # update ipxe files
@@ -2962,7 +2963,7 @@ update(){
   echo -n "Updating grub themes ... "
   themesdir="/boot/grub/themes"
   mkdir -p "/cache$themesdir"
-  rsync -a --delete "${server}::linbo${themesdir}/" "/cache${themesdir}/" || RC=1
+  rsync --skip-compress="$RSYNC_SKIP_COMPRESS" -a --delete "${server}::linbo${themesdir}/" "/cache${themesdir}/" || RC=1
   if [ "$RC" = "1" ]; then
     echo "Failed!" >&2
     return 1
@@ -2973,7 +2974,7 @@ update(){
   # update linuxmuster-win scripts
   echo -n "Updating linuxmuster-win ... "
   [ -d /cache/linuxmuster-win ] || mkdir -p /cache/linuxmuster-win
-  rsync -a --exclude=*.ex --delete --delete-excluded "$server::linbo/linuxmuster-win/" /cache/linuxmuster-win/ || RC=1
+  rsync --skip-compress="$RSYNC_SKIP_COMPRESS" -a --exclude=*.ex --delete --delete-excluded "$server::linbo/linuxmuster-win/" /cache/linuxmuster-win/ || RC=1
   if [ "$RC" = "1" ]; then
     echo "Failed!" >&2
     return 1
@@ -3186,7 +3187,7 @@ register(){
   echo "$info" >"$client.new"
   echo "Uploade $client.new auf $1..."
   export RSYNC_PASSWORD="$3"
-  interruptible rsync --progress -HaP "$client.new" "$2@$1::linbo-upload/$client.new" ; RC="$?"
+  interruptible rsync --skip-compress="$RSYNC_SKIP_COMPRESS" --progress -HaP "$client.new" "$2@$1::linbo-upload/$client.new" ; RC="$?"
   cd /
   return "$RC"
 }
@@ -3266,7 +3267,7 @@ listimages(){
 #
 preregister() {
   local LAST_REGISTERED="/tmp/last_registered"
-  interruptible rsync --progress -HaP "$1::linbo/last_registered" "$LAST_REGISTERED" ; RC="$?"
+  interruptible rsync --skip-compress="$RSYNC_SKIP_COMPRESS" --progress -HaP "$1::linbo/last_registered" "$LAST_REGISTERED" ; RC="$?"
   local LASTWORKSTATION="$(grep ^[a-z0-9] "$LAST_REGISTERED" | tail -n 1)"
 
   if [ "$LASTWORKSTATION" == "" ]; then
