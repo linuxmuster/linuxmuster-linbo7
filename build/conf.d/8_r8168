@@ -7,5 +7,5 @@ R81SRCDIR="$R81DIR/src"
 R81MOD="$R81SRCDIR/r8168.ko"
 
 # patches
-R81DKMSURL="https://aur.archlinux.org/r8168-dkms.git"
-R81DKMSDIR="$SRC/r8168-dkms"
+#R81DKMSURL="https://aur.archlinux.org/r8168-dkms.git"
+#R81DKMSDIR="$SRC/r8168-dkms"

@@ -13,16 +13,16 @@ echo "Cloning r8168 source ..."
 [ -d "$R81DIR" ] && rm -rf "$R81DIR"
 cd "$SRC"
 git clone "$R81URL" || exit 1
-[ -d "$R81DKMSDIR" ] && rm -rf "$R81DKMSDIR"
-git clone "$R81DKMSURL" || exit 1
+#[ -d "$R81DKMSDIR" ] && rm -rf "$R81DKMSDIR"
+#git clone "$R81DKMSURL" || exit 1
 
 # compile r8168
 echo "Compiling r8168 ..."
 cd "$R81SRCDIR" || exit 1
 # apply necessary patches
-for i in $R81DKMSDIR/*.patch; do
-  patch -p2 < "$i" || exit 1
-done
+#for i in $R81DKMSDIR/*.patch; do
+#  patch -p2 < "$i" || exit 1
+#done
 make -C "$KSRCDIR" M="$(pwd)" modules
 [ -s "$R81MOD" ] || exit 1
 
