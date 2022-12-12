@@ -1,3 +1,10 @@
+linuxmuster-linbo7 (4.0.42-0) lmn71; urgency=low
+
+  * Fix #86: add --skip-compress parameter to rsync commands to avoid compression of already compressed files (d11ae44).
+  * Update kernel to 5.10.158 (08f60b1).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 12 Dec 2022 18:31:00 +0100
+
 linuxmuster-linbo7 (4.0.41-0) lmn71; urgency=low
 
   * move linbo_gui theming update to linbo_update_gui (2baa737, #84).
