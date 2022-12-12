@@ -88,7 +88,7 @@ sync_image(){
 
   # sync image
   echo "Syncing ... please wait ..."
-  interruptible rsync "$ROPTS" --exclude="/.linbo" --exclude-from="/etc/rsync.exclude" --delete --delete-excluded --log-file=/tmp/image.log --log-file-format="" /image/ /mnt 2>&1 | tee -a /tmp/image.log ; RC="$?"
+  interruptible rsync --skip-compress="$RSYNC_SKIP_COMPRESS" "$ROPTS" --exclude="/.linbo" --exclude-from="/etc/rsync.exclude" --delete --delete-excluded --log-file=/tmp/image.log --log-file-format="" /image/ /mnt 2>&1 | tee -a /tmp/image.log ; RC="$?"
   umount /image
   if [ "$RC" != "0" ]; then
     echo "Image sync of $imagefile to $targetdev failed!" | tee -a /tmp/image.log
@@ -305,7 +305,7 @@ restore_winact(){
     # get server ip address
     echo -n "Request reactivation data from $LINBOSERVER ... "
     # get token archive from linbo server
-    rsync "$LINBOSERVER"::linbo/winact/"$archive" /cache &> /dev/null
+     rsync --skip-compress="$RSYNC_SKIP_COMPRESS" "$LINBOSERVER"::linbo/winact/"$archive" /cache &> /dev/null
     if [ -s "/cache/$archive" ]; then
       echo "Ok!"
     else
@@ -315,7 +315,7 @@ restore_winact(){
 
     # request windows/office productkeys
     local keyfile="$(ifconfig -a | md5sum | awk '{ print $1 }').winkey"
-    rsync "$LINBOSERVER"::linbo/winact/"$keyfile" /cache &> /dev/null
+     rsync --skip-compress="$RSYNC_SKIP_COMPRESS" "$LINBOSERVER"::linbo/winact/"$keyfile" /cache &> /dev/null
     [ -s "/cache/$keyfile" ] && source "/cache/$keyfile"
 
     # create windows key batchfile

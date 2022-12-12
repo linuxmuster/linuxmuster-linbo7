@@ -40,7 +40,7 @@ IMPORTANT="$2"
 RC=1
 [ -n "$IMPORTANT" ] && echo "RSYNC Download $LINBOSERVER -> $FILE..."
 rm -f "$TMP"
-interruptible rsync -HaLz --partial --progress "$LINBOSERVER::linbo/$FILE" "$(basename $FILE)" 2>"$TMP"; RC="$?"
+interruptible rsync --skip-compress="$RSYNC_SKIP_COMPRESS" -HaLz --partial --progress "$LINBOSERVER::linbo/$FILE" "$(basename $FILE)" 2>"$TMP"; RC="$?"
 if [ "$RC" != "0" ]; then
   # Delete incomplete/defective/non-existent file (maybe we should check for returncode=23 first?)
   rm -f "$FILE" 2>/dev/null

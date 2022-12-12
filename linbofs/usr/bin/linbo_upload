@@ -63,9 +63,9 @@ if [ -e "$FILE" ]; then
   fi
   echo "Uploading $filelist to $LINBOSERVER ..." | tee -a /tmp/linbo.log
   for item in $filelist; do
-    interruptible rsync --log-file=/tmp/rsync.log --progress -Ha $RSYNC_PERMISSIONS --partial "$item" "$LINBOUSER@$LINBOSERVER::linbo-upload/${subdir}${item}"
+    interruptible rsync --skip-compress="$RSYNC_SKIP_COMPRESS" --log-file=/tmp/rsync.log --progress -Ha $RSYNC_PERMISSIONS --partial "$item" "$LINBOUSER@$LINBOSERVER::linbo-upload/${subdir}${item}"
     # because return code is always 0 this is necessary
-    grep -q "rsync error" /tmp/rsync.log && RC=1
+    grep -q " rsync --skip-compress="$RSYNC_SKIP_COMPRESS" error" /tmp/rsync.log && RC=1
     cat /tmp/rsync.log >> /tmp/linbo.log
     rm /tmp/rsync.log
     [ "$RC" = "0" ] || break

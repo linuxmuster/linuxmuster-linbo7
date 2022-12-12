@@ -101,15 +101,15 @@ fi
 # also look for other needed files
 for i in "torrent-client.conf" "multicast.list"; do
   echo "Downloading $i."
-  rsync -L "$LINBOSERVER::linbo/$i" "/$i" &> /dev/null
+   rsync --skip-compress="$RSYNC_SKIP_COMPRESS" -L "$LINBOSERVER::linbo/$i" "/$i" &> /dev/null
 done
 
 # update wallpaper
 echo "Downloading linbo wallpaper."
 [ -d icons ] || rm -rf icons ; mkdir -p icons
-rsync -L "$server::linbo/icons/linbo_wallpaper.png" icons &> /dev/null
+ rsync --skip-compress="$RSYNC_SKIP_COMPRESS" -L "$server::linbo/icons/linbo_wallpaper.png" icons &> /dev/null
 [ -d /icons ] || rm -rf /icons ; mkdir -p /icons
-rsync icons/linbo_wallpaper.png /icons &> /dev/null
+ rsync --skip-compress="$RSYNC_SKIP_COMPRESS" icons/linbo_wallpaper.png /icons &> /dev/null
 
 # get ipxe files from server
 echo "Updating ipxe file."
@@ -143,7 +143,7 @@ done
 echo -n "Updating grub themes ... "
 themesdir="/boot/grub/themes"
 mkdir -p "/cache$themesdir"
-rsync -a --delete "${LINBOSERVER}::linbo${themesdir}/" "/cache${themesdir}/" || RC=1
+ rsync --skip-compress="$RSYNC_SKIP_COMPRESS" -a --delete "${LINBOSERVER}::linbo${themesdir}/" "/cache${themesdir}/" || RC=1
 if [ "$RC" = "1" ]; then
   echo "Failed!" >&2
   exit 1
@@ -154,7 +154,7 @@ fi
 # fetch also current linuxmuster-win scripts
 echo -n "Updating linuxmuster-win ... "
 [ -d /cache/linuxmuster-win ] || mkdir -p /cache/linuxmuster-win
-rsync -a --exclude=*.ex --delete --delete-excluded "$LINBOSERVER::linbo/linuxmuster-win/" /cache/linuxmuster-win/ || RC=1
+ rsync --skip-compress="$RSYNC_SKIP_COMPRESS" -a --exclude=*.ex --delete --delete-excluded "$LINBOSERVER::linbo/linuxmuster-win/" /cache/linuxmuster-win/ || RC=1
 if [ "$RC" = "1" ]; then
   echo "Failed!" >&2
   exit 1

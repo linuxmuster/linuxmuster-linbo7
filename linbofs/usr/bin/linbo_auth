@@ -32,7 +32,7 @@ export RSYNC_PASSWORD="$(echo "$@" | awk '{print $NF}')"
 if ! localmode; then
   echo "Logging $LINBOUSER in on $LINBOSERVER..."
   rm -f "$TMP"
-  rsync "$LINBOUSER@$LINBOSERVER::linbo-upload" >/dev/null 2>"$TMP" ; RC="$?"
+   rsync --skip-compress="$RSYNC_SKIP_COMPRESS" "$LINBOUSER@$LINBOSERVER::linbo-upload" >/dev/null 2>"$TMP" ; RC="$?"
 elif [ -e /etc/linbo_passwd ]; then
   echo "Offline authentication ..."
   md5passwd="$(echo -n "$RSYNC_PASSWORD" | md5sum | awk '{ print $1 }')"

@@ -41,13 +41,13 @@ update_icons(){
   linbo_gui_icons="$(grep -i ^iconname /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }')"
   linbo_gui_themefile="$(grep -m1 -i ^themeconffile /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }' | tail -1)"
   for item in $linbo_gui_icons $linbo_gui_themefile; do
-    rsync -L "$linbo_server::linbo/icons/$item" /cache/icons &> /dev/null
+     rsync --skip-compress="$RSYNC_SKIP_COMPRESS" -L "$linbo_server::linbo/icons/$item" /cache/icons &> /dev/null
   done
   if [ -s "/cache/icons/$linbo_gui_themefile" ]; then
     # if there is a themefile -> download all resources required for that theme
     linbo_gui_themefile_icons="$(grep .svg "/cache/icons/$linbo_gui_themefile" | awk -F\= '{print $2}' | awk '{print $1}')"
     for item in $linbo_gui_themefile_icons; do
-      rsync -L "$linbo_server::linbo/icons/$item" /cache/icons &> /dev/null
+       rsync --skip-compress="$RSYNC_SKIP_COMPRESS" -L "$linbo_server::linbo/icons/$item" /cache/icons &> /dev/null
     done
   fi
   # clean icons cache
@@ -61,7 +61,7 @@ update_icons(){
   done
   # sync icons in place for gui
   mkdir -p /icons
-  rsync -a --delete --exclude=linbo_wallpaper.png /cache/icons/ /icons/
+   rsync --skip-compress="$RSYNC_SKIP_COMPRESS" -a --delete --exclude=linbo_wallpaper.png /cache/icons/ /icons/
 }
 
 

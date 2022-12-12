@@ -44,7 +44,7 @@ save_efi_bcd(){
   echo "Copying windows efi bootfiles from $sourcedir to $targetdir."
   mkdir -p "$targetdir"
   local RC=0
-  rsync -r "$sourcedir/" "$targetdir/" || RC="1"
+   rsync --skip-compress="$RSYNC_SKIP_COMPRESS" -r "$sourcedir/" "$targetdir/" || RC="1"
   umount "$efimnt" || umount -l "$efimnt"
   [ "$RC" = "1" ] && echo "Copying of windows efi bootfiles failed!"
   return "$RC"
@@ -161,7 +161,7 @@ mk_diffimage(){
     return 1
   fi
   echo "Start syncing differences of $rootdev -> $imagefile."
-  interruptible rsync -HAa --exclude="/.linbo" --exclude-from="/etc/rsync.exclude" --delete --delete-excluded  /mnt/ /image 2>&1 ; RC="$?"
+  interruptible rsync --skip-compress="$RSYNC_SKIP_COMPRESS" -HAa --exclude="/.linbo" --exclude-from="/etc/rsync.exclude" --delete --delete-excluded  /mnt/ /image 2>&1 ; RC="$?"
   umount /image || umount -l /image
   qemu-nbd --disconnect /dev/nbd0
   [ "$RC" = "0" ] && return

@@ -72,6 +72,6 @@ csvline="$ROOM;$CLIENTNAME;$HOSTGROUP;$MACADDR;$CLIENTIP;;;;$ROLE;;1"
 echo "$csvline" > "/tmp/${CLIENTNAME}.new"
 
 echo "Uploading ${CLIENTNAME}.new to $LINBOSERVER ..."
-interruptible rsync --progress -HaP "/tmp/${CLIENTNAME}.new" "${USERNAME}@${LINBOSERVER}::linbo-upload/${CLIENTNAME}.new"
+interruptible rsync --skip-compress="$RSYNC_SKIP_COMPRESS" --progress -HaP "/tmp/${CLIENTNAME}.new" "${USERNAME}@${LINBOSERVER}::linbo-upload/${CLIENTNAME}.new"
 
 exit "$?"
