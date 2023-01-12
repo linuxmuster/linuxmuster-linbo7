@@ -1,10 +1,10 @@
 #! /bin/bash
 #
 # thomas@linuxmuster.net
-# 20220327
+# 20221029
 #
 
-DESC="Multicast session for"
+DESC="tmux multicast session"
 
 # lmn7 specific paths
 source /usr/share/linuxmuster/linbo/helperfunctions.sh || exit 1
@@ -61,33 +61,34 @@ start() {
 
   local imgdir
   local imgfile
+  local session
   while read file serverport relax; do
     port="${serverport##*:}"
     if [ -s "$file" ]; then
 
       imgdir="$(dirname "$file")"
       imgfile="$(basename "$file")"
+      session="${imgfile//./_}_mcast"
       cd "$imgdir"
 
       # start daemon stuff
-      echo -n "Starting $DESC $imgfile ... "
+      echo -n "Starting $DESC $session ... "
 
-      if screen -list | grep -qw "$imgfile.mcast"; then
-        echo
-        echo "Multicast for $imgfile is already running. Skipped!"
+      if linbo-multicast status | grep -qw "$session"; then
+        echo "already running. Skipped!"
         continue
       fi
 
-      LOGFILE="$LINBODIR/log/${imgfile}_mcast.log"
+      LOGFILE="$LINBODIR/log/${session}.log"
 
-      screen -dmS "$imgfile.mcast" "$DAEMON" "$INTERFACE" "$port" "$MINCLIENTS" "$MINSECONDS" "$MAXSECONDS" "$imgfile" "$LOGFILE"
+      tmux new -ds "$session" "$DAEMON $INTERFACE $port $MINCLIENTS $MINSECONDS $MAXSECONDS $imgfile $LOGFILE ; exec $SHELL"
       sleep 1
-      if ! screen -list | grep -qw "$imgfile.mcast"; then
-        RC=1
-        echo "failed!"
-      else
+      if linbo-multicast status | grep -qw "$session"; then
         RC=0
         echo "done!"
+      else
+        RC=1
+        echo "failed!"
       fi
 
     fi
@@ -96,37 +97,20 @@ start() {
 }
 
 stop(){
-
-  local i
-  local imgfile
-  local pid
-  for i in $images; do
-    imgfile="$(basename "$i")"
-    if screen -list | grep -qw "$imgfile.mcast"; then
-      echo -n "Stopping $DESC $imgfile ... "
-      pid="$(screen -list | grep -w "$imgfile.mcast" | awk -F\. '{ print $1 }' | awk '{ print $1 }')"
-      kill $pid ; RC="$?"
-      if [ "$RC" = "0" ]; then
-        echo "done!"
-      else
-        echo "failed!"
-      fi
-    fi
-  done
-  local pids="$(screen -list | grep mcast | awk -F\. '{ print $1 }' | awk '{ print $1 }')"
-  if [ -n "$pids" ]; then
-    echo -n "Sending all remaining linbo-multicast processes the TERM signal ... "
-    kill $pids ; RC="$?"
+  local session
+  linbo-multicast status | awk -F\: '{print $1}' | while read session; do
+    echo -n "Stopping $DESC $session ... "
+    tmux kill-session -t "$session" ; RC="$?"
     if [ "$RC" = "0" ]; then
       echo "done!"
     else
       echo "failed!"
     fi
-  fi
+  done
 }
 
 status(){
-  screen -ls | grep -w mcast
+  tmux list-sessions | grep _mcast
 }
 
 case "$action" in
