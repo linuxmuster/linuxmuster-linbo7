@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20220615
+# 20230113
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -88,14 +88,29 @@ do_env(){
     echo "$item" | grep -q "=" || item="${item}='yes'"
     varname="$(echo "$item" | awk -F\= '{print $1}')"
     upvarname="$(echo "$varname" | tr a-z A-Z)"
+    case "$upvarname" in
+      # set LINBOSERVER if server parameter is given
+      SERVER) upvarname="LINBOSERVER" ;;
+      # set HOSTGROUP from dhcp option nisdomain
+      NISDOMAIN) upvarname="HOSTGROUP" ;;
+      # set localmode if nonetwork parameter is given
+      NONETWORK) upvarname="LOCALMODE" ;;
+    esac
     echo "export ${item/${varname}/${upvarname}}" >> /.env
-    [ "$upvarname" = "NONETWORK" ] && echo "export LOCALMODE='yes'" >> /.env
   done
   source /.env
+  # add fqdn to environment
   echo "export FQDN='"${HOSTNAME}.${DOMAIN}"'" >> /.env
   export FQDN="${HOSTNAME}.${DOMAIN}"
+  # add linboserver to environment if not set on kernel cl
+  if [ -z "$LINBOSERVER" ]; then
+    echo "export LINBOSERVER='"${SERVERID}"'" >> /.env
+    export LINBOSERVER="${SERVERID}"
+  fi
+  # set hostname
   echo "$HOSTNAME" > /etc/hostname
   hostname "$HOSTNAME"
+  # save mac address in enviroment
   export MACADDR="`ifconfig | grep -B1 "$IP" | grep HWaddr | awk '{ print $5 }' | tr A-Z a-z`"
   echo "export MACADDR='"$MACADDR"'" >> /.env
 }
@@ -380,7 +395,7 @@ network(){
     print_status "Interface $dev ... "
     ifconfig "$dev" up &> /dev/null
     # activate wol
-    ethtool -s "$dev" wol g &> /dev/nulldo_housekeeping
+    ethtool -s "$dev" wol g &> /dev/null
     # check if using vlan
     if [ -n "$vlanid" ]; then
       print_status "Using vlan id $vlanid."
@@ -390,7 +405,7 @@ network(){
     else
       dhcpdev="$dev"
     fi
-    udhcpc -n -i "$dhcpdev" $dhcpretry &> /dev/null ; RC="$?"
+    udhcpc -O nisdomain -n -i "$dhcpdev" $dhcpretry &> /dev/null ; RC="$?"
     if [ "$RC" = "0" ]; then
       # set mtu
       [ -n "$mtu" ] && ifconfig "$dev" mtu $mtu &> /dev/null
@@ -401,18 +416,13 @@ network(){
   do_env
   # Move away standard start.conf and try to download the current one
   mv /start.conf /start.conf.dist
-  local server
-  for server in "$SIADDR" "$SERVERID"; do
-    [ -z "$server" ] && continue
-    print_status "Trying to load start.conf from $server ..."
-    rsync -L "$server::linbo/tmp/start.conf_$HOSTNAME" "/start.conf" &> /dev/null
-    [ -s /start.conf ] && break
-  done
+  if [ -n "$LINBOSERVER" -a -n "$HOSTGROUP" ]; then
+    print_status "Trying to load start.conf from $LINBOSERVER ..."
+    rsync -L "$LINBOSERVER::linbo/tmp/start.conf.$HOSTGROUP" "/start.conf" &> /dev/null
+  fi
   # set flag for working network connection and do additional stuff which needs
   # connection to linbo server
   if [ -s /start.conf ]; then
-    export LINBOSERVER="$server"
-    echo "export LINBOSERVER='"$server"'" >> /.env
     print_status "Network connection to $LINBOSERVER established successfully."
     print_status "IP: $IP * Hostname: $HOSTNAME * MAC: $MACADDR * Server: $LINBOSERVER"
     # split start.conf if complete
@@ -421,9 +431,8 @@ network(){
     do_linbo_update
     # time sync
     print_status "Starting time sync ..."
-    #( ntpd -n -q -p "$SERVER" && hwclock --systohc ) &
-    ntpd -q -p "$LINBOSERVER"
-    #date
+    # time sync with ntp server
+    ntpd -q -p "$NTPSRV"
     # get onboot linbo-remote commands, if there are any
     local item
     for item in $HOSTNAME $IP; do
