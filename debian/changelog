@@ -1,3 +1,23 @@
+linuxmuster-linbo7 (4.1.17-0) lmn72; urgency=low
+
+  * Update kernel to 6.1.4 (b995528).
+  * r8168: add kernel patch for 6.1 series (309e02d).
+  * Replaced screen with tmux in linbo-multicast (889446e).
+  * Merge #88 (21bc5de):
+    - added dhcp client asking for nisdomain, fixed start.conf path on server.
+    - Use serverid instead of linbo_server in invoke_macct.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 13 Jan 2023 15:46:00 +0100
+
+linuxmuster-linbo7 (4.1.16-0) lmn72; urgency=low
+
+  * Update kernel to 6.0.12 (5807150).
+  * Added linbo_gui theming update to linboy_update_gui (398f31c, #84).
+  * Replaced screen with tmux in linbo-torrent (ad29f5c).
+  * Fix #86: add --skip-compress parameter to rsync commands to avoid compression of already compressed files (7738e8b).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 12 Dec 2022 20:27:00 +0100
+
 linuxmuster-linbo7 (4.1.15-0) lmn72; urgency=low
 
   * linbo_start(): return 1 if os cannot be startet with reboot (a82d108).
