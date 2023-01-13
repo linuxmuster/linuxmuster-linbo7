@@ -2,7 +2,7 @@
 #
 # Post-Download script for rsync/LINBO
 # thomas@linuxmuster.net
-# 20220908
+# 20230113
 #
 
 # read in paedml specific environment
@@ -47,9 +47,6 @@ fi
 # recognize download request of local grub.cfg
 stringinstring ".grub.cfg" "$FILE" && EXT="grub-local"
 
-# recognize start.conf request
-[ "$BASENAME" = "start.conf_$compname" ] && EXT="start-conf"
-
 case "$EXT" in
 
   # remove linbocmd file after download
@@ -70,12 +67,6 @@ case "$EXT" in
       echo "Removing machine password file $FILE."
       rm -f "$FILE"
     fi
-  ;;
-
-  # handle start.conf request
-  start-conf)
-    echo "Removing temporary $FILE."
-    rm -f "$FILE"
   ;;
 
   winkey)

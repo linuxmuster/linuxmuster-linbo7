@@ -2,7 +2,7 @@
 #
 # Pre-Download script for rsync/LINBO
 # thomas@linuxmuster.net
-# 20220909
+# 20230113
 #
 
 # read in linuxmuster specific environment
@@ -182,19 +182,6 @@ case $EXT in
     append="$linbo_kopts localboot"
     sed -e "s|linux \$linbo_kernel .*|linux \$linbo_kernel $append|g" "$grubcfg_tpl" > "$FILE"
   ;;
-
-  # handle start.conf request
-  conf_*)
-    group="$(get_hostgroup "$compname")"
-    startconf="$LINBODIR/start.conf.$group"
-    if [ -n "$group" -a -s "$startconf" ]; then
-      cp "$startconf" "$FILE"
-    else
-      cp -L "$LINBODIR/start.conf" "$FILE"
-    fi
-  ;;
-
-  *) ;;
 
 esac
 
