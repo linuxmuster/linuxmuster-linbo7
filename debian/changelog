@@ -1,3 +1,10 @@
+linuxmuster-linbo7 (4.0.43-0) lmn71; urgency=low
+
+  * Fix #89: apparently missing old intel networkdriver (fd5a806).
+  * Update kernel to 5.10.163 (c6c0991).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 16 Jan 2022 16:59:00 +0100
+
 linuxmuster-linbo7 (4.0.42-0) lmn71; urgency=low
 
   * Fix #86: add --skip-compress parameter to rsync commands to avoid compression of already compressed files (d11ae44).
