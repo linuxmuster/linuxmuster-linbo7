@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20230113
+# 20230118
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -79,7 +79,7 @@ udev_extra_nodes() {
 }
 
 # provide environment variables from kernel cmdline and dhcp.log
-do_env(){
+do_env_system(){
   local item
   local varname
   local upvarname
@@ -113,6 +113,20 @@ do_env(){
   # save mac address in enviroment
   export MACADDR="`ifconfig | grep -B1 "$IP" | grep HWaddr | awk '{ print $5 }' | tr A-Z a-z`"
   echo "export MACADDR='"$MACADDR"'" >> /.env
+}
+
+# write selected start.conf items to .env
+do_env_startconf(){
+  local value
+  local item
+  for item in CACHE SYSTEMTYPE THEME ICONNAME; do
+    case $item in
+      ICONNAME) value="$(grep -iw ^$item /start.conf | awk -F\= '{print $2}' | awk '{print $1}' | awk -F\# '{print $1}' | awk '{print $1}')" ;;
+      *) value="$(grep -iw ^$item /start.conf | tail -1 | awk -F\= '{print $2}' | awk '{print $1}' | awk -F\# '{print $1}' | awk '{print $1}')" ;;
+    esac
+    echo "export $item='"$value"'" >> /.env
+  done
+  source /.env
 }
 
 # initial setup
@@ -379,7 +393,7 @@ network(){
   rm -f /tmp/linbo-network.done
   if grep -qwi nonetwork /proc/cmdline; then
     print_status "Local mode is configured, skipping network configuration."
-    do_env
+    do_env_system
     copyfromcache start.conf icons
     do_housekeeping
     touch /tmp/linbo-network.done
@@ -413,7 +427,7 @@ network(){
     fi
   done
   # Network is up now, create environment
-  do_env
+  do_env_system
   # Move away standard start.conf and try to download the current one
   mv /start.conf /start.conf.dist
   if [ -n "$LINBOSERVER" -a -n "$HOSTGROUP" ]; then
@@ -425,6 +439,8 @@ network(){
   if [ -s /start.conf ]; then
     print_status "Network connection to $LINBOSERVER established successfully."
     print_status "IP: $IP * Hostname: $HOSTNAME * MAC: $MACADDR * Server: $LINBOSERVER"
+    # write selected start.conf items to .env
+    do_env_startconf
     # split start.conf if complete
     linbo_split_startconf
     # first do linbo update & grub installation
