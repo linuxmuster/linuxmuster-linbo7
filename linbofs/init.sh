@@ -431,8 +431,8 @@ network(){
   # Move away standard start.conf and try to download the current one
   mv /start.conf /start.conf.dist
   if [ -n "$LINBOSERVER" -a -n "$HOSTGROUP" ]; then
-    print_status "Trying to load start.conf from $LINBOSERVER ..."
-    rsync -L "$LINBOSERVER::linbo/tmp/start.conf.$HOSTGROUP" "/start.conf" &> /dev/null
+    print_status "Downloading start.conf from $LINBOSERVER ..."
+    rsync -vL "$LINBOSERVER::linbo/start.conf.$HOSTGROUP" "/start.conf" | tee /tmp/startconf.log
   fi
   # set flag for working network connection and do additional stuff which needs
   # connection to linbo server
