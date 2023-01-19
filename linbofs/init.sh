@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20230118
+# 20230119
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -513,6 +513,9 @@ hwsetup(){
   mkdir -p /dev/pts
   mount /dev/pts
   udevadm settle || true
+
+  # mount efivar fs
+  [ -d /sys/firmware/efi ] && mount -t efivarfs efivarfs /sys/firmware/efi/efivars
 
   export TERM_TYPE=pts
 
