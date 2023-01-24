@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20230119
+# 20230124
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -394,7 +394,7 @@ network(){
   if grep -qwi nonetwork /proc/cmdline; then
     print_status "Local mode is configured, skipping network configuration."
     do_env_system
-    copyfromcache start.conf icons
+    copyfromcache start.conf
     do_housekeeping
     touch /tmp/linbo-network.done
     return 0
@@ -466,9 +466,9 @@ network(){
   fi
   # if start.conf could not be downloaded or does not contain [os] section
   if [ ! -s /start.conf ] || ([ -s /start.conf ] && ! grep -qi ^'\[os\]' /start.conf); then
-    # No new version / no network available, look for cached copies of start.conf and icons folder.
-    echo "Trying to copy start.conf and icons from cache."
-    copyfromcache start.conf icons
+    # No new version / no network available, look for cached copies of start.conf.
+    echo "Trying to copy start.conf from cache."
+    copyfromcache start.conf
     # Still nothing new, revert to old version.
     if [ -s /start.conf ]; then
       # split start.conf if complete
