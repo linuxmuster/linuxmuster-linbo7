@@ -2,17 +2,20 @@
 #
 # linbo_download
 # thomas@linuxmuster.net
-# 20220610
+# 20230124
 #
 
 usage(){
   local RC="$1"
   echo
-  echo "Downloads a file from the server into the current directory."
+  echo "Downloads a file or a directory from the server into the current directory."
   echo
-  echo "Usage: linbo_download [server] <file> [important] | [help]"
+  echo "Usage: linbo_download [server ip] <file|dir> [important] | [help]"
   echo
-  echo "\"server\" is deprecated and can be ommitted. \"important\" increases verbosity."
+  echo "Note:"
+  echo "* \"server ip\" is deprecated and can be ommitted."
+  echo "* \"important\" increases verbosity."
+  echo "* Use a trailing slash with \"dir\" to download a directory recursively."
   echo
   exit "$RC"
 }
@@ -30,7 +33,7 @@ if localmode; then
 fi
 
 # check params
-if [ -z "$1" ] || validip "$1"; then shift; fi
+if validip "$1"; then shift; fi
 FILE="$1"
 IMPORTANT="$2"
 
@@ -40,7 +43,10 @@ IMPORTANT="$2"
 RC=1
 [ -n "$IMPORTANT" ] && echo "RSYNC Download $LINBOSERVER -> $FILE..."
 rm -f "$TMP"
-interruptible rsync --skip-compress="$RSYNC_SKIP_COMPRESS" -HaLz --partial --progress "$LINBOSERVER::linbo/$FILE" "$(basename $FILE)" 2>"$TMP"; RC="$?"
+TARGET="$(basename $FILE)"
+# ensure target dir exists
+[ "${TARGET: -1}" = "/" ] && mkdir -p "$TARGET"
+interruptible rsync --skip-compress="$RSYNC_SKIP_COMPRESS" -HaLz --partial --progress "$LINBOSERVER::linbo/$FILE" "$TARGET" 2>"$TMP"; RC="$?"
 if [ "$RC" != "0" ]; then
   # Delete incomplete/defective/non-existent file (maybe we should check for returncode=23 first?)
   rm -f "$FILE" 2>/dev/null
