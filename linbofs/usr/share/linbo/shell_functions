@@ -1,7 +1,7 @@
 # common linbo shell functions
 #
 # thomas@linuxmuster.net
-# 20220624
+# 20230124
 #
 
 set -o pipefail
@@ -103,6 +103,12 @@ ismounted(){
   else
     [ "$(cat /proc/mounts | grep ^"$1" | awk '{print $2}')" = "$2" ] || return 1
   fi
+}
+
+
+# test if file is downloadable
+isdownloadable(){
+  rsync --skip-compress="$RSYNC_SKIP_COMPRESS" -HaLz --dry-run "$LINBOSERVER::linbo/$1" "$(basename $1)" &> /dev/null || return 1
 }
 
 
