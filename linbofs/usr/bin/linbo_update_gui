@@ -17,19 +17,17 @@ source /usr/share/linbo/shell_functions
 # is gui disabled?
 [ -n "$NOGUI" ] && exit 0
 
+# print status message
+print_status(){
+  if [ -n "$SPLASH" ]; then
+    plymouth --update="$1"
+  else
+    echo "$1"
+  fi
+}
+
 # filename of gui archive
 gui_archive="linbo_gui64_7.tar.lz"
-
-
-# print status msg
-print_status(){
-  local msg="$1"
-  if [ -n "$SPLASH" ]; then
-    plymouth message --text="$LINBOVER"
-    plymouth update --status="$msg"
-  fi
-  echo "$msg"
-}
 
 
 # check if isoboot and try to get linbo_gui archive from cdrom

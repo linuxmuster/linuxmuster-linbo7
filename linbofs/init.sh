@@ -54,14 +54,13 @@ isinteger () {
   esac
 }
 
-# print status msg
+# print status message
 print_status(){
-  local msg="$1"
-  if [ -n "$PMSTATUS" ]; then
-    plymouth message --text="$(cat /etc/linbo-version | sed 's|LINBO |v|')"
-    plymouth update --status="$msg"
+  if [ -n "$SPLASH" ]; then
+    plymouth --update="$1"
+  else
+    echo "$1"
   fi
-  echo "$msg"
 }
 
 # create device nodes
@@ -545,11 +544,11 @@ else
   hwsetup
 fi
 
-# start plymouth daemon
-if [ -x /sbin/plymouthd -a -n "$splash" ]; then
+# start plymouth boot splash daemon
+if grep -qiw splash /proc/cmdline; then
   plymouthd --mode=boot --tty="/dev/tty2" --attach-to-session
-  plymouth show-splash message --text="$linbo_version"
-  PMSTATUS="yes"
+  plymouth --show-splash
+  SPLASH="yes"
 fi
 
 # do network setup
