@@ -34,7 +34,8 @@ usage(){
   echo "                    conjunction with \"-w\"."
   echo " -c <cmd1,cmd2,...> Comma separated list of linbo commands transfered"
   echo "                    per ssh direct to the client(s)."
-  echo " -d                 Disables gui. To be used only together with option -c."
+  echo " -d                 Disables gui. Automatically set with option -c."
+  echo "                    Exists yet for compatibility."
   echo " -g <group>         All hosts of this hostgroup will be processed."
   echo " -i <i1,i2,...>     Single ip or hostname or comma separated list of ips"
   echo "                    or hostnames of clients to be processed."
@@ -113,7 +114,7 @@ while getopts ":a:b:c:dg:hi:lnp:r:uw:s:" opt; do
     l) list ; exit 0 ;;
     b) BETWEEN=$OPTARG ;;
     c) DIRECT=$OPTARG ;;
-    d) DISABLEGUI=yes ;;
+    d) ;;
     i)
       # create a list of hosts
       for i in ${OPTARG//,/ }; do
@@ -188,11 +189,11 @@ if [ -n "$NOAUTO" -a -z "$ONBOOT" ]; then
   [ -n "$DIRECT" -a -n "$WAIT" ] || usage "Option -n can only be used with -p or with -c and -w together!"
 fi
 
-[ -n "$DISABLEGUI" -a -z "$DIRECT" ] && usage "Option -d can only be used with -c!"
-
 if [ -n "$DIRECT" ]; then
   CMDS="$DIRECT"
   DIRECT="yes"
+  # default with option -c (#85)
+  DISABLEGUI="yes"
 elif [ -n "$ONBOOT" ]; then
   CMDS="$ONBOOT"
   ONBOOT="yes"
