@@ -3,7 +3,7 @@
 # exec linbo commands remote per ssh
 #
 # thomas@linuxmuster.net
-# 20220912
+# 20230125
 # GPL V3
 #
 
@@ -28,6 +28,7 @@ usage(){
   echo "Options:"
   echo
   echo " -h                 Show this help."
+  echo " -a <hostname>      Attach the running tmux session for this hostname."
   echo " -b <sec>           Wait <sec> second(s) between sending wake-on-lan magic"
   echo "                    packets to the particular hosts. Must be used in"
   echo "                    conjunction with \"-w\"."
@@ -37,12 +38,13 @@ usage(){
   echo " -g <group>         All hosts of this hostgroup will be processed."
   echo " -i <i1,i2,...>     Single ip or hostname or comma separated list of ips"
   echo "                    or hostnames of clients to be processed."
-  echo " -l                 List current linbo-remote screens."
+  echo " -l                 List current linbo-remote tmux sessions."
   echo " -n                 Bypasses start.conf configured auto functions"
   echo "                    (partition, format, initcache, start) on next boot."
   echo "                    To be used only together with options -p"
   echo "                    or -c in conjunction with -w."
   echo " -r <room>          All hosts of this room will be processed."
+  echo " -s <school>        Select a school other than default-school"
   echo " -p <cmd1,cmd2,...> Create an onboot command file executed automatically"
   echo "                    once next time the client boots."
   echo " -u                 Use broadcast address for wol additionally."
@@ -50,7 +52,6 @@ usage(){
   echo "                    and wait <sec> seconds before executing the"
   echo "                    commands given with \"-c\" or in case of \"-p\" after"
   echo "                    the creation of the pxe boot files."
-  echo " -s                 Select a school other than default-school"
   echo
   echo "Important: * Options \"-r\", \"-g\" and \"-i\" exclude each other, \"-c\" and"
   echo "             \"-p\" as well."
@@ -89,30 +90,27 @@ usage(){
   exit 1
 }
 
-# list linbo-remote screens
+# list linbo-remote tmux sessions
 list(){
-  local line=""
-  local pid=""
-  local c=0
-  local d
-  screen -wipe | grep .linbo-remote | sort | sed -e 's|\.|\t|' | while read line; do
-    c=$(( c + 1 ))
-    d=""
-    [ $c -lt 100 ] && d=" "
-    [ $c -lt 10 ] && d="  "
-    echo -e "$d$c\t$line"
-  done
+  tmux list-sessions | grep .linbo-remote
+}
+
+# attach a host's linbo-remote tmux session
+attach(){
+  local session="${1}_linbo-remote"
+  list | grep -q ^"$session" || usage "There is no session for host $1."
+  tmux attach -t "$session" || exit 1
 }
 
 # process cmdline
-while getopts ":b:c:dg:hi:lnp:r:uw:s:" opt; do
+while getopts ":a:b:c:dg:hi:lnp:r:uw:s:" opt; do
 
   # debug
   #echo "### opt: $opt $OPTARG"
 
   case $opt in
-    l) list
-      exit 0 ;;
+    a) attach $OPTARG ; exit 0 ;;
+    l) list ; exit 0 ;;
     b) BETWEEN=$OPTARG ;;
     c) DIRECT=$OPTARG ;;
     d) DISABLEGUI=yes ;;
@@ -480,7 +478,8 @@ send_cmds(){
 
     # create a temporary script with linbo remote commands
     HOSTNAME="$i"
-    LOGFILE="$LINBOLOGDIR/$HOSTNAME.linbo-remote"
+    SESSIONNAME="$HOSTNAME.linbo-remote"
+    LOGFILE="$LINBOLOGDIR/$SESSIONNAME"
     REMOTESCRIPT=$TMPDIR/$$.$HOSTNAME.sh
     echo "#!/bin/bash" > $REMOTESCRIPT
     [ -n "$DISABLEGUI" ] && echo "$SSH $i gui_ctl disable" >> $REMOTESCRIPT
@@ -504,10 +503,9 @@ send_cmds(){
     echo "exit \$RC" >> $REMOTESCRIPT
     chmod 755 $REMOTESCRIPT
 
-    # start script in screen session
-    SCREENNAME="$HOSTNAME.linbo-remote"
-    screen -L -Logfile "$LOGFILE" -dmS "$SCREENNAME" $REMOTESCRIPT
-    PID="$(screen -ls | grep -w "$SCREENNAME" | awk '{print $1}' | awk -F. '{print $1}')"
+    # start script in tmux session
+    tmux new -Ads "$SESSIONNAME" "$REMOTESCRIPT" \; pipe-pane "cat > $LOGFILE"
+    PID="$(ps ax | grep -v grep | grep -w "$LOGFILE" | awk '{print $1}')"
     [ -z "$PID" ] && PID="unknown"
     echo "Started with PID $PID. Log see $LOGFILE."
   done
