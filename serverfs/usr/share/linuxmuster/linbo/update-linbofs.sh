@@ -6,7 +6,7 @@
 #
 # thomas@linuxmuster.net
 # GPL V3
-# 20220114
+# 20230125
 #
 
 # read linuxmuster environment
@@ -63,7 +63,7 @@ update_linbofs() {
 	[ "$RC" = "0" ] || bailout " Failed to unpack $(basename "$linbofstpl")!"
 
 	# store linbo md5 password
-	echo -n "$linbo_md5passwd" > etc/linbo_passwd
+	echo -n "$linbo_pwhash" > etc/linbo_passwd
 
 	# provide dropbear ssh host key
 	mkdir -p etc/dropbear
@@ -117,7 +117,7 @@ if [ -z "$linbo_passwd" ]; then
   bailout "Cannot read linbo password from /etc/rsyncd.secrets!"
 fi
 # md5sum of linbo password goes into ramdisk
-linbo_md5passwd=`echo -n $linbo_passwd | md5sum | awk '{ print $1 }'`
+linbo_pwhash=`echo -n $linbo_passwd | sha256sum | awk '{ print $1 }'`
 
 
 # process linbofs updates
