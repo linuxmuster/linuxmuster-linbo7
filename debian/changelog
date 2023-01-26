@@ -1,3 +1,26 @@
+linuxmuster-linbo7 (4.1.18-0) lmn72; urgency=low
+
+  * Fix: efivarfs not mounted in linbofs (f4033f4).
+  * Fix #89: apparently missing old intel networkdriver (b08db85).
+  * Work on #83: Provide gui theme infos through environment (bf11729).
+  * Fix start.conf download path in init.sh (#88, 823c91e).
+  * Fix missing plymouth libraries (e6d5ad7).
+  * linbofs: added isdownloadable function (7f82b2d).
+  * linbofs: improved handling of folder downloads in linbo_download (c3656bb).
+  * Fix #83: FR: download linbo GUI theming files (5112247).
+  * linbofs boot splash code clean (f4d5e70).
+  * Use sha256 hash for linbo password (06cf2c1).
+  * Add coreutils to pkg deps (04dbd33).
+  * Fix #8: Offline login does not work in some cases (6276d08).
+  * Moved linbo-remote and update-linbofs to /usr/sbin (2a3f4db).
+  * linbo-remote: replaced screen with tmux (46898c4).
+  * Fix #85: Make linbo-remote -d the default action (c702794).
+  * Fix #54: Allow to use -n without -c or -p (155bb40).
+  * Update kernel to 6.1.8 (6ddc83a).
+  * Reworked the linbofs preparation of global start.conf values (#83, cbfe7ea).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 26 Jan 2023 22:26:00 +0100
+
 linuxmuster-linbo7 (4.1.17-0) lmn72; urgency=low
 
   * Update kernel to 6.1.4 (b995528).
