@@ -2,7 +2,7 @@
 #
 # linbo_initcache [serverip] [cachedev] [downloadtype] | [-h|help|--help]
 # thomas@linuxmuster.net
-# 20220906
+# 20230126
 #
 
 usage(){
@@ -34,17 +34,17 @@ if localmode; then
 fi
 
 # skip if cache is on remote fs
-if remote_cache "$CACHE"; then
-  echo "Cache $CACHE is not local, skipping update."
+if remote_cache "$cache"; then
+  echo "Cache $cache is not local, skipping update."
   exit 0
 fi
 
 # if FORMAT is set, format cache partition
 if [ -n "$FORMAT" ]; then
-  echo "Formatting cache partition $CACHE ..."
-  linbo_format "$CACHE" 2>> /tmp/linbo.log || exit 1
+  echo "Formatting cache partition $cache ..."
+  linbo_format "$cache" 2>> /tmp/linbo.log || exit 1
 fi
-linbo_mountcache "$CACHE" || exit 1
+linbo_mountcache "$cache" || exit 1
 cd /cache
 
 # clean up obsolete image files

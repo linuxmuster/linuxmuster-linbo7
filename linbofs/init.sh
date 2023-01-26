@@ -78,7 +78,7 @@ udev_extra_nodes() {
 }
 
 # provide environment variables from kernel cmdline and dhcp.log
-do_env_system(){
+do_env(){
   local item
   local varname
   local upvarname
@@ -112,16 +112,6 @@ do_env_system(){
   # save mac address in enviroment
   export MACADDR="`ifconfig | grep -B1 "$IP" | grep HWaddr | awk '{ print $5 }' | tr A-Z a-z`"
   echo "export MACADDR='"$MACADDR"'" >> /.env
-}
-
-# write selected start.conf items to .env
-do_env_startconf(){
-  [ -e /conf/linbo ] && source /conf/linbo
-  echo "export CACHE='"$cache"'" >> /.env
-  echo "export SYSTEMTYPE='"$systemtype"'" >> /.env
-  echo "export THEME='"$theme"'" >> /.env
-  echo "export ICONNAME='"$(grep -iw ^iconname /start.conf | tail -1 | awk -F\= '{print $2}' | awk '{print $1}' | awk -F\# '{print $1}' | awk '{print $1}')"'" >> /.env
-  source /.env
 }
 
 # initial setup
@@ -314,9 +304,8 @@ save_winact(){
 # save windows activation tokens
 do_housekeeping(){
   local dev
-  #[ -b "$CACHE" ] && return 1
   if ! linbo_mountcache; then
-    echo "Housekeeping: Cannot mount cache partition $CACHE."
+    echo "Housekeeping: Cannot mount cache partition."
     return 1
   fi
   [ -s /start.conf ] || return 1
@@ -328,7 +317,7 @@ do_housekeeping(){
       umount /mnt
     fi
   done
-  grep -q "$CACHE /cache" /proc/mounts && umount /cache
+  grep -qw /cache /proc/mounts && umount /cache
 }
 
 # update linbo and install it locally
@@ -388,8 +377,9 @@ network(){
   rm -f /tmp/linbo-network.done
   if grep -qwi nonetwork /proc/cmdline; then
     print_status "Local mode is configured, skipping network configuration."
-    do_env_system
+    do_env
     copyfromcache start.conf
+    linbo_split_startconf
     do_housekeeping
     touch /tmp/linbo-network.done
     return 0
@@ -422,7 +412,7 @@ network(){
     fi
   done
   # Network is up now, create environment
-  do_env_system
+  do_env
   # Move away standard start.conf and try to download the current one
   mv /start.conf /start.conf.dist
   if [ -n "$LINBOSERVER" -a -n "$HOSTGROUP" ]; then
@@ -487,8 +477,6 @@ network(){
   fi
   # split start.conf finally, if it has been changed in the meantime
   [ -n "$do_split" -a -z "$disablegui" ] && linbo_split_startconf
-  # write selected start.conf items to .env
-  do_env_startconf
   # sets flag if no default route
   route -n | grep -q ^0\.0\.0\.0 || echo > /tmp/.offline
   # start ssh server

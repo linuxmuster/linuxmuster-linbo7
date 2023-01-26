@@ -2,7 +2,7 @@
 #
 # linbo_create_image
 # thomas@linuxmuster.net
-# 20220714
+# 20230126
 #
 
 
@@ -251,13 +251,13 @@ if isinteger "$1"; then
   osnr="$1"
 
 # check rootdev option
-elif [ -b "$1" -a "$1" != "$CACHE" ]; then
+elif [ -b "$1" -a "$1" != "$cache" ]; then
   osnr="$(osnr_startconf "$1")"
 
 # check legacy options (cache imagefile rootdev)
 else
   for item in $@; do
-    [ "$item" = "$CACHE" ] && continue
+    [ "$item" = "$cache" ] && continue
     case "$item" in *.qcow2|*.qdiff) imagefile="$item" ; continue ;; esac
     [ -b "$item" ] && root="$item"
   done

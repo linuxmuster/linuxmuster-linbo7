@@ -39,8 +39,8 @@ export RSYNC_PASSWORD="$1" ; shift
 [ -z "$1" -o -b "$1" ] && shift
 FILE="$1"
 
-if remote_cache "$CACHE"; then
-  echo "Cache $CACHE is not local, no upload for $FILE." | tee -a /tmp/linbo.log
+if remote_cache "$cache"; then
+  echo "Cache $cache is not local, no upload for $FILE." | tee -a /tmp/linbo.log
   sendlog
   exit 1
 fi

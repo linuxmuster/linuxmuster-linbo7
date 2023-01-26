@@ -2,7 +2,7 @@
 #
 # linbo_mountcache [-r] | [help]
 # thomas@linuxmuster.net
-# 20220610
+# 20230126
 #
 
 
@@ -28,7 +28,7 @@ findcache(){
     dev="$(readlink "$item" | sed 's|../../|/dev/|')"
     if mount "$dev" /tmp/mnt &> /dev/null; then
       if [ -s /tmp/mnt/linbo64 ]; then
-        export CACHE="$dev"
+        export cache="$dev"
         umount /tmp/mnt &> /dev/null
         break
       fi
@@ -46,9 +46,10 @@ findcache(){
 #echo "linbo_mountcache $@"
 
 # get cache partition, otherwise use environment variable
+[ -e /conf/linbo ] && source /conf/linbo
 [ -z "$1" -o -b "$1" ] && shift
-[ -z "$CACHE" ] && findcache
-[ -b "$CACHE" ] || usage 1
+[ -z "$cache" ] && findcache
+[ -b "$cache" ] || usage 1
 
 # get readonly option
 [ "$1" = "-r" ] && ro="$1"
@@ -66,32 +67,32 @@ if [ -n "$mount_opts" ]; then
   esac
   exit "$RC"
 fi
-case "$CACHE" in
+case "$cache" in
   *:*) # NFS
-    server="${CACHE%%:*}"
-    dir="${CACHE##*:}"
-    echo "Mounting cache partition per nfs from $CACHE ..."
+    server="${cache%%:*}"
+    dir="${cache##*:}"
+    echo "Mounting cache partition per nfs from $cache ..."
     # -o nolock is EXTREMELY important here, otherwise mount.nfs will timeout waiting for portmap
-    mount $ro -t nfs -o nolock,rsize=8192,wsize=8192,hard,intr "$CACHE" /cache 2>> /tmp/linbo.log
+    mount $ro -t nfs -o nolock,rsize=8192,wsize=8192,hard,intr "$cache" /cache 2>> /tmp/linbo.log
     RC="$?"
     ;;
   \\\\*\\*|//*/*) # CIFS/SAMBA
-    server="${CACHE%\\*}";  server="${server%/*}"; server="${server#\\\\}"; server="${server#//}"
-    echo "Mounting cache partition per cifs from $CACHE ..."
+    server="${cache%\\*}";  server="${server%/*}"; server="${server#\\\\}"; server="${server#//}"
+    echo "Mounting cache partition per cifs from $cache ..."
     # unix extensions have to be disabled
     echo 0 > /proc/fs/cifs/LinuxExtensionsEnabled 2>/dev/null
     # mount.cifs (3) pays attention to $PASSWD
     # this does not work: $RSYNC_PASSWORD is not available and mount.cifs does not pay attention to $PASSWD
     #export PASSWD="$RSYNC_PASSWORD"
-    #mount $2 -t cifs -o username=linbo,nolock "$CACHE" /cache 2>/dev/null
+    #mount $2 -t cifs -o username=linbo,nolock "$cache" /cache 2>/dev/null
     # temporary workaround for password
     [ -s /tmp/linbo.passwd ] && PASSWD="$(cat /tmp/linbo.passwd 2>/dev/null)"
     [ -z "$PASSWD" -a -s /tmp/rsyncd.secrets ] && PASSWD="$(grep ^linbo /tmp/rsyncd.secrets | awk -F\: '{ print $2 }' 2>/dev/null)"
-    mount $ro -t cifs -o username=linbo,password="$PASSWD",nolock "$CACHE" /cache 2>> /tmp/linbo.log
+    mount $ro -t cifs -o username=linbo,password="$PASSWD",nolock "$cache" /cache 2>> /tmp/linbo.log
     RC="$?"
     if [ "$RC" != "0" ]; then
       echo "Authentication failure."
-      mount $ro -t cifs -o nolock,guest,sec=none "$CACHE" /cache 2>> /tmp/linbo.log
+      mount $ro -t cifs -o nolock,guest,sec=none "$cache" /cache 2>> /tmp/linbo.log
       RC="$?"
       if [ "$RC" != "0" ]; then
         echo "Guest access does not work also."
@@ -99,14 +100,14 @@ case "$CACHE" in
     fi
     ;;
   /dev/*) # cache
-    echo "Mounting cache partition $CACHE ..."
-    linbo_mount "$CACHE" /cache $ro 2>> /tmp/linbo.log ; RC="$?"
+    echo "Mounting cache partition $cache ..."
+    linbo_mount "$cache" /cache $ro 2>> /tmp/linbo.log ; RC="$?"
     ;;
   *) # Yet unknown
-    echo "Unknown source for cache partition: $CACHE." >&2
+    echo "Unknown source for cache partition: $cache." >&2
     ;;
 esac
 
-[ "$RC" = "0" ] || echo "Failed to mount cache partition $CACHE!" >&2
+[ "$RC" = "0" ] || echo "Failed to mount cache partition $cache!" >&2
 
 exit "$RC"

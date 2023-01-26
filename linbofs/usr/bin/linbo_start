@@ -2,7 +2,7 @@
 #
 # linbo_start
 # thomas@linuxmuster.net
-# 20220920
+# 20230126
 #
 
 
@@ -65,7 +65,7 @@ kernel="${kernel#/}"
 initrd="${initrd#/}"
 
 mntpnt="/mnt"
-[ "$root" = "$CACHE" ] && mntpnt="/cache"
+[ "$root" = "$cache" ] && mntpnt="/cache"
 [ -d /sys/firmware/efi/efivars ] && efi="true"
 startflag="/tmp/.start"
 touch "$startflag"

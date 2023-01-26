@@ -2,7 +2,7 @@
 #
 # linbo_sync
 # thomas@linuxmuster.net
-# 20220614
+# 20230126
 #
 
 
@@ -431,7 +431,7 @@ syncl(){
   local i
 
   # don't sync in that case
-  if [ "$rootdev" = "$CACHE" ]; then
+  if [ "$rootdev" = "$cache" ]; then
     echo "Skipping local synchronisation. Image $imagefile will be started direct from cache."
     return 0
   fi
@@ -667,8 +667,8 @@ syncr(){
   local imagefile="$1"
   local imagediff="${imagefile%%.*}.qdiff"
 
-  if remote_cache "$CACHE"; then
-    echo "Cache $CACHE is not local, skipping remote image update."
+  if remote_cache "$cache"; then
+    echo "Cache $cache is not local, skipping remote image update."
   else
     linbo_mountcache || return 1
     cd /cache
@@ -703,7 +703,7 @@ else
   # get os parameters with legacy compatibility (server cachedev baseimage image bootdev rootdev kernel initrd append [force])
   for item in $@; do
     validip "$item" && continue
-    [ "$item" = "$CACHE" ] && continue
+    [ "$item" = "$cache" ] && continue
     if [ -b "$item" -a -z "$osnr" ]; then
       osnr="$(osnr_startconf "$item")"
       source /conf/os.$osnr &> /dev/null || usage 1

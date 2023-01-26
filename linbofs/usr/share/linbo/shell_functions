@@ -20,11 +20,12 @@ fi
 TMP="/tmp/${MYNAME}.${PID}.tmp"
 rm -f "$TMP"
 
-# read environment
-source /.env
-
 # split start.conf if not done yet
 [ -e /conf/linbo ] || linbo_split_startconf
+
+# read environment
+source /.env
+source /conf/linbo
 
 
 #### common stuff ####
@@ -823,7 +824,7 @@ prepare_reboot(){
   local APPEND="$6"
   local efipart="$7"
   local efiboot="false"
-  remote_cache "$CACHE" || local localcache="yes"
+  remote_cache "$cache" || local localcache="yes"
   if [ -z "$NOEFIBOOTMGR" -a -n "$efipart" ]; then
     mk_efiboot "$efipart" "$partition" "$grubdisk" && efiboot="true"
   fi
@@ -883,7 +884,7 @@ mk_boot(){
   local APPEND="$4"
   local efipart="$(print_efipart)"
   local partition="$1"
-  remote_cache "$CACHE" || local localcache="yes"
+  remote_cache "$cache" || local localcache="yes"
   # get disk for grub install, use always the first disk from start.conf
   local grubdisk="$(get_disks_startconf | head -1)"
   if [ ! -b "$grubdisk" ]; then

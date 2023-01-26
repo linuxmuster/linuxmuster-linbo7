@@ -2,7 +2,7 @@
 #
 # linbo_update
 # thomas@linuxmuster.net
-# 20221028
+# 20230126
 #
 
 usage(){
@@ -113,7 +113,7 @@ echo "Downloading linbo wallpaper."
 
 # get ipxe files from server
 echo "Updating ipxe file."
-case "$SYSTEMTYPE" in
+case "$systemtype" in
   efi*) linbo_download boot/grub/ipxe.efi ;;
   *) linbo_download boot/grub/ipxe.lkrn ;;
 esac

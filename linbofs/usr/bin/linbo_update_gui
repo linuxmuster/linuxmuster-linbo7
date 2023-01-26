@@ -3,7 +3,7 @@
 # download linbo_gui from server
 #
 # thomas@linuxmuster.net
-# 20230124
+# 20230126
 #
 
 if [ -e /tmp/.gui.done ]; then
@@ -99,7 +99,7 @@ else
   fi
   # sync gui icons
   cd "$icons_dir"
-  for icon in $ICONNAME; do
+  for icon in $icons; do
     RC="1"
     for item in "icons/$icon" "gui/icons/$icon"; do
       if isdownloadable "$item"; then
@@ -113,12 +113,12 @@ else
     fi
   done
   # sync custom gui theme
-  if [ -n "$THEME" ]; then
-    if isdownloadable "gui/themes/$THEME"; then
+  if [ -n "$theme" ]; then
+    if isdownloadable "gui/themes/$theme"; then
       mkdir -p "$themes_dir"
       cd "$themes_dir"
       # trailing / to download the theme dir recursively
-      linbo_download "gui/themes/$THEME/" 2>&1 | tee -a /tmp/linbo.log ; RC="$?"
+      linbo_download "gui/themes/$theme/" 2>&1 | tee -a /tmp/linbo.log ; RC="$?"
     fi
   fi
 
@@ -136,9 +136,9 @@ fi
 case "$dl_dir" in
   /cache)
     [ -d "$icons_dir" ] && cp -r "$icons_dir" /
-    if [ -d "$themes_dir/$THEME" ]; then
+    if [ -d "$themes_dir/$theme" ]; then
       mkdir -p /themes
-      cp -r "$themes_dir/$THEME" /themes
+      cp -r "$themes_dir/$theme" /themes
     fi
   ;;
   *)
