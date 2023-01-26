@@ -1,7 +1,7 @@
 # common linbo shell functions
 #
 # thomas@linuxmuster.net
-# 20230124
+# 20230126
 #
 
 set -o pipefail
@@ -23,6 +23,8 @@ rm -f "$TMP"
 # read environment
 source /.env
 
+# split start.conf if not done yet
+[ -e /conf/linbo ] || linbo_split_startconf
 
 
 #### common stuff ####

@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20230124
+# 20230126
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -116,15 +116,11 @@ do_env_system(){
 
 # write selected start.conf items to .env
 do_env_startconf(){
-  local value
-  local item
-  for item in CACHE SYSTEMTYPE THEME ICONNAME; do
-    case $item in
-      ICONNAME) value="$(grep -iw ^$item /start.conf | awk -F\= '{print $2}' | awk '{print $1}' | awk -F\# '{print $1}' | awk '{print $1}')" ;;
-      *) value="$(grep -iw ^$item /start.conf | tail -1 | awk -F\= '{print $2}' | awk '{print $1}' | awk -F\# '{print $1}' | awk '{print $1}')" ;;
-    esac
-    echo "export $item='"$value"'" >> /.env
-  done
+  [ -e /conf/linbo ] && source /conf/linbo
+  echo "export CACHE='"$cache"'" >> /.env
+  echo "export SYSTEMTYPE='"$systemtype"'" >> /.env
+  echo "export THEME='"$theme"'" >> /.env
+  echo "export ICONNAME='"$(grep -iw ^iconname /start.conf | tail -1 | awk -F\= '{print $2}' | awk '{print $1}' | awk -F\# '{print $1}' | awk '{print $1}')"'" >> /.env
   source /.env
 }
 
@@ -438,11 +434,7 @@ network(){
   if [ -s /start.conf ]; then
     print_status "Network connection to $LINBOSERVER established successfully."
     print_status "IP: $IP * Hostname: $HOSTNAME * MAC: $MACADDR * Server: $LINBOSERVER"
-    # write selected start.conf items to .env
-    do_env_startconf
-    # split start.conf if complete
-    linbo_split_startconf
-    # first do linbo update & grub installation
+    # first do linbo update (splits start.conf)
     do_linbo_update
     # time sync
     print_status "Starting time sync ..."
@@ -454,10 +446,15 @@ network(){
       rsync -L "$LINBOSERVER::linbo/linbocmd/$item.cmd" "/linbocmd" &> /dev/null
       [ -s /linbocmd ] && break
     done
-    # read linbo-remote noauto command into variable
+    # save linbo-remote noauto and disablegui cmds to variables
     if [ -s /linbocmd ]; then
-      grep -q noauto /linbocmd && noauto="yes" && sed -e "s|noauto||" -i /linbocmd
-      # strip leading and trailing spaces and escapes
+      for i in noauto disablegui; do
+        if grep -q $i /linbocmd; then
+          eval $i=yes
+          sed -i "s|$i||" /linbocmd
+        fi
+      done
+      # strip leading and trailing spaces and escapes and save remaining cmds to variable
       export linbocmd="$(awk '{$1=$1}1' /linbocmd | sed -e 's|\\||g')"
     fi
     # save start.conf and hostname to cache
@@ -469,20 +466,29 @@ network(){
     echo "Trying to copy start.conf from cache."
     copyfromcache start.conf
     # Still nothing new, revert to old version.
-    if [ -s /start.conf ]; then
-      # split start.conf if complete
-      linbo_split_startconf
-    else
-      mv -f /start.conf.dist /start.conf
-    fi
+    [ -s /start.conf ] || mv -f /start.conf.dist /start.conf
+    # set flag to split start.conf
+    do_split="yes"
   fi
   # disable auto functions if noauto is given
   if [ -n "$noauto" ]; then
+    echo "Disabling auto functions."
     autostart=0
     disable_auto
+    # set flag to split start.conf
+    do_split="yes"
   fi
   # start.conf: set autostart if given on cmdline
   isinteger "$autostart" && set_autostart
+  # disable gui (splits start.conf)
+  if [ -n "$disablegui" ]; then
+    echo "Disabling linbo_gui."
+    gui_ctl disable
+  fi
+  # split start.conf finally, if it has been changed in the meantime
+  [ -n "$do_split" -a -z "$disablegui" ] && linbo_split_startconf
+  # write selected start.conf items to .env
+  do_env_startconf
   # sets flag if no default route
   route -n | grep -q ^0\.0\.0\.0 || echo > /tmp/.offline
   # start ssh server

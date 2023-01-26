@@ -2,7 +2,7 @@
 #
 # control linbo_gui: gui_ctl <disable|enable|restore>
 # thomas@linuxmuster.net
-# 20220223
+# 20230126
 #
 
 # test start.conf
@@ -11,8 +11,6 @@
 # test gui
 gui_ps="$(ps w | grep linbo_gui | grep -v grep | awk '{print $1, $5}')"
 gui_pid="$(echo "$gui_ps" | awk '{print $1}')"
-
-[ -z "$gui_pid" ] && exit 1
 
 backup_start_conf() {
   # only backup if there is not backup yet
@@ -55,6 +53,9 @@ case "$1" in
 
   *) exit 1 ;;
 esac
+
+# split changed start.conf
+linbo_split_startconf &> /dev/null
 
 if [ -n "$gui_pid" ]; then
   kill "$gui_pid" || exit 1
