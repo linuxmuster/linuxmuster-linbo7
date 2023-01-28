@@ -220,7 +220,7 @@ Welcome to
 | |____ _| |_| |\  | |_) | |__| |
 |______|_____|_| \_|____/ \____/
 
-LINBO 4.1.18-0: One Step Beyond | IP: 10.0.100.1 | MAC: 96:9b:31:46:54:f3 
+LINBO 4.1.18-0: One Step Beyond | IP: 10.0.100.1 | MAC: 95:6a:45:12:67:d5
 
 Linux 6.1.8 #1 SMP PREEMPT_DYNAMIC Thu Jan 26 22:13:55 UTC 2023 x86_64 GNU/Linux
 
@@ -236,8 +236,8 @@ FORCEGRUB='yes'
 FQDN='multi-01.linuxmuster.lan'
 FUNCNAME=''
 HOME='/'
-HOSTGROUP='multi'
-HOSTNAME='multi-01'
+HOSTGROUP='tuxwin'
+HOSTNAME='linboclient-01'
 INTERFACE='eth0'
 IP='10.0.100.1'
 LEASE='172800'
@@ -247,7 +247,7 @@ LINBOVER='4.1.18-0'
 LINENO=''
 LOCALBOOT='yes'
 LOGNAME='root'
-MACADDR='96:9b:31:46:54:f3'
+MACADDR='95:6a:45:12:67:d5'
 MASK='16'
 NTPSRV='10.0.0.1'
 OPT53='05'
@@ -271,6 +271,8 @@ SUBNET='255.255.0.0'
 TERM='xterm-256color'
 USER='root'
 ```
+
+The `linbo_cmd` script is splitted into multiple scripts, each for a certain function. The legacy `linbo_cmd` remains functional for backwards compatibility. The client's `start.conf` is divided into better parseable chunks that resider unter _/conf_. This makes the LINBO client shell more powerful than ever. For more details please take a look at [#72](https://github.com/linuxmuster/linuxmuster-linbo7/issues/72).
 
 ## Build environment
 
