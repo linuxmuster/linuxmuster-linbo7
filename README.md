@@ -78,50 +78,24 @@ Note:
 * Press the big os button.
 * Select "Create differential image."
 
-## Build environment
-
-### Source tree structure
-* build: all files, which are used to build the package.
-  - bin: helper scripts (only get kernel archive script at the moment).
-  - conf.d: environment variables definition for the various build components.
-  - config: configuration files for various source packages (eg. busybox, kernel).
-  - initramfs.d: initramfs configurations for the various components, which are picked from the ubuntu build system to create the linbofs system from it.
-  - patches: source patches, which are to be applied (eg. cloop).
-  - run.d: the build scripts for the package components.
-* debian: debian packaging stuff
-* linbofs: files, which are installed to the initramfs file system.
-* serverfs: files, which are installed to the server root file system.
-
-### Build instructions:
-* Install Ubuntu 22.04
-* If you are using Ubuntu server or minimal:
-  `sudo apt install dpkg-dev`
-* Install build depends (uses sudo):
-  `./get-depends.sh`
-* Build package:
-  `./buildpackage.sh`
-
-Or for better convenience use the new [linbo-build-docker](https://github.com/linuxmuster/linbo-build-docker) environment.
-
-## Usage infos
-
-### New kernel parameters
+## New kernel parameters
 Parameter  |  Description
 --|--
 nogui  |  Does not start linbo_gui (for debugging purposes), console only mode.
 nowarmstart  |  Suppresses linbo warmstart after downloading a new linbo kernel from the server (in case warmstart causes problems). Note: The old parameter `warmstart=no` is still functional for compatibility reasons.
 
-### Updated linbo server scripts
+## Improved LINBO server scripts
 
 For background jobs `screen` is replaced by [`tmux`](https://manpages.ubuntu.com/manpages/jammy/man1/tmux.1.html). Note: To detach a tmux session you have to use the key combination [CTRL-D] + [B].
 
-#### linbo-remote
+### linbo-remote
 * There are two new commands `create_qdiff` and `upload_qdiff` for differential imaging.
 * The options `-d` and `-n` receive a different behaviour. They may be used to set the client into maintenance mode:
   ```
   linbo-remote -d -n -c reboot -i <hostname>
   linbo-remote -d -n -w 0 -i <hostname>
   ```
+* The option `-c` now disables the gui by default during command execution. 
 * The new option `-a` allows to attach a host's tmux session.
 
 Full linbo-remote help:
@@ -188,7 +162,7 @@ in the order given on the commandline.
 create_* and upload_* commands cannot be used with hostlists, -r and -g options.
 ```
 
-#### linbo-torrent
+### linbo-torrent
 * The new command `attach` attaches a torrent's tmux session.
 * The `status` command lists all running tmux sessions of the torrents.
   ```
@@ -223,7 +197,7 @@ Note:
  * "reload" is the identical to "restart" and is there for backwards compatibility.
 ```
 
-#### linbo-multicast
+### linbo-multicast
 * The `status` command lists all running multicast tmux sessions.
   ```
   ubuntu2004_qcow2_mcast: 1 windows (created Sat Jan 28 14:05:44 2023)
@@ -233,5 +207,94 @@ Note:
   ```
 * To watch the output of a multicast tmux session you have to follow its logfile:  
   `tail -f /var/log/linuxmuster/linbo/ubuntu2004_qdiff_mcast.log`
+
+## Improved LINBO client shell
+
+The improved LINBO client shell not ony presents a new login prompt
+```
+Welcome to
+ _      _____ _   _ ____   ____
+| |    |_   _| \ | |  _ \ / __ \
+| |      | | |  \| | |_) | |  | |
+| |      | | | . ` |  _ <| |  | |
+| |____ _| |_| |\  | |_) | |__| |
+|______|_____|_| \_|____/ \____/
+
+LINBO 4.1.18-0: One Step Beyond | IP: 10.0.100.1 | MAC: 96:9b:31:46:54:f3 
+
+Linux 6.1.8 #1 SMP PREEMPT_DYNAMIC Thu Jan 26 22:13:55 UTC 2023 x86_64 GNU/Linux
+
+linboclient-01: ~ #
+```
+but also offers a complete set of environment variables:
+```
+BOOT_FILE='boot/grub/x86_64-efi/core.efi'
+BROADCAST='10.0.255.255'
+DNS='10.0.0.1'
+DOMAIN='linuxmuster.lan'
+FORCEGRUB='yes'
+FQDN='multi-01.linuxmuster.lan'
+FUNCNAME=''
+HOME='/'
+HOSTGROUP='multi'
+HOSTNAME='multi-01'
+INTERFACE='eth0'
+IP='10.0.100.1'
+LEASE='172800'
+LINBOFULLVER='LINBO 4.1.18-0: One Step Beyond'
+LINBOSERVER='10.0.0.1'
+LINBOVER='4.1.18-0'
+LINENO=''
+LOCALBOOT='yes'
+LOGNAME='root'
+MACADDR='96:9b:31:46:54:f3'
+MASK='16'
+NTPSRV='10.0.0.1'
+OPT53='05'
+OPTIND='1'
+PATH='/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+PWD='/'
+QUIET='yes'
+ROUTER='10.0.0.254'
+RSYNC_PERMISSIONS='--chmod=ug=rw,o=r'
+RSYNC_SKIP_COMPRESS='/7z/arc/arj/bz2/cab/cloop/deb/gz/gpg/iso/jar/jp2/jpg/jpeg/lz/lz4/lzma/lzo/png/qcow2/qdiff/qt/rar/rzip/s7z/sfx/svgz/tbz/tgz/tlz/txz/xz/z/zip/zst'
+SERVERID='10.0.0.1'
+SHELL='/bin/sh'
+SHLVL='1'
+SIADDR='10.0.0.1'
+SNAME='server.linuxmuster.lan'
+SPLASH='yes'
+SSH_CLIENT='10.0.0.1 42384 2222'
+SSH_CONNECTION='10.0.0.1 42384 10.0.100.1 2222'
+SSH_TTY='/dev/pts/0'
+SUBNET='255.255.0.0'
+TERM='xterm-256color'
+USER='root'
+```
+
+## Build environment
+
+### Source tree structure
+* build: all files, which are used to build the package.
+  - bin: helper scripts (only get kernel archive script at the moment).
+  - conf.d: environment variables definition for the various build components.
+  - config: configuration files for various source packages (eg. busybox, kernel).
+  - initramfs.d: initramfs configurations for the various components, which are picked from the ubuntu build system to create the linbofs system from it.
+  - patches: source patches, which are to be applied (eg. cloop).
+  - run.d: the build scripts for the package components.
+* debian: debian packaging stuff
+* linbofs: files, which are installed to the initramfs file system.
+* serverfs: files, which are installed to the server root file system.
+
+### Build instructions:
+* Install Ubuntu 22.04
+* If you are using Ubuntu server or minimal:
+  `sudo apt install dpkg-dev`
+* Install build depends (uses sudo):
+  `./get-depends.sh`
+* Build package:
+  `./buildpackage.sh`
+
+Or for better convenience use the new [linbo-build-docker](https://github.com/linuxmuster/linbo-build-docker) environment.
 
 Further infos see [README](https://github.com/linuxmuster/linuxmuster-linbo7/tree/4.0#readme) of stable branch.
