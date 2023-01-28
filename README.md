@@ -188,4 +188,50 @@ in the order given on the commandline.
 create_* and upload_* commands cannot be used with hostlists, -r and -g options.
 ```
 
+#### linbo-torrent
+* The new command `attach` attaches a torrent's tmux session.
+* The `status` command lists all running tmux sessions of the torrents.
+```
+ubuntu2004_qcow2_torrent: 1 windows (created Fri Jan 27 14:40:01 2023)
+ubuntu2004_qdiff_torrent: 1 windows (created Fri Jan 27 14:40:03 2023)
+win10-efi_qcow2_torrent: 1 windows (created Fri Jan 27 14:40:02 2023)
+win10-efi_qdiff_torrent: 1 windows (created Fri Jan 27 14:40:04 2023)
+```
+
+Full linbo-torrent help:
+```
+Info: linbo-torrent manages the torrent tmux sessions of linbo images.
+
+Usage:
+ linbo-torrent <start|stop|restart|reload|status|create|check> [image_name]
+ linbo-torrent attach <image_name|session_name>
+
+Note:
+ * Only qcow2 & qdiff image files located below /srv/linbo/images are processed.
+ * The commands "start", "stop" and "restart" may have optionally an image
+   filename as parameter. In this case the commands are only applied to the tmux
+   session of the certain file. Without an explicit image filename the commands
+   were applied to all image file sessions currently running.
+ * An image filename parameter is mandatory with the commands "check", "create"
+   and "attach".
+ * "check" checks if the image file matches to the correspondig torrent.
+ * "create" creates/recreates the torrent of a certain image file.
+ * "status" shows a list of currently running torrent tmux sessions.
+ * "attach" attaches a torrent tmux session of a certain image. An image or
+   session name must be given as parameter.
+   Press [CTRL+B]+[D] to detach the session again.
+ * "reload" is the identical to "restart" and is there for backwards compatibility.
+```
+
+#### linbo-multicast
+* The `status` command lists all running multicast tmux sessions.
+```
+ubuntu2004_qcow2_mcast: 1 windows (created Sat Jan 28 14:05:44 2023)
+ubuntu2004_qdiff_mcast: 1 windows (created Sat Jan 28 14:05:43 2023)
+win10-efi_qcow2_mcast: 1 windows (created Sat Jan 28 14:05:45 2023)
+win10-efi_qdiff_mcast: 1 windows (created Sat Jan 28 14:05:46 2023)
+```
+* To watch the output of a multicast tmux session you have to follow its logfile:
+  `tail -f /var/log/linuxmuster/linbo/ubuntu2004_qdiff_mcast.log`
+
 Further infos see [README](https://github.com/linuxmuster/linuxmuster-linbo7/tree/4.0#readme) of stable branch.
