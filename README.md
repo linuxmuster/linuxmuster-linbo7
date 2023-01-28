@@ -210,7 +210,7 @@ Note:
 
 ## Improved LINBO client shell
 
-The improved LINBO client shell not ony present a new login prompt
+The improved LINBO client shell not ony presents a new login prompt
 ```
 Welcome to
  _      _____ _   _ ____   ____
