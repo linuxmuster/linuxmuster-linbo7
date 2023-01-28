@@ -210,7 +210,7 @@ Note:
 
 ## Improved LINBO client shell
 
-The improved LINBO client shell not ony presents a new login prompt
+The improved LINBO client shell not ony present a new login prompt
 ```
 Welcome to
  _      _____ _   _ ____   ____
@@ -272,7 +272,37 @@ TERM='xterm-256color'
 USER='root'
 ```
 
-The `linbo_cmd` script is splitted into multiple scripts, each for a certain function. The legacy `linbo_cmd` remains functional for backwards compatibility. The client's `start.conf` is divided into better parseable chunks that reside under _/conf_. This makes the LINBO client shell more powerful than ever. For more details please take a look at [#72](https://github.com/linuxmuster/linuxmuster-linbo7/issues/72).
+The `linbo_cmd` script is splitted into multiple scripts, each for a certain function. The legacy `linbo_cmd` remains functional for backwards compatibility. The client's `start.conf` is divided into better parseable chunks that reside under _/conf_.
+```
+linboclient-01: ~ # ls -1 /conf/*
+/conf/linbo
+/conf/os.1
+/conf/os.2
+/conf/part.1.sda1
+/conf/part.2.sda2
+/conf/part.3.sda3
+/conf/part.4.sda4
+/conf/part.5.sda5 
+```
+```
+linboclient-01: ~ # cat /conf/linbo 
+server="10.0.0.1"
+group="tuxwin"
+cache="/dev/sda5"
+roottimeout="600"
+autopartition="no"
+autoformat="no"
+autoinitcache="no"
+downloadtype="torrent"
+guidisabled="no"
+theme="test_theme"
+useminimallayout="no"
+locale="de-de"
+systemtype="efi64"
+kerneloptions="quiet splash forcegrub"
+icons="win10.svg ubuntu.svg"
+```
+ This makes the LINBO client shell more powerful than ever. For more details please take a look at [#72](https://github.com/linuxmuster/linuxmuster-linbo7/issues/72).
 
 ## Build environment
 
