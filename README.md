@@ -231,7 +231,7 @@ ubuntu2004_qdiff_mcast: 1 windows (created Sat Jan 28 14:05:43 2023)
 win10-efi_qcow2_mcast: 1 windows (created Sat Jan 28 14:05:45 2023)
 win10-efi_qdiff_mcast: 1 windows (created Sat Jan 28 14:05:46 2023)
 ```
-* To watch the output of a multicast tmux session you have to follow its logfile:
+* To watch the output of a multicast tmux session you have to follow its logfile:  
   `tail -f /var/log/linuxmuster/linbo/ubuntu2004_qdiff_mcast.log`
 
 Further infos see [README](https://github.com/linuxmuster/linuxmuster-linbo7/tree/4.0#readme) of stable branch.
