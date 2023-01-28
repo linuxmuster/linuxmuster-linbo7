@@ -6,7 +6,7 @@
  is the free and opensource imaging solution for linuxmuster.net 7. It handles Windows 10 (TM) and Linux 64bit operating systems. Via TFTP and Grub's PXE implementation it boots a small linux system (linbofs) with a [gui](https://github.com/linuxmuster/linuxmuster-linbo-gui), which can manage all the imaging tasks on the client. Console tools are also available to manage clients and imaging remotely via the server.
 
  ## Features
- * Kernel >5.18.
+ * Kernel 6.1.*.
  * qcow2 image format.
  * Differential images.
  * Complete [refactoring of linbo_cmd](https://github.com/linuxmuster/linuxmuster-linbo7/issues/72).
@@ -27,7 +27,7 @@
 
 ## Differential imaging
 * Differential imagefile uses the qcow2 baseimage as so called *backingstore*.
-* Differential image gets extension `qdiff`: `image.qdiff` -> `image.qcow2`.
+* Differential image gets extension `qdiff`: `image.qcow2` -> `image.qdiff`.
 * The diffimage will be created in the same directory as the baseimage, so they are virtually "bundled".
 * If a diffimage exists for a baseimage, the diffimage is used for the restore.
 * If you remove the diffimage on the server, it is also deleted on the client during the sync and only the baseimage is used for the restore.
@@ -44,7 +44,7 @@
   umount /image
   qemu-nbd --disconnect /dev/nbd0
   ```
-* Diffimage will be restored file-based:
+* Diffimage is restored file-based:
   ```
   qemu-nbd -r --connect /dev/nbd0 image.qdiff
   mount /dev/nbd0 /image
@@ -109,13 +109,83 @@ Or for better convenience use the new [linbo-build-docker](https://github.com/li
 Parameter  |  Description
 --|--
 nogui  |  Does not start linbo_gui (for debugging purposes), console only mode.
-nowarmstart  |  Suppresses linbo warmstart after downloading a new linbo kernel from the server (in case this causes problems). Note: The old parameter `warmstart=no` does the same and is still valid for compatibility reasons.
+nowarmstart  |  Suppresses linbo warmstart after downloading a new linbo kernel from the server (in case warmstart causes problems). Note: The old parameter `warmstart=no` is still functional for compatibility reasons.
 
-### linbo-remote
-gets two new commands for differential imaging:
+### Updated linbo server scripts
+
+For background jobs `screen` is replaced by [`tmux`](https://manpages.ubuntu.com/manpages/jammy/man1/tmux.1.html). Note: To detach a tmux session you have to use the key combination [CTRL-D] + [B].
+
+#### linbo-remote
+* There are two new commands `create_qdiff` and `upload_qdiff` for differential imaging.
+* The options `-d` and `-n` receive a different behaviour. They may be used to set the client into maintenance mode:
+  ```
+  linbo-remote -d -n -c reboot -i <hostname>
+  linbo-remote -d -n -w 0 -i <hostname>
+  ```
+* The new option `-a` allows to attach a host's tmux session.
+
+Full linbo-remote help:
+
 ```
+Usage: linbo-remote <options>
+
+Options:
+
+ -h                 Show this help.
+ -a <hostname>      Attach the running tmux session for this hostname.
+ -b <sec>           Wait <sec> second(s) between sending wake-on-lan magic
+                    packets to the particular hosts. Must be used in
+                    conjunction with "-w".
+ -c <cmd1,cmd2,...> Comma separated list of linbo commands transfered
+                    per ssh direct to the client(s). Gui will be disabled
+                    during execution.
+ -d                 Disables gui on next boot.
+ -g <group>         All hosts of this hostgroup will be processed.
+ -i <i1,i2,...>     Single ip or hostname or comma separated list of ips
+                    or hostnames of clients to be processed.
+ -l                 List current linbo-remote tmux sessions.
+ -n                 Bypasses start.conf configured auto functions
+                    (partition, format, initcache, start) on next boot.
+ -r <room>          All hosts of this room will be processed.
+ -s <school>        Select a school other than default-school
+ -p <cmd1,cmd2,...> Create an onboot command file executed automatically
+                    once next time the client boots.
+ -u                 Use broadcast address for wol additionally.
+ -w <sec>           Send wake-on-lan magic packets to the client(s)
+                    and wait <sec> seconds before executing the
+                    commands given with "-c" or in case of "-p" after
+                    the creation of the pxe boot files.
+
+Important: * Options "-r", "-g" and "-i" exclude each other, "-c" and
+             "-p" as well.
+
+Supported commands for -c or -p options are:
+
+partition                : Writes the partition table.
+label                    : Labels all partitions defined in start.conf.
+                           Note: Partitions have to be formatted.
+format                   : Writes the partition table and formats all
+                           partitions.
+format:<#>               : Writes the partition table and formats only
+                           partition nr <#>.
+initcache:<dltype>       : Updates local cache. <dltype> is one of
+                           rsync|multicast|torrent.
+                           If dltype is not specified it is read from
+                           start.conf.
+sync:<#>                 : Syncs the operating system on position nr <#>.
+start:<#>                : Starts the operating system on pos. nr <#>.
+create_image:<#>:<"msg"> : Creates a full image from operating system nr <#>.
+upload_image:<#>         : Uploads a full image from operating system nr <#>.
 create_qdiff:<#>:<"msg"> : Creates a differential image from operating system nr <#>.
 upload_qdiff:<#>         : Uploads a differential image from operating system nr <#>.
+reboot                   : Reboots the client.
+halt                     : Shuts the client down.
+
+<"msg"> is an optional image comment.
+The position numbers are related to the position in start.conf.
+The commands were sent per ssh to the linbo_wrapper on the client and processed
+in the order given on the commandline.
+create_* and upload_* commands cannot be used with hostlists, -r and -g options.
 ```
 
 Further infos see [README](https://github.com/linuxmuster/linuxmuster-linbo7/tree/4.0#readme) of stable branch.
