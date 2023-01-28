@@ -191,12 +191,12 @@ create_* and upload_* commands cannot be used with hostlists, -r and -g options.
 #### linbo-torrent
 * The new command `attach` attaches a torrent's tmux session.
 * The `status` command lists all running tmux sessions of the torrents.
-```
-ubuntu2004_qcow2_torrent: 1 windows (created Fri Jan 27 14:40:01 2023)
-ubuntu2004_qdiff_torrent: 1 windows (created Fri Jan 27 14:40:03 2023)
-win10-efi_qcow2_torrent: 1 windows (created Fri Jan 27 14:40:02 2023)
-win10-efi_qdiff_torrent: 1 windows (created Fri Jan 27 14:40:04 2023)
-```
+  ```
+  ubuntu2004_qcow2_torrent: 1 windows (created Fri Jan 27 14:40:01 2023)
+  ubuntu2004_qdiff_torrent: 1 windows (created Fri Jan 27 14:40:03 2023)
+  win10-efi_qcow2_torrent: 1 windows (created Fri Jan 27 14:40:02 2023)
+  win10-efi_qdiff_torrent: 1 windows (created Fri Jan 27 14:40:04 2023)
+  ```
 
 Full linbo-torrent help:
 ```
@@ -225,12 +225,12 @@ Note:
 
 #### linbo-multicast
 * The `status` command lists all running multicast tmux sessions.
-```
-ubuntu2004_qcow2_mcast: 1 windows (created Sat Jan 28 14:05:44 2023)
-ubuntu2004_qdiff_mcast: 1 windows (created Sat Jan 28 14:05:43 2023)
-win10-efi_qcow2_mcast: 1 windows (created Sat Jan 28 14:05:45 2023)
-win10-efi_qdiff_mcast: 1 windows (created Sat Jan 28 14:05:46 2023)
-```
+  ```
+  ubuntu2004_qcow2_mcast: 1 windows (created Sat Jan 28 14:05:44 2023)
+  ubuntu2004_qdiff_mcast: 1 windows (created Sat Jan 28 14:05:43 2023)
+  win10-efi_qcow2_mcast: 1 windows (created Sat Jan 28 14:05:45 2023)
+  win10-efi_qdiff_mcast: 1 windows (created Sat Jan 28 14:05:46 2023)
+  ```
 * To watch the output of a multicast tmux session you have to follow its logfile:  
   `tail -f /var/log/linuxmuster/linbo/ubuntu2004_qdiff_mcast.log`
 
