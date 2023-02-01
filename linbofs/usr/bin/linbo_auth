@@ -2,7 +2,7 @@
 #
 # linbo_auth
 # thomas@linuxmuster.net
-# 20230125
+# 20230201
 #
 
 usage(){
@@ -24,10 +24,12 @@ usage(){
 # last parameter is password in any case
 export RSYNC_PASSWORD="$(echo "$@" | awk '{print $NF}')"
 
-if [ -e /etc/linbo_passwd ]; then
+if [ -s /etc/linbo_pwhash -a -s /etc/linbo_salt ]; then
   echo "Using local authentication ..."
-  given_pwhash="$(echo -n "$RSYNC_PASSWORD" | sha256sum | awk '{ print $1 }')"
-  linbo_pwhash="$(cat /etc/linbo_passwd)"
+  linbo_pwhash="$(cat /etc/linbo_pwhash)"
+  linbo_salt="$(cat /etc/linbo_salt)"
+  cpus="$(LANG=C grep -c ^processor /proc/cpuinfo)"
+  given_pwhash="$(echo "$RSYNC_PASSWORD" | LANG=C argon2 "$linbo_salt" -t 1000 -p $cpus | grep ^Hash | awk '{print $2}')"
   if [ "$given_pwhash" = "$linbo_pwhash" ]; then
     msg="Password matches."; RC=0
     # temporary workaround for password

@@ -6,7 +6,7 @@
 #
 # thomas@linuxmuster.net
 # GPL V3
-# 20230125
+# 20230201
 #
 
 # read linuxmuster environment
@@ -62,8 +62,10 @@ update_linbofs() {
 	set +o pipefail
 	[ "$RC" = "0" ] || bailout " Failed to unpack $(basename "$linbofstpl")!"
 
-	# store linbo md5 password
-	echo -n "$linbo_pwhash" > etc/linbo_passwd
+	# store linbo password hash
+	echo -n "$linbo_pwhash" > etc/linbo_pwhash
+	echo -n "$linbo_salt" > etc/linbo_salt
+	chmod 600 etc/linbo_*
 
 	# provide dropbear ssh host key
 	mkdir -p etc/dropbear
@@ -116,9 +118,17 @@ linbo_passwd="$(grep ^linbo /etc/rsyncd.secrets | awk -F\: '{ print $2 }')"
 if [ -z "$linbo_passwd" ]; then
   bailout "Cannot read linbo password from /etc/rsyncd.secrets!"
 fi
-# md5sum of linbo password goes into ramdisk
-linbo_pwhash=`echo -n $linbo_passwd | sha256sum | awk '{ print $1 }'`
-
+# hash of linbo password goes into linbofs
+echo -n "Hashing linbo password ... "
+linbo_salt="$(tr -dc 'A-Za-z0-9!"#$%&'\''()*+,-./:;<=>?@[\]^_`{|}~' </dev/urandom | head -c 32  ; echo)"
+cpus="$(LANG=C grep -c ^processor /proc/cpuinfo)"
+linbo_pwhash="$(echo "$linbo_passwd" | LANG=C argon2 "$linbo_salt" -t 1000 -p $cpus | grep ^Hash | awk '{print $2}')"
+if [ -n "$linbo_salt" -a -n "$linbo_pwhash" ]; then
+	echo "Success!"
+else
+	echo "Failed!"
+	exit 1
+fi
 
 # process linbofs updates
 update_linbofs 64

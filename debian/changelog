@@ -1,3 +1,9 @@
+linuxmuster-linbo7 (4.1.19-0) lmn72; urgency=low
+
+  * Fix #90: Add salt to password hash ().
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 1 Feb 2023 19:32:00 +0100
+
 linuxmuster-linbo7 (4.1.18-0) lmn72; urgency=low
 
   * Fix: efivarfs not mounted in linbofs (f4033f4).
