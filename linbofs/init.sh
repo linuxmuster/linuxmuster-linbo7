@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20230126
+# 20230206
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -375,21 +375,14 @@ set_autostart() {
 network(){
   echo
   rm -f /tmp/linbo-network.done
-  if grep -qwi nonetwork /proc/cmdline; then
-    print_status "Local mode is configured, skipping network configuration."
-    do_env
-    copyfromcache start.conf
-    linbo_split_startconf
-    do_housekeeping
-    touch /tmp/linbo-network.done
-    return 0
-  fi
   # iterate over ethernet interfaces
   print_status "Requesting ip address per dhcp ..."
   # dhcp retries
   for i in $(cat /proc/cmdline); do case "$i" in dhcpretry=*) eval "$i" ;; esac; done
   [ -n "$dhcpretry" ] && dhcpretry="-t $dhcpretry"
   local RC="0"
+  local dev
+  local dhcpdev
   for dev in `grep ':' /proc/net/dev | awk -F\: '{ print $1 }' | awk '{ print $1}' | grep -v ^lo`; do
     print_status "Interface $dev ... "
     ifconfig "$dev" up &> /dev/null
@@ -409,9 +402,11 @@ network(){
       # set mtu
       [ -n "$mtu" ] && ifconfig "$dev" mtu $mtu &> /dev/null
       break
+    else
+      dhcpdev=""
     fi
   done
-  # Network is up now, create environment
+  # create environment
   do_env
   # Move away standard start.conf and try to download the current one
   mv /start.conf /start.conf.dist
@@ -477,11 +472,11 @@ network(){
   fi
   # split start.conf finally, if it has been changed in the meantime
   [ -n "$do_split" -a -z "$disablegui" ] && linbo_split_startconf
-  # sets flag if no default route
-  route -n | grep -q ^0\.0\.0\.0 || echo > /tmp/.offline
-  # start ssh server
-  print_status "Starting ssh service."
-  /sbin/dropbear -s -g -E -p 2222 &> /dev/null
+  # start ssh server only if network is avalilable
+  if [ -n "$dhcpdev" ]; then
+    print_status "Starting ssh service."
+    /sbin/dropbear -s -g -E -p 2222 &> /dev/null
+  fi
   # remove reboot flag, save windows activation
   do_housekeeping
   # done
