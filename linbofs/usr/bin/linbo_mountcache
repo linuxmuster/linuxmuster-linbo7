@@ -46,8 +46,11 @@ findcache(){
 #echo "linbo_mountcache $@"
 
 # get cache partition, otherwise use environment variable
-[ -e /conf/linbo ] && source /conf/linbo
-[ -z "$1" -o -b "$1" ] && shift
+if [ -b "$1" ]; then
+  cache="$1"
+  shift
+fi
+[ -z "$cache" -a -s /conf/linbo ] && source /conf/linbo
 [ -z "$cache" ] && findcache
 [ -b "$cache" ] || usage 1
 
