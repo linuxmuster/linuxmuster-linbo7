@@ -1,7 +1,7 @@
 # common linbo shell functions
 #
 # thomas@linuxmuster.net
-# 20230203
+# 20230205
 #
 
 set -o pipefail
@@ -25,7 +25,7 @@ rm -f "$TMP"
 
 # read environment
 source /.env
-source /conf/linbo
+[ -e /conf/linbo ] || source /conf/linbo
 
 
 #### common stuff ####
