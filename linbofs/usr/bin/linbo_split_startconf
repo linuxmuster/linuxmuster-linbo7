@@ -2,7 +2,7 @@
 #
 # split start.conf in machine parseable chunks
 # thomas@linuxmuster.net
-# 20220602
+# 20230206
 #
 
 # check for complete start.conf
@@ -42,7 +42,7 @@ for item in "$prefix"*; do
   esac
   # write chunk
   [ -z "$QUIET" ] && echo " * $(basename $cfgfile)"
-  grep -v ^"\[" "$item" | sed -e 's|[ ]*=[ ]*|="|' -e 's|$|"|' | awk -F'=' '{print tolower($1) "=" $2}' > "$cfgfile"
+  grep -v ^"\[" "$item" | sed -e 's|[ ]*=[ ]*|="|' | awk -F= '{ st = index($0,"=");print tolower($1) "=" substr($0,st+1) "\""}' > "$cfgfile"
 done
 
 # write icons to linbo section
