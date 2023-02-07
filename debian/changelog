@@ -1,3 +1,14 @@
+linuxmuster-linbo7 (4.1.20-0) lmn72; urgency=low
+
+  * Improved evaluation of kernel cmdline (61af8c2).
+  * Fixed evaluation of start.conf values which contain an equal sign (c292b43).
+  * Update kernel to 6.1.10, activates some Thinkpad drivers (d41d31a, 91f6609).
+  * shell_functions fixes (3f89a95, c88c1ef, 14650c6).
+  * linbo_mountcache: Use cache parameter if it is given (9983c5c).
+  * improve offline mode (43185ef).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 7 Feb 2023 09:51:00 +0100
+
 linuxmuster-linbo7 (4.1.19-0) lmn72; urgency=low
 
   * Fix #90: Add salt to password hash (48c7724).
