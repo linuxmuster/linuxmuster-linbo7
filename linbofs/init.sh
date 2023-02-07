@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20230206
+# 20230207
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -95,6 +95,9 @@ do_env(){
       # set localmode if nonetwork parameter is given
       NONETWORK) upvarname="LOCALMODE" ;;
     esac
+    # avoid duplicates
+    sed -i "/$upvarname=/d" /.env
+    # write entry to env file
     echo "export ${item/${varname}/${upvarname}}" >> /.env
   done
   source /.env
@@ -135,15 +138,11 @@ init_setup(){
     [ -f "$i" ] && echo "ondemand" > "$i" 2>/dev/null
   done
 
-  # load modules given with loadmodules=module1,module2
-  loadmodules="$(grep -v ^# /etc/modules),$loadmodules"
-  if [ -n "$loadmodules" ]; then
-    loadmodules="$(echo "$loadmodules" | sed -e 's|,| |g')"
-    for i in $loadmodules; do
-      echo "Loading module $i ..."
-      modprobe "$i"
-    done
-  fi
+  # load modules from /etc/modules and cmdline
+  for i in $(grep -v ^# /etc/modules) $loadmodules; do
+    echo "Loading module $i ..."
+    modprobe "$i"
+  done
 }
 
 # copyfromcache files - copies files from cache to current dir
@@ -376,13 +375,11 @@ network(){
   echo
   rm -f /tmp/linbo-network.done
   # iterate over ethernet interfaces
-  print_status "Requesting ip address per dhcp ..."
-  # dhcp retries
-  for i in $(cat /proc/cmdline); do case "$i" in dhcpretry=*) eval "$i" ;; esac; done
-  [ -n "$dhcpretry" ] && dhcpretry="-t $dhcpretry"
   local RC="0"
   local dev
   local dhcpdev
+  [ -z "$dhcpretry" ] && dhcpretry=3
+  print_status "Requesting ip address per dhcp (retry=$dhcpretry) ..."
   for dev in `grep ':' /proc/net/dev | awk -F\: '{ print $1 }' | awk '{ print $1}' | grep -v ^lo`; do
     print_status "Interface $dev ... "
     ifconfig "$dev" up &> /dev/null
@@ -397,7 +394,7 @@ network(){
     else
       dhcpdev="$dev"
     fi
-    udhcpc -O nisdomain -n -i "$dhcpdev" $dhcpretry &> /dev/null ; RC="$?"
+    udhcpc -O nisdomain -n -i "$dhcpdev" -t $dhcpretry &> /dev/null ; RC="$?"
     if [ "$RC" = "0" ]; then
       # set mtu
       [ -n "$mtu" ] && ifconfig "$dev" mtu $mtu &> /dev/null
