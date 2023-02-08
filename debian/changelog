@@ -1,3 +1,9 @@
+linuxmuster-linbo7 (4.1.21-0) lmn72; urgency=low
+
+  * Fix linbo_wrapper format command (1a96625).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 8 Feb 2023 20:00:00 +0100
+
 linuxmuster-linbo7 (4.1.20-0) lmn72; urgency=low
 
   * Improved evaluation of kernel cmdline (61af8c2).
