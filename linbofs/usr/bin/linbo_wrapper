@@ -2,7 +2,7 @@
 #
 # linbo_wrapper: wrapper for linbo commands
 # thomas@linuxmuster.net
-# 20220618
+# 20230208
 #
 
 SECRETS=/tmp/rsyncd.secrets
@@ -103,7 +103,7 @@ while [ "$#" -gt "0" ]; do
       if [ -n "$osnr" ]; then
         linbo_format "$osnr" || exit 1
       else
-        linbo_partition_format | exit 1
+        linbo_partition_format || exit 1
       fi
       ;;
 
