@@ -1,3 +1,9 @@
+linuxmuster-linbo7 (4.1.22-0) lmn72; urgency=low
+
+  * Fix lmn71 start.conf request (01e52af).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 9 Feb 2023 18:32:00 +0100
+
 linuxmuster-linbo7 (4.1.21-0) lmn72; urgency=low
 
   * Fix linbo_wrapper format command (1a96625).
