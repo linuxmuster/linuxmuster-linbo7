@@ -2,7 +2,7 @@
 #
 # Pre-Download script for rsync/LINBO
 # thomas@linuxmuster.net
-# 20230113
+# 20230209
 #
 
 # read in linuxmuster specific environment
@@ -181,6 +181,18 @@ case $EXT in
     linbo_kopts="$(grep -iw ^kerneloptions "$startconf" | awk -F\= '{print $2}' | awk -F\# '{print $1}' | head -$nr | tail -1 | awk '{$1=$1};1')"
     append="$linbo_kopts localboot"
     sed -e "s|linux \$linbo_kernel .*|linux \$linbo_kernel $append|g" "$grubcfg_tpl" > "$FILE"
+  ;;
+
+  # handle lmn71 start.conf request
+  conf_*)
+    mkdir -p "$LINBODIR/tmp"
+    group="$(get_hostgroup "$compname")"
+    startconf="$LINBODIR/start.conf.$group"
+    if [ -n "$group" -a -s "$startconf" ]; then
+      cp "$startconf" "$FILE"
+    else
+      cp -L "$LINBODIR/start.conf" "$FILE"
+    fi
   ;;
 
 esac

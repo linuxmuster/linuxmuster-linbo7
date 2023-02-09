@@ -2,7 +2,7 @@
 #
 # Post-Download script for rsync/LINBO
 # thomas@linuxmuster.net
-# 20230113
+# 20230209
 #
 
 # read in paedml specific environment
@@ -124,6 +124,12 @@ case "$EXT" in
       echo "Removing $FILE."
       rm -f "$FILE"
     fi
+  ;;
+
+  # handle lmn71 start.conf request
+  start-conf)
+    echo "Removing temporary $FILE."
+    rm -f "$FILE"
   ;;
 
   *) ;;
