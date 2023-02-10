@@ -1,3 +1,10 @@
+linuxmuster-linbo7 (4.1.23-0) lmn72; urgency=low
+
+  * Fix wrong password verification (b51d484).
+  * Skip non alphanumeric variable names on environment creation (6ba78d2).  
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 10 Feb 2023 22:18:00 +0100
+
 linuxmuster-linbo7 (4.1.22-0) lmn72; urgency=low
 
   * Fix lmn71 start.conf request (01e52af).
