@@ -1,7 +1,7 @@
 # common linbo shell functions
 #
 # thomas@linuxmuster.net
-# 20230206
+# 20230210
 #
 
 set -o pipefail
@@ -77,6 +77,14 @@ printargs(){
   echo ""
 }
 
+# test if string is alpha numeric
+isalnum(){
+  if [[ $1 =~ ^[[:alnum:]]+$ ]];then
+    return 0
+  else
+    return 1
+  fi
+}
 
 # test if variable is an integer
 isinteger() {

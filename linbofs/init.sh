@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20230207
+# 20230210
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -44,6 +44,15 @@ WHITE="[1;37m"
 
 
 # Utilities
+
+# test if string is alpha numeric
+isalnum(){
+  if [[ $1 =~ ^[[:alnum:]]+$ ]]; then
+    return 0
+  else
+    return 1
+  fi
+}
 
 # test if variable is an integer
 isinteger () {
@@ -86,6 +95,8 @@ do_env(){
   for item in `cat /proc/cmdline` `grep ^[a-zB] /tmp/dhcp.log | sort -u`; do
     echo "$item" | grep -q "=" || item="${item}='yes'"
     varname="$(echo "$item" | awk -F\= '{print $1}')"
+    # skip non alphanumeric strings
+    isalnum "$varname" || continue
     upvarname="$(echo "$varname" | tr a-z A-Z)"
     case "$upvarname" in
       # set LINBOSERVER if server parameter is given
