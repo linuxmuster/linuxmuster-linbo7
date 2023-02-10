@@ -6,7 +6,7 @@
 #
 # thomas@linuxmuster.net
 # GPL V3
-# 20230201
+# 20230210
 #
 
 # read linuxmuster environment
@@ -121,8 +121,7 @@ fi
 # hash of linbo password goes into linbofs
 echo -n "Hashing linbo password ... "
 linbo_salt="$(tr -dc 'A-Za-z0-9!"#$%&'\''()*+,-./:;<=>?@[\]^_`{|}~' </dev/urandom | head -c 32  ; echo)"
-cpus="$(LANG=C grep -c ^processor /proc/cpuinfo)"
-linbo_pwhash="$(echo "$linbo_passwd" | LANG=C argon2 "$linbo_salt" -t 1000 -p $cpus | grep ^Hash | awk '{print $2}')"
+linbo_pwhash="$(echo "$linbo_passwd" | LANG=C argon2 "$linbo_salt" -t 1000 | grep ^Hash | awk '{print $2}')"
 if [ -n "$linbo_salt" -a -n "$linbo_pwhash" ]; then
 	echo "Success!"
 else
