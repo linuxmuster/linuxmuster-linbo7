@@ -2,7 +2,7 @@
 #
 # configure script for linuxmuster-linbo7 package
 # thomas@linuxmuster.net
-# 20220317
+# 20230211
 #
 
 # read constants & setup values
@@ -102,6 +102,15 @@ if [ -n "$RUNMCAST" ]; then
   systemctl start linbo-multicast
 else
   systemctl status linbo-multicast &> /dev/null && systemctl restart linbo-multicast
+fi
+
+# repair ssh_config
+conf="$SYSDIR/linbo/ssh_config"
+lmn71_string="PubkeyAcceptedKeyTypes=+ssh-dss"
+if grep -q "$lmn71_string" "$conf"; then
+  cp "$conf" "${conf}.lmn71"
+  lmn72_string="HostKeyAlgorithms +ssh-rsa"
+  sed -i "s|$lmn71_string|$lmn72_string|" "$conf"
 fi
 
 update-linbofs || exit 1
