@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/x86 6.1.10 Kernel Configuration
+# Linux/x86 6.1.11 Kernel Configuration
 #
 CONFIG_CC_VERSION_TEXT="gcc (Ubuntu 11.3.0-1ubuntu1~22.04) 11.3.0"
 CONFIG_CC_IS_GCC=y
@@ -3292,7 +3292,7 @@ CONFIG_HID_GENERIC=y
 CONFIG_HID_A4TECH=y
 # CONFIG_HID_ACCUTOUCH is not set
 # CONFIG_HID_ACRUX is not set
-CONFIG_HID_APPLE=y
+CONFIG_HID_APPLE=m
 # CONFIG_HID_APPLEIR is not set
 # CONFIG_HID_ASUS is not set
 # CONFIG_HID_AUREAL is not set
