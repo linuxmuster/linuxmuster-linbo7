@@ -2,7 +2,7 @@
 #
 # linbo_warmstart <cachedevice>
 # thomas@linuxmuster.net
-# 20220506
+# 20230212
 #
 
 if [ -n "$1" ]; then
@@ -26,9 +26,10 @@ APPEND="$(cat /proc/cmdline)"
 warmstart="yes"
 for i in $APPEND; do case "$i" in warmstart=*) eval $i ;; esac; done
 
-# no warmstart in this cases
+# warmstart or reboot in this cases
 if [ "$warmstart" = "no" ]; then
-  echo "Skipping linbo warmstart."
+  echo "Initiating linbo reboot ..."
+  /sbin/reboot
   exit 0
 else
   echo "Initiating linbo warmstart ..."
