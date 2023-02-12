@@ -122,9 +122,13 @@ esac
 echo "Updating common grub configuration."
 cfgfile="$HOSTNAME.$HOSTGROUP.grub.cfg"
 if linbo_download "boot/grub/spool/$cfgfile"; then
+  # initiate reboot if grub configuration has changed
+  if ! diff -q "$cfgfile" "$grubdir/grub.cfg"; then
+    echo "grub.cfg was updated."
+    reboot="yes"
+  fi
   # move downloaded cfgfile in place
   mv "$cfgfile" "$grubdir/grub.cfg"
-  echo "grub.cfg was updated."
 fi
 
 # get host or group specific grub config from server
@@ -133,10 +137,12 @@ for i in "boot/grub/hostcfg/$HOSTNAME.cfg" "boot/grub/$HOSTGROUP.cfg"; do
   if linbo_download "$i"; then
     cfgfile="$(basename "$i")"
     # initiate reboot if grub configuration has changed
-    diff -q "$cfgfile" "$grubdir/custom.cfg" || reboot="yes"
+    if ! diff -q "$cfgfile" "$grubdir/custom.cfg";then
+      echo "custom.cfg was updated."
+      reboot="yes"
+    fi
     # move downloaded cfgfile in place
     mv "$cfgfile" "$grubdir/custom.cfg"
-    echo "custom.cfg was updated."
     break
   fi
 done
