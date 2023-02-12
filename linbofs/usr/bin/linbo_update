@@ -193,7 +193,8 @@ fi
 if [ "$RC" = "0" ]; then
   echo "Linbo & grub update successfully finished."
   touch "$doneflag"
-  [ -n "$reboot" ] && touch "$rebootflag"
+  # initiate warmstart|reboot only if linbo has been booted locally from cache
+  [ -n "$reboot" -a -n "$LOCALBOOT" ] && touch "$rebootflag"
 else
   echo "Linbo & grub update failed!" >&2
 fi
