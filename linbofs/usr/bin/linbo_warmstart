@@ -2,23 +2,24 @@
 #
 # linbo_warmstart
 # thomas@linuxmuster.net
-# 20220608
+# 20230212
 #
 
 # get environment
 source /usr/share/linbo/shell_functions
 
-KEXEC="/sbin/kexec"
-KERNEL="linbo64"
-INITRD="linbofs64.lz"
-
 # no warmstart in this cases
 if warmstart; then
   echo "Initiating linbo warmstart ..."
 else
-  echo "Skipping linbo warmstart."
+  echo "Initiating linbo reboot ..."
+  /sbin/reboot -f
   exit 0
 fi
+
+KEXEC="/sbin/kexec"
+KERNEL="linbo64"
+INITRD="linbofs64.lz"
 
 cd /
 linbo_cmd mountcache || exit 1
