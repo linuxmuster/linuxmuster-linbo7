@@ -1,3 +1,9 @@
+linuxmuster-linbo7 (4.0.44-0) lmn71; urgency=low
+
+  * Initiate reboot if warmstart is disabled  (c0ff8a4).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sun, 12 Feb 2023 20:10:00 +0100
+
 linuxmuster-linbo7 (4.0.43-0) lmn71; urgency=low
 
   * Fix #89: apparently missing old intel networkdriver (fd5a806).
