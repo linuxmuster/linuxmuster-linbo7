@@ -2,7 +2,7 @@
 #
 # linbo_update
 # thomas@linuxmuster.net
-# 20230126
+# 20230212
 #
 
 usage(){
@@ -132,6 +132,8 @@ echo "Updating host and group specific grub configuration."
 for i in "boot/grub/hostcfg/$HOSTNAME.cfg" "boot/grub/$HOSTGROUP.cfg"; do
   if linbo_download "$i"; then
     cfgfile="$(basename "$i")"
+    # initiate reboot if grub configuration has changed
+    diff -q "$cfgfile" "$grubdir/custom.cfg" || reboot="yes"
     # move downloaded cfgfile in place
     mv "$cfgfile" "$grubdir/custom.cfg"
     echo "custom.cfg was updated."
