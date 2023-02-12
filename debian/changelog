@@ -1,3 +1,13 @@
+linuxmuster-linbo7 (4.1.24-0) lmn72; urgency=low
+
+  * Update to kernel 4.1.11 (01957e6).
+  * Fix linbo ssh_config (00188ea).
+  * Initiate warmstart|reboot if grub configuration has changed (f91318c, 115a5f0).
+  * Initiate reboot if warmstart is disabled (4b31a4).
+  * Initiate warmstart|reboot only if linbo has been booted locally from cache (4c181a7).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sun, 11 Feb 2023 14:33:00 +0100
+
 linuxmuster-linbo7 (4.1.23-0) lmn72; urgency=low
 
   * Fix wrong password verification (b51d484).
