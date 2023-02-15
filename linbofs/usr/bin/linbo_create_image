@@ -2,7 +2,7 @@
 #
 # linbo_create_image
 # thomas@linuxmuster.net
-# 20230126
+# 20230215
 #
 
 
@@ -147,17 +147,37 @@ mk_baseimage(){
 mk_diffimage(){
   local rootdev="$1"
   local imagefile="$2"
-  # create imagefile if it is not yet there
+  local baseimage="${imagefile/.qdiff/.qcow2}"
+  mkdir -p /image
+  # test baseimage
+  qemu-nbd --disconnect /dev/nbd0
+  if ! qemu-nbd --connect /dev/nbd0 "$baseimage"; then
+    echo "$baseimage is not connectable!"
+    return 1
+  fi
+  if ! mount /dev/nbd0 /image; then
+    echo "$baseimage is not mountable!"
+    qemu-nbd --disconnect /dev/nbd0
+    return 1
+  fi
+  umount /image
+  qemu-nbd --disconnect /dev/nbd0
+  # create new diffimage
   if [ ! -e "$imagefile" ]; then
-    qemu-img create -f qcow2 -b "${imagefile/.qdiff/.qcow2}" -F qcow2 "$imagefile" || return 1
+    if ! qemu-img create -f qcow2 -b "$baseimage" -F qcow2 "$imagefile"; then
+      echo "Creation of $imagefile failed!"
+      return 1
+    fi
   fi
   # connect imagefile to nbd device
-  qemu-nbd --disconnect /dev/nbd0
-  qemu-nbd --connect /dev/nbd0 "$imagefile" || return 1
-  mkdir -p /image
+  if ! qemu-nbd --connect /dev/nbd0 "$imagefile"; then
+    echo "$imagefile is not connectable!"
+    return 1
+  fi
   # mount image filesystem
   if ! mount /dev/nbd0 /image; then
     qemu-nbd --disconnect /dev/nbd0
+    echo "Fatal! $imagefile is not mountable"
     return 1
   fi
   echo "Start syncing differences of $rootdev -> $imagefile."
@@ -261,7 +281,9 @@ else
     case "$item" in *.qcow2|*.qdiff) imagefile="$item" ; continue ;; esac
     [ -b "$item" ] && root="$item"
   done
-
+  # check items
+  [ -z "$imagefile" ] && usage 1
+  [ -b "$root" ] || usage 1
 fi
 
 # read os config parameters if osnr is known
