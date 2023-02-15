@@ -69,7 +69,6 @@ Name = Windows 10             # os name
 Version =                     # version (not used)
 Description = Windows 10 1903 # detailed description of os
 IconName = win10.svg          # icon filename in /srv/linbo/icons
-Image =                       # filename of differential image (extension .rsync, optional)
 BaseImage = win10.qcow2       # filename of main image (extension .qcow2)
 Boot = /dev/sda3              # boot partition (not used, identical with root partition)
 Root = /dev/sda3              # root partition of the os
@@ -82,5 +81,4 @@ NewEnabled = yes              # show new+start button
 Autostart = no                # automatic start of os (yes|no)
 AutostartTimeout = 5          # timeout in secs for user to cancel automatic start
 DefaultAction = sync          # default action on automatic start: start|sync|new
-                              # to setup after sync (e.g. mozilla.firefox,mozilla.thunderbird)
 Hidden = yes                  # hide os tab (unused option, leave it at yes)
