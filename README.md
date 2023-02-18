@@ -230,8 +230,8 @@ but also offers a complete set of environment variables:
 ```
 PS1='\h: \w # '
 PATH='/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
-LINBOFULLVER="$(cat /etc/linbo-version)"
-LINBOVER="$(echo "$LINBOFULLVER" | awk '{print $2}' | sed 's|:||')"
+LINBOFULLVER='LINBO 4.1.25-0: One Step Beyond'
+LINBOVER='4.1.25-0'
 RSYNC_PERMISSIONS="--chmod=ug=rw,o=r"
 RSYNC_SKIP_COMPRESS="/7z/arc/arj/bz2/cab/cloop/deb/gz/gpg/iso/jar/jp2/jpg/jpeg/lz/lz4/lzma/lzo/png/qcow2/qdiff/qt/rar/rzip/s7z/sfx/svgz/tbz/tgz/tlz/txz/xz/z/zip/zst"
 QUIET='yes'
