@@ -255,7 +255,7 @@ SERVERID='10.0.0.1'
 SIADDR='10.0.0.1'
 SNAME='server.linuxmuster.lan'
 SUBNET='255.255.0.0'
-FQDN='multi-01.linuxmuster.lan'
+FQDN='linbo-01.linuxmuster.lan'
 LINBOSERVER='10.0.0.1'
 MACADDR='96:9b:31:46:54:f3'
 ```
