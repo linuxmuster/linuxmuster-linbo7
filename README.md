@@ -228,50 +228,37 @@ linboclient-01: ~ #
 ```
 but also offers a complete set of environment variables:
 ```
-BOOT_FILE='boot/grub/x86_64-efi/core.efi'
+PS1='\h: \w # '
+PATH='/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+LINBOFULLVER="$(cat /etc/linbo-version)"
+LINBOVER="$(echo "$LINBOFULLVER" | awk '{print $2}' | sed 's|:||')"
+RSYNC_PERMISSIONS="--chmod=ug=rw,o=r"
+RSYNC_SKIP_COMPRESS="/7z/arc/arj/bz2/cab/cloop/deb/gz/gpg/iso/jar/jp2/jpg/jpeg/lz/lz4/lzma/lzo/png/qcow2/qdiff/qt/rar/rzip/s7z/sfx/svgz/tbz/tgz/tlz/txz/xz/z/zip/zst"
+QUIET='yes'
+SPLASH='yes'
+FORCEGRUB='yes'
+LOCALBOOT='yes'
 BROADCAST='10.0.255.255'
+DHCPRETRY='5'
 DNS='10.0.0.1'
 DOMAIN='linuxmuster.lan'
-FORCEGRUB='yes'
-FQDN='linboclient-01.linuxmuster.lan'
-FUNCNAME=''
-HOME='/'
-HOSTGROUP='tuxwin'
-HOSTNAME='linboclient-01'
+HOSTNAME='multi-01'
 INTERFACE='eth0'
 IP='10.0.100.1'
 LEASE='172800'
-LINBOFULLVER='LINBO 4.1.18-0: One Step Beyond'
-LINBOSERVER='10.0.0.1'
-LINBOVER='4.1.18-0'
-LINENO=''
-LOCALBOOT='yes'
-LOGNAME='root'
-MACADDR='95:6a:45:12:67:d5'
 MASK='16'
+HOSTGROUP='multi'
 NTPSRV='10.0.0.1'
 OPT53='05'
-OPTIND='1'
-PATH='/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
-PWD='/'
-QUIET='yes'
 ROUTER='10.0.0.254'
-RSYNC_PERMISSIONS='--chmod=ug=rw,o=r'
-RSYNC_SKIP_COMPRESS='/7z/arc/arj/bz2/cab/cloop/deb/gz/gpg/iso/jar/jp2/jpg/jpeg/lz/lz4/lzma/lzo/png/qcow2/qdiff/qt/rar/rzip/s7z/sfx/svgz/tbz/tgz/tlz/txz/xz/z/zip/zst'
 SERVERID='10.0.0.1'
-SHELL='/bin/sh'
-SHLVL='1'
 SIADDR='10.0.0.1'
 SNAME='server.linuxmuster.lan'
-SPLASH='yes'
-SSH_CLIENT='10.0.0.1 42384 2222'
-SSH_CONNECTION='10.0.0.1 42384 10.0.100.1 2222'
-SSH_TTY='/dev/pts/0'
 SUBNET='255.255.0.0'
-TERM='xterm-256color'
-USER='root'
+FQDN='multi-01.linuxmuster.lan'
+LINBOSERVER='10.0.0.1'
+MACADDR='96:9b:31:46:54:f3'
 ```
-
 The `linbo_cmd` script is splitted into multiple scripts, each for a certain function. The legacy `linbo_cmd` remains functional for backwards compatibility. The client's `start.conf` is divided into better parseable chunks that reside under _/conf_.
 ```
 linboclient-01: ~ # ls -1 /conf/*
