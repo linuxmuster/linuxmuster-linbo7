@@ -2,7 +2,7 @@
 #
 # linbo_mountcache [-r] | [help]
 # thomas@linuxmuster.net
-# 20230126
+# 20230219
 #
 
 
@@ -76,7 +76,7 @@ case "$cache" in
     dir="${cache##*:}"
     echo "Mounting cache partition per nfs from $cache ..."
     # -o nolock is EXTREMELY important here, otherwise mount.nfs will timeout waiting for portmap
-    mount $ro -t nfs -o nolock,rsize=8192,wsize=8192,hard,intr "$cache" /cache 2>> /tmp/linbo.log
+    mount $ro -t nfs4 -o nolock,relatime,rsize=1048576,wsize=1048576,hard,intr "$cache" /cache 2>> /tmp/linbo.log
     RC="$?"
     ;;
   \\\\*\\*|//*/*) # CIFS/SAMBA
