@@ -1,0 +1,25 @@
+# postsync script example, sourced by linbo_sync on the client after the os partition is restored
+# to be placed in LINBODIR
+# if the image is named ubuntu.qcow2, the corresponding postsync script name is ubuntu.postsync
+#
+# thomas@linuxmuster.net
+# 20230219
+#
+
+echo "# postsync script example"
+echo "os partition  : $root"
+echo "os name       : $name"
+echo "os description: $description"
+echo "cache device  : $cache"
+echo "baseimage     : $baseimage"
+echo "kernel        : $kernel"
+echo "initrd        : $initrd"
+echo "append        : $append"
+echo "hostgroup     : $HOSTGROUP"
+echo "hostname      : $HOSTNAME"
+echo "domain        : $DOMAIN"
+echo "ip            : $IP"
+echo "netmask       : $SUBNET
+echo "bitmask       : $MASK
+echo "server ip     : $LINBOSERVER"
+echo "server name   : $SNAME"

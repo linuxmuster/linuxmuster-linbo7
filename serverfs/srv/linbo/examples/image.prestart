@@ -3,7 +3,7 @@
 # if the image is named ubuntu.qcow2, the corresponding prestart script name is ubuntu.prestart
 #
 # thomas@linuxmuster.net
-# 202302190
+# 20230219
 #
 
 echo "# prestart script example"
