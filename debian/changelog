@@ -1,3 +1,12 @@
+linuxmuster-linbo7 (4.1.25-0) lmn72; urgency=low
+
+  * Improved error handling on diffimage creation (75cae3a).
+  * Example updates (7fe721e, d6d90c7, fc216e3, d56b191, d56b191).
+  * Update kernel to 6.1.12 (1e30e2d).
+  * Update nfs cache mount options (9752ea7).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 18 Feb 2023 14:18:00 +0100
+
 linuxmuster-linbo7 (4.1.24-0) lmn72; urgency=low
 
   * Update to kernel 4.1.11 (01957e6).
