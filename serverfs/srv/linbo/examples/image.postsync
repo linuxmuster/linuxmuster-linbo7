@@ -3,7 +3,7 @@
 # if the image is named ubuntu.qcow2, the corresponding postsync script name is ubuntu.postsync
 #
 # thomas@linuxmuster.net
-# 20230219
+# 20230303
 #
 
 echo "# postsync script example"
@@ -19,7 +19,7 @@ echo "hostgroup     : $HOSTGROUP"
 echo "hostname      : $HOSTNAME"
 echo "domain        : $DOMAIN"
 echo "ip            : $IP"
-echo "netmask       : $SUBNET
-echo "bitmask       : $MASK
+echo "netmask       : $SUBNET"
+echo "bitmask       : $MASK"
 echo "server ip     : $LINBOSERVER"
 echo "server name   : $SNAME"
