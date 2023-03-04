@@ -2,7 +2,7 @@
 #
 # linbo_update
 # thomas@linuxmuster.net
-# 20230212
+# 20230403
 #
 
 usage(){
@@ -123,7 +123,7 @@ echo "Updating common grub configuration."
 cfgfile="$HOSTNAME.$HOSTGROUP.grub.cfg"
 if linbo_download "boot/grub/spool/$cfgfile"; then
   # initiate reboot if grub configuration has changed
-  if ! diff -q "$cfgfile" "$grubdir/grub.cfg"; then
+  if ! diff -q "$cfgfile" "$grubdir/grub.cfg" &> /dev/null; then
     echo "grub.cfg was updated."
     reboot="yes"
   fi
@@ -137,7 +137,7 @@ for i in "boot/grub/hostcfg/$HOSTNAME.cfg" "boot/grub/$HOSTGROUP.cfg"; do
   if linbo_download "$i"; then
     cfgfile="$(basename "$i")"
     # initiate reboot if grub configuration has changed
-    if ! diff -q "$cfgfile" "$grubdir/custom.cfg";then
+    if ! diff -q "$cfgfile" "$grubdir/custom.cfg" &> /dev/null; then
       echo "custom.cfg was updated."
       reboot="yes"
     fi
