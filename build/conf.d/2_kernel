@@ -1,7 +1,7 @@
 # kernel build environment variables
 
 # kernel version
-KVERS="6.1.14"
+KVERS="6.2.2"
 
 # kernel archive and get script
 KDIR="linux-$KVERS"
