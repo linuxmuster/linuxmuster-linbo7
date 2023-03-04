@@ -1,3 +1,11 @@
+linuxmuster-linbo7 (4.1.26-0) lmn72; urgency=low
+
+  * Update kernel to 6.2.2 (62b8e01).
+  * Update reg and postsync files on every sync (c2c5048).
+  * Hide diff error message if local grub config file misses (483aded).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 4 Mar 2023 15:31:00 +0100
+
 linuxmuster-linbo7 (4.1.25-0) lmn72; urgency=low
 
   * Improved error handling on diffimage creation (75cae3a).
