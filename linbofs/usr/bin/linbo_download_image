@@ -2,7 +2,7 @@
 #
 # linbo_download_image
 # thomas@linuxmuster.net
-# 20220818
+# 20220403
 #
 
 
@@ -16,24 +16,6 @@ usage(){
   echo "Usage: linbo_download_image <imagefile> | [help]"
   echo
   exit "$RC"
-}
-
-
-# Download main file and supplementary files
-# download_all server mainfile additional_files...
-download_all(){
-  local RC=0
-  linbo_download "$1" important; RC="$?"
-  if [ "$RC" != "0" ]; then
-    rm -f "$1"
-    return "$RC"
-  fi
-  shift
-  local file=""
-  for file in "$@"; do
-    linbo_download "$file"
-  done
-  return "$RC"
 }
 
 
@@ -171,7 +153,11 @@ esac
 
 imagebase="$(basename "$FILE" | sed 's/\(.*\)\..*/\1/')"
 imagetype="${FILE##*.}"
-[ "$imagetype" != "cloop" ] && subdir="images/$imagebase/"
+case "$imagetype" in
+  cloop) ;;
+  qcow2|qdiff) subdir="images/$imagebase/" ;;
+  *) echo "Unknown image type $imagetype." ; exit 1 ;;
+esac
 infofile="${FILE}.info"
 
 # check server for changed files
@@ -205,22 +191,16 @@ if [ -z "$DOWNLOAD" ]; then
   [ -z "$fs1" -o -z "$fs2" -o "$fs1" != "$fs2" ] && DOWNLOAD="yes"
 fi
 
+# download os related supplemental files
 if [ -n "$DOWNLOAD" ]; then
-  # download os related supplemental files
-  if [ "$imagetype" = "qcow2" -o "$imagetype" = "cloop" ]; then
-    download_all "${subdir}${FILE}.desc" \
-      "${subdir}${FILE}.info" \
-      "${subdir}${FILE}.reg" \
-      "${subdir}${FILE}.postsync" \
-      "${subdir}${imagebase}.reg" \
-      "${subdir}${imagebase}.postsync"
-  elif [ "$imagetype" = "qdiff" ]; then
-    download_all "${subdir}${FILE}.desc" \
-      "${subdir}${FILE}.info"
-  else
-    echo "Unknown image type $imagetype."
-    exit 1
-  fi
+  for ext in desc info; do
+    echo -n "Trying to download ${FILE}.${ext} ... "
+    if linbo_download "${subdir}${FILE}.${ext}" &> /dev/null; then
+      echo "Ok."
+    else
+      echo "not available."
+    fi
+  done
 # if image file is unchanged compared to server version end here
 else
   echo "$FILE has not changed, nothing to do."
@@ -229,6 +209,17 @@ else
     [ -s "${FILE}.torrent" ] || linbo_download "${subdir}${FILE}.torrent"
     download_torrent "$FILE"
   fi
+  # download postsync and reg files
+  for ext in postsync reg; do
+    for base in "$FILE" "$imagebase"; do
+      echo -n "Trying to download ${base}.${ext} ... "
+      if linbo_download "${subdir}${base}.${ext}" &> /dev/null; then
+        echo "Ok."
+      else
+        echo "not available."
+      fi
+    done
+  done
   exit 0
 fi
 
