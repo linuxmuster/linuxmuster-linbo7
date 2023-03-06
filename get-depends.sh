@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # thomas@linuxmuster.net
-# 20220624
+# 20230306
 #
 
 set -e
@@ -30,7 +30,8 @@ if ! grep -q "Source: $PKGNAME" debian/control; then
 fi
 
 # install prerequisites
-$SUDO apt-get update && $SUDO apt-get -y dist-upgrade
+#$SUDO apt-get update && $SUDO apt-get -y dist-upgrade
+$SUDO apt-get update
 $SUDO apt-get -y install bash bash-completion ccache curl dpkg-dev || exit 1
 
 # install build depends
