@@ -30,10 +30,11 @@ if ! grep -q "Source: $PKGNAME" debian/control; then
 fi
 
 # install prerequisites
-#$SUDO apt-get update && $SUDO apt-get -y dist-upgrade
 $SUDO apt-get update
-$SUDO apt-get -y install bash bash-completion ccache curl dpkg-dev || exit 1
+$SUDO apt --only-upgrade install grub-efi-amd64-signed
+$SUDO apt-get -y dist-upgrade
+$SUDO apt-get -y install bash bash-completion ccache curl dpkg-dev
 
 # install build depends
 BUILDDEPENDS="$(sed -n '/Build-Depends:/,/Package:/p' debian/control | grep -v ^Package | sed -e 's|^Build-Depends: ||' | sed -e 's|,||g')"
-$SUDO apt-get -y install $BUILDDEPENDS || $SUDO apt-get -y install $BUILDDEPENDS
+$SUDO apt-get -y install $BUILDDEPENDS
