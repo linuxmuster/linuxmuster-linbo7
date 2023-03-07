@@ -16,7 +16,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Get artifacts
+      - name: Get artifact
         run: ./get-pkg.sh
 
       - name: Upload artifact
