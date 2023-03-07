@@ -31,8 +31,7 @@ fi
 
 # install prerequisites
 $SUDO apt-get update
-$SUDO apt-get -y install grub-efi-amd64-bin
-$SUDO apt-get --only-upgrade -y install grub-efi-amd64-signed
+$SUDO apt --only-upgrade install grub-efi-amd64-signed
 $SUDO apt-get -y dist-upgrade
 $SUDO apt-get -y install bash bash-completion ccache curl dpkg-dev
 
