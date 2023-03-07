@@ -1,5 +1,6 @@
 .directory
 .debhelper
+*.bak
 *.log
 build-stamp
 cache

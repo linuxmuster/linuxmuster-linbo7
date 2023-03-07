@@ -16,14 +16,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Install dependencies
-        run: ./get-depends.sh
-
-      - name: Build
-        run: ./buildpackage.sh
-
-      - name: Copy artifacts
-        run: mkdir package && cp ../linuxmuster-linbo7_* ./package
+      - name: Get artifacts
+        run: ./get-pkg.sh
 
       - name: Upload artifact
         uses: actions/upload-artifact@v2
