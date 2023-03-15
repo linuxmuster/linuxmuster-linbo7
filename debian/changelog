@@ -1,3 +1,10 @@
+linuxmuster-linbo7 (4.1.27-0) lmn72; urgency=low
+
+  * Update kernel to 6.2.6, filesystem optimations (5d4bf03).
+  * Added rtl_nic firmware (ed99b93).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 15 Mar 2023 20:19:00 +0100
+
 linuxmuster-linbo7 (4.1.26-0) lmn72; urgency=low
 
   * Update kernel to 6.2.2 (62b8e01).
