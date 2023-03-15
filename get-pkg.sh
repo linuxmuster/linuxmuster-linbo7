@@ -2,12 +2,12 @@
 #
 # get deb from iggy, needs ubuntu 22.04
 # thomas@linuxmuster.net
-# 20230307
+# 20230315
 #
 
 # get dependencies
-apt-get update
-apt-get -y install dpkg-sig gpg rsync || exit 1
+sudo apt-get update
+sudo apt-get -y install dpkg-sig gpg rsync || exit 1
 
 version="$(head -1 debian/changelog | awk -F\( '{print $2}' | awk -F\) '{print $1}')"
 lname="linuxmuster-linbo7"
