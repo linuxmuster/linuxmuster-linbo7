@@ -1,0 +1,12 @@
+# firmware related environment variables
+
+# git url
+FWNAME="linux-firmware"
+FWURL="https://git.kernel.org/pub/scm/linux/kernel/git/firmware/$FWNAME.git"
+
+# build directories
+FWSRCDIR="$SRC/$FWNAME"
+FWTMPDIR="$KMODTMPDIR/lib/firmware"
+
+# list of firmware files to be installed
+FWLIST="RTL8192E rtl_nic"

@@ -30,5 +30,9 @@ make -C "$KSRCDIR" M="$(pwd)" modules
 # install r8168
 cp "$R81MOD" "$KMODTMPDIR/lib/modules/$KVERS/kernel/drivers/net/ethernet" || exit 1
 
+# install firmware
+mkdir -p "$FWTMPDIR"
+for i in $FWLIST; do cp -r "$FWSRCDIR/$i" "$FWTMPDIR" || exit 1; done
+
 # final depmod
 depmod -a -b "$KMODTMPDIR" "$KVERS" || exit 1
