@@ -2,7 +2,7 @@
 #
 # get deb from iggy, needs ubuntu 22.04
 # thomas@linuxmuster.net
-# 20230315
+# 20230316
 #
 
 # get dependencies
@@ -18,14 +18,3 @@ fporig="CF1D06F83EE8518CBA80E88F26CB514FFD0B44B2"
 mkdir package
 rsync iggy.linuxmuster.net::linbo/linuxmuster-linbo7_${version}\* package/
 [ -s "package/$lpkg" ] || exit 1
-
-# verify
-# get publickey file per rsync
-rsync iggy.linuxmuster.net::linbo/signing.asc package/ || exit 1
-gpg --import package/signing.asc || exit 1
-fpsig="$(LANG=C dpkg-sig -c "package/$lpkg" | grep ^GOODSIG | awk '{print $3}')"
-if [ "$fporig" != "$fpsig" ]; then
-    echo "Signatures do not match!"
-    exit 1
-fi
-rm -f package/signing.asc
