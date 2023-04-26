@@ -592,20 +592,20 @@ syncl(){
 
   # linux stuff begin
 
-  # grub efi
-  if [ -n "$efipart" -a -d /mnt/boot/grub ]; then
-    mkdir -p /mnt/boot/efi
-    mount "$efipart" /mnt/boot/efi
-    local item
-    for item in /dev /dev/pts /proc /sys; do
-      mount --bind "$item" /mnt"$item"
-    done
-    chroot /mnt update-grub
-    for item in /sys /proc /dev/pts /dev; do
-      umount /mnt"$item"
-    done
-    umount /mnt/boot/efi
-  fi
+  # grub efi (deprecated)
+  #if [ -n "$efipart" -a -d /mnt/boot/grub ]; then
+  #  mkdir -p /mnt/boot/efi
+  #  mount "$efipart" /mnt/boot/efi
+  #  local item
+  #  for item in /dev /dev/pts /proc /sys; do
+  #    mount --bind "$item" /mnt"$item"
+  #  done
+  #  chroot /mnt update-grub
+  #  for item in /sys /proc /dev/pts /dev; do
+  #    umount /mnt"$item"
+  #  done
+  #  umount /mnt/boot/efi
+  #fi
 
   # hostname
   if [ -f /mnt/etc/hostname ]; then
