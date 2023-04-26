@@ -2,7 +2,7 @@
 #
 # linbo_download_image
 # thomas@linuxmuster.net
-# 20220403
+# 20230426
 #
 
 
@@ -191,7 +191,19 @@ if [ -z "$DOWNLOAD" ]; then
   [ -z "$fs1" -o -z "$fs2" -o "$fs1" != "$fs2" ] && DOWNLOAD="yes"
 fi
 
-# download os related supplemental files
+# download postsync and reg files in any case
+for ext in postsync reg; do
+  for base in "$FILE" "$imagebase"; do
+    echo -n "Trying to download ${base}.${ext} ... "
+    if linbo_download "${subdir}${base}.${ext}" &> /dev/null; then
+      echo "Ok."
+    else
+      echo "not available."
+    fi
+  done
+done
+
+# download image related supplemental files
 if [ -n "$DOWNLOAD" ]; then
   for ext in desc info; do
     echo -n "Trying to download ${FILE}.${ext} ... "
@@ -209,17 +221,6 @@ else
     [ -s "${FILE}.torrent" ] || linbo_download "${subdir}${FILE}.torrent"
     download_torrent "$FILE"
   fi
-  # download postsync and reg files
-  for ext in postsync reg; do
-    for base in "$FILE" "$imagebase"; do
-      echo -n "Trying to download ${base}.${ext} ... "
-      if linbo_download "${subdir}${base}.${ext}" &> /dev/null; then
-        echo "Ok."
-      else
-        echo "not available."
-      fi
-    done
-  done
   exit 0
 fi
 
