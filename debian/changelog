@@ -1,8 +1,10 @@
 linuxmuster-linbo7 (4.1.28-0) lmn72; urgency=low
 
-  * Update kernel to 6.2.11 (eb7250a).
+  * Update kernel to 6.2.12 (a872491).
+  * Fix postsync and reg files download after partitioning (6eaab88).
+  * Remove chrooted update-grub invokation on linux efi systems after sync (9958c5f).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 15 Apr 2023 13:27:00 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 26 Apr 2023 16:51:00 +0100
 
 linuxmuster-linbo7 (4.1.27-0) lmn72; urgency=low
 
