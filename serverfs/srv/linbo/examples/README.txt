@@ -1,5 +1,7 @@
-Registry patches for LINBO
+Examples for LINBO
 ---------------------------------------
+
+Note: The Windows 10 examples should also be usable for Windows 11.
 
 * For every Windows image there has to be a registry patch file in
   /srv/linbo/images/<imagename> according to this naming scheme:
@@ -9,14 +11,16 @@ Registry patches for LINBO
 
 * The patch files may contain custom registry entries.
 
-There are two templates:
+There are 3 templates:
 * win10.image.reg: Registry patch for hostname and custom entries,
   which accompanies the image file.
 * win10.global.reg: Necessary and optional registry entries (see
   comments in the file), which must be imported once before joining the domain
   and creating the image.
-  Note: SAMBADOMAIN has to be adapted!
+  Note: SAMBADOMAIN has to be replaced with the name of your sambadomain!
+* win11bypass.reg: Bypasses the hardware checks during the Windows 11 setup (see
+  https://www.deskmodder.de/wiki/index.php?title=Windows_11_auch_ohne_TPM_und_Secure_Boot_installieren).
 
 ---
 thomas@linuxmuster.net
-20.12.2021
+08.05.2023
