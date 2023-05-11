@@ -2,7 +2,7 @@
 #
 # linbo_sync
 # thomas@linuxmuster.net
-# 20230126
+# 20230511
 #
 
 
@@ -709,10 +709,7 @@ else
       source /conf/os.$osnr &> /dev/null || usage 1
       continue
     fi
-    if [ -n "$osnr" ]; then
-      [ "$item" = "force" ] && force="force"
-      break
-    fi
+    [ "$item" = "force" ] && force="force"
   done
 fi
 [ -z "$osnr" ] && usage 1
