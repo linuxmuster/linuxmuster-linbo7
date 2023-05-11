@@ -3,7 +3,7 @@
 # linbo_cmd - collects all linbo commands for compatibility with legacy linbo_cmd
 #
 # thomas@linuxmuster.net
-# 20220605
+# 20230511
 # GPL v3
 #
 
@@ -17,6 +17,9 @@ usage(){
   echo "For detailed command help invoke: linbo_cmd <command> help"
   echo
 }
+
+# log linbo_cmd invokations
+echo "$@" >> /tmp/linbo_cmd.log
 
 case "$1" in
   auth) shift; linbo_auth "$@";;
