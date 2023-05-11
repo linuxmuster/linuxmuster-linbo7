@@ -2,7 +2,7 @@
 #
 # linbo_format
 # thomas@linuxmuster.net
-# 20230126
+# 20230511
 #
 
 usage(){
@@ -55,6 +55,7 @@ esac
 # start formatting
 echo -n "Formatting $dev with $fstype ..."
 [ -b "$dev" ] || sleep 5
+mount | grep -qw ^"$dev" && umount "$dev"
 $fcmd 2>> /tmp/linbo.log 1>> /tmp/linbo.log ; RC="$?"
 if [ "$RC" != "0" ]; then
   echo -n " Partition is not yet ready - trying again ..."
