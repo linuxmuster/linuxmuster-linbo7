@@ -1,3 +1,14 @@
+linuxmuster-linbo7 (4.1.29-0) lmn72; urgency=low
+
+  * Update kernel to 6.3.1 (23548c7).
+  * Updated registry patch examples & README, added example win11bypass.reg (7b20d74).
+  * Fix: linbo_sync ignores force parameter (6748a8b).
+  * Fix: linbo_format fails if partition is mounted (06fb5a5).
+  * Log linbo_cmd invokations to /tmp for debugging (13fdc58).
+  * Fix: linbo-torrent service is stopped by package upgrade (c608737).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 11 May 2023 20:44:00 +0200
+
 linuxmuster-linbo7 (4.1.28-0) lmn72; urgency=low
 
   * Update kernel to 6.2.12 (a872491).
