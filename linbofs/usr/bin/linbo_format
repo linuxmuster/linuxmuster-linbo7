@@ -2,7 +2,7 @@
 #
 # linbo_format
 # thomas@linuxmuster.net
-# 20230126
+# 20230511
 #
 
 usage(){
@@ -58,6 +58,8 @@ echo -n "Formatting $dev with $fstype ..."
 $fcmd 2>> /tmp/linbo.log 1>> /tmp/linbo.log ; RC="$?"
 if [ "$RC" != "0" ]; then
   echo -n " Partition is not yet ready - trying again ..."
+  cd
+  umount "$dev"
   sleep 2
   $fcmd 2>> /tmp/linbo.log 1>> /tmp/linbo.log ; RC="$?"
 fi
