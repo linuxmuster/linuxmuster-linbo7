@@ -61,6 +61,7 @@ else # handle missing gui problem
     echo "Console boot menue of group $HOSTGROUP"
     echo "----------------------------------------"
     count=0
+    if [ -d "/conf/" ]; then
     for item in /conf/os.*; do
       source "$item"
       count=$(( count + 1 ))
@@ -68,6 +69,7 @@ else # handle missing gui problem
       count=$(( count + 1 ))
       echo "[$count] Sync & start $name"
     done
+    fi
     echo "----------------------------------------"
     echo "[R] Reboot"
     echo "[S] Shutdown"
