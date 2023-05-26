@@ -2,7 +2,7 @@
 #
 # linbo_wrapper: wrapper for linbo commands
 # thomas@linuxmuster.net
-# 20230208
+# 20230526
 #
 
 SECRETS=/tmp/rsyncd.secrets
@@ -29,6 +29,7 @@ usage(){
   echo "                             rsync, multicast or torrent. If <dltype> is"
   echo "                             not given it will be fetched from start.conf."
   echo "sync:<#>                   : Synchronizes operating system nr. <#>."
+  echo "new:<#>                    : Formats and synchronizes operating system nr. <#>."
   echo "start:<#>                  : Starts operating system nr. <#>."
   echo "create_image:<#>:<\"msg\"> : Creates a baseimage from operating system nr. <#>."
   echo "create_qdiff:<#>:<\"msg\"> : Creates a differential image from operating system nr. <#>."
@@ -130,6 +131,12 @@ while [ "$#" -gt "0" ]; do
       [ "$cmd" = "upload_qdiff" ] && imagefile="${imagefile/.qcow2/.qdiff}"
       echo "Uploading $imagefile to $LINBOSERVER ..."
       linbo_upload "$password" "$imagefile" || exit 1
+      ;;
+
+    new)
+      source /conf/os.$osnr || exit 1
+      echo "Formatting and syncing $name ..."
+      linbo_sync "$osnr" "force" || exit 1
       ;;
 
     sync)
