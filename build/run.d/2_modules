@@ -8,27 +8,38 @@ mkdir -p "$KMODTMPDIR"
 cd "$KSRCDIR"
 make INSTALL_MOD_PATH="$KMODTMPDIR" modules_install || exit 1
 
-# get r8168
-echo "Cloning r8168 source ..."
-[ -d "$R81DIR" ] && rm -rf "$R81DIR"
-cd "$SRC"
-git clone "$R81GITURL" || exit 1
-# get patch
-echo "Fetching r8168 patch ..."
-cd "$R81DIR"
-wget "$R81PATCHURL" || exit 1
-# apply patch
-echo "Applying r8168 patch ..."
-patch -p1 < "$R81PATCH" || exit 1
+# compile r8168 only if it is not already there
+if [ -s "$R81MOD" ]; then
 
-# compile r8168
-echo "Compiling r8168 ..."
-cd "$R81SRCDIR" || exit 1
-make -C "$KSRCDIR" M="$(pwd)" modules
-[ -s "$R81MOD" ] || exit 1
+    echo "Skipping r8168 build."
+
+else
+
+    # get r8168
+    echo "Cloning r8168 source ..."
+    [ -d "$R81DIR" ] && rm -rf "$R81DIR"
+    cd "$SRC"
+    git clone "$R81GITURL" || exit 1
+    # get patch
+    echo "Fetching r8168 patch ..."
+    cd "$R81DIR"
+    wget "$R81PATCHURL" || exit 1
+    # apply patch
+    echo "Applying r8168 patch ..."
+    patch -p1 < "$R81PATCH" || exit 1
+
+    # compile r8168
+    echo "Compiling r8168 ..."
+    cd "$R81SRCDIR" || exit 1
+    make -C "$KSRCDIR" M="$(pwd)" modules
+    [ -s "$R81MOD" ] || exit 1
+
+fi
 
 # install r8168
-cp "$R81MOD" "$KMODTMPDIR/lib/modules/$KVERS/kernel/drivers/net/ethernet" || exit 1
+R81MOD_TARGET="$KMODTMPDIR/lib/modules/$KVERS/kernel/drivers/net/ethernet/$(basename "$R81MOD")"
+echo "  INSTALL $R81MOD_TARGET"
+cp "$R81MOD" "$R81MOD_TARGET" || exit 1
 
 # final depmod
 depmod -a -b "$KMODTMPDIR" "$KVERS" || exit 1
