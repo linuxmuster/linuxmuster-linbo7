@@ -1,3 +1,11 @@
+linuxmuster-linbo7 (4.1.30-0) lmn72; urgency=low
+
+  * Update kernel to 6.3.4 (60964bb).
+  * Don't build r8168 module if it exists already from previous run (e3b8260).
+  * linbo-remote: introducing command "new" (e0ff077).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 26 May 2023 15:29:00 +0200
+
 linuxmuster-linbo7 (4.1.29-0) lmn72; urgency=low
 
   * Update kernel to 6.3.1 (23548c7).
