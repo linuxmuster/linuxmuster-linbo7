@@ -1,0 +1,27 @@
+#!/bin/bash
+#
+# download and build ctorrent
+
+# read build environment
+for i in build/conf.d/*; do source "$i" || exit 1; done
+
+# check for binary
+if [ -s "$PVBIN" -a -x "$PVBIN" ]; then
+  echo "pv binary exists, skipping build."
+
+else
+  # download
+  echo "Cloning $PVNAME source ..."
+  [ -d "$PVSRCDIR" ] && rm -rf "$PVSRCDIR"
+  cd "$SRC"
+  git clone "$PVURL" || exit 1
+  # compile
+  echo "Configuring $PVNAME ..."
+  cd "$PVSRCDIR" || exit 1
+
+  ./configure || exit 1
+  echo "Compiling $PVNAME ..."
+  cd "$PVSRCDIR" || exit 1
+  make || exit 1
+  strip "$PVBIN" || exit 1
+fi
