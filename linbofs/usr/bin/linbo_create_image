@@ -118,8 +118,8 @@ mk_baseimage(){
   local rootdev="$1"
   local imagefile="$2"
   echo "Filling up partition with zeroes..." | tee -a /tmp/image.log
-  freespace=$(df -kP $rootdev | awk 'NR==2 {print $4}')
-  pv -s $freespace -tpreb /dev/zero | dd of=/mnt/zero.tmp bs=1024k 2>/tmp/image.log
+  freespace=$(df -kP $rootdev | awk 'NR==2 {print $4}')k
+  interruptible pv -s $freespace -tprebf /dev/zero | dd of=/mnt/zero.tmp bs=1024k 2>/tmp/image.log
 
 
   # Create nulled files of size 1GB, should work on any FS.
