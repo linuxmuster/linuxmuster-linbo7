@@ -112,6 +112,22 @@ update_linbofs() {
 
 }
 
+execute_hookscripts() {
+    hookdir="/var/lib/linuxmuster/hooks/update-linbofs.post.d"
+	if [ ! -d "$hookdir" ]; then
+	    mkdir $hookdir
+	fi
+    hook_files=$(find "$hookdir" -type f -executable)
+
+    for file in $hook_files; do
+        if [[ -x "$file" ]]; then
+            echo "Executing Hookfile $file"
+            "$file"
+        fi
+    done
+}
+
+
 # grep linbo rsync password to sync it with linbo account
 [ ! -s /etc/rsyncd.secrets ] && bailout "/etc/rsyncd.secrets not found!"
 linbo_passwd="$(grep ^linbo /etc/rsyncd.secrets | awk -F\: '{ print $2 }')"
@@ -134,5 +150,8 @@ update_linbofs 64
 
 # create iso files
 "$LINBOSHAREDIR"/make-linbo-iso.sh
+
+# run hookscripts
+execute_hookscripts
 
 rm -f "$locker"
