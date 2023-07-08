@@ -2,7 +2,7 @@
 #
 # linbo_register
 # thomas@linuxmuster.net
-# 20220611
+# 20220708
 #
 
 
@@ -37,35 +37,42 @@ if [ -z "$1" ] || validip "$1"; then shift; fi
 [ -z "$1" -o "$1" = "linbo" ] && shift
 USERNAME="linbo"
 export RSYNC_PASSWORD="$1"
-if validhostname "$2"; then
-  ROOM="$2"
-else
-  echo "Room name $2 is not valid!"
-  usage 1
-fi
-if validhostname "$3"; then
-  CLIENTNAME="$3"
-else
-  echo "Client name $3 is not valid!"
-  usage 1
-fi
-if [ "$4" = "DHCP" ] || validip "$4"; then
-  CLIENTIP="$4"
-else
-  echo "Client ip $4 is not valid!"
-  usage 1
-fi
-if validhostname "$5"; then
-  HOSTGROUP="$5"
-else
-  echo "Hostgroup name $5 is not valid!"
-  usage 1
-fi
-if validhostname "$6"; then
-  ROLE="$6"
-else
-  ROLE="classroom-studentcomputer"
-fi
+shift
+[ "$1" = "linbo" ] && shift                                                        
+[ "$1" = "$LINBOSERVER" ] && shift                                                 
+if validhostname "$1"; then                                                        
+  ROOM="$1"                                                                        
+  shift                                                                            
+else                                                                               
+  echo "Room name $1 is not valid!"                                                
+  usage 1                                                                          
+fi                                                                                 
+if validhostname "$1"; then                                                        
+  CLIENTNAME="$1"                                                                  
+  shift                                                                            
+else                                                                      
+  echo "Client name $1 is not valid!"                                     
+  usage 1                                                                 
+fi                                                                        
+if [ "$1" = "DHCP" ] || validip "$1"; then                                
+  CLIENTIP="$1"                                                           
+  shift                                                                   
+else                                                                      
+  echo "Client ip $1 is not valid!"                                       
+  usage 1                                                                 
+fi                                                                        
+if validhostname "$1"; then                                               
+  HOSTGROUP="$1"                                                          
+  shift                                                                   
+else                                                                      
+  echo "Hostgroup name $1 is not valid!"                                  
+  usage 1                                                                 
+fi                                                                        
+if validhostname "$1"; then                                               
+  ROLE="$1"                                                               
+else                                                                      
+  ROLE="classroom-studentcomputer"             
+fi                                             
 
 csvline="$ROOM;$CLIENTNAME;$HOSTGROUP;$MACADDR;$CLIENTIP;;;;$ROLE;;1"
 
