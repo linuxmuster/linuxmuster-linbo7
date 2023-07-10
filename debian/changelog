@@ -1,3 +1,12 @@
+linuxmuster-linbo7 (4.1.31-0) lmn72; urgency=low
+
+  * Update kernel to 6.4.2 (3e2e303).
+  * Fix handling of linbo_gui's register invokation (25b03eb).
+  * Fix console menu loop if no data are available (6239b79).
+  * Add pre and post hook scripts execution to update_linbofs (af0a1f2).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 10 Jul 2023 16:17:00 +0200
+
 linuxmuster-linbo7 (4.1.30-0) lmn72; urgency=low
 
   * Update kernel to 6.3.4 (60964bb).
