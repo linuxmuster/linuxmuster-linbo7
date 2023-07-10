@@ -6,7 +6,7 @@
 #
 # thomas@linuxmuster.net
 # GPL V3
-# 20230210
+# 20230710
 #
 
 # read linuxmuster environment
@@ -30,6 +30,7 @@ touch $locker || exit 1
 chmod 400 "$locker"
 curdir=`pwd`
 
+
 # clean tmpdir and exit with error
 bailout() {
 	echo "$1"
@@ -38,8 +39,28 @@ bailout() {
 	exit 1
 }
 
+
+exec_hooks() {
+	case "$1" in
+		pre|post) ;;
+		*) return ;;
+	esac
+    local hookdir="$HOOKSDIR/update-linbofs.$1.d"
+	[ -d "$hookdir" ] || mkdir -p $hookdir
+    local hook_files=$(find "$hookdir" -type f -executable)
+	[ -z "$hook_files" ] && return
+	local file
+    for file in $hook_files; do
+        if [ -x "$file" ]; then
+            echo "Executing $1 hookfile $file"
+            "$file"
+        fi
+    done
+}
+
+
 update_linbofs() {
-	local suffix=$1
+	local suffix="64"
 	local linbovardir="$VARDIR/linbo"
 	local linbofstpl="$linbovardir/linbofs64.cpio"
 	local linbofscachedir="$LINBOCACHEDIR/linbofs$suffix"
@@ -97,6 +118,9 @@ update_linbofs() {
 	# copy timezone info file
 	[ -e /etc/localtime ] && cp -L "/etc/localtime" etc/localtime
 
+	# execute pre hook scripts
+	exec_hooks pre
+
 	# pack linbofs${suffix}.lz
 	set -o pipefail
 	find . | cpio --quiet -o -H newc | lzma -zcv > "$linbofs" ; RC="$?"
@@ -111,6 +135,7 @@ update_linbofs() {
 	echo "Ok!"
 
 }
+
 
 # grep linbo rsync password to sync it with linbo account
 [ ! -s /etc/rsyncd.secrets ] && bailout "/etc/rsyncd.secrets not found!"
@@ -130,9 +155,12 @@ else
 fi
 
 # process linbofs updates
-update_linbofs 64
+update_linbofs
 
 # create iso files
 "$LINBOSHAREDIR"/make-linbo-iso.sh
+
+# execute post hook scripts
+exec_hooks post
 
 rm -f "$locker"
