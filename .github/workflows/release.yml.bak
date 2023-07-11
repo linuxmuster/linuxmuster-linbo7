@@ -1,0 +1,148 @@
+on:
+  push:
+    # Sequence of patterns matched against refs/tags
+    tags:
+    - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+
+  workflow_dispatch:
+
+name: Build Release
+
+jobs:
+  deb-package:
+    name: build DEB-Package
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: ./get-depends.sh
+
+      - name: Build
+        run: ./buildpackage.sh
+
+      - name: Copy artifacts
+        run: mkdir package && cp ../linuxmuster-linbo7_* ./package
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: deb-package
+          path: package/*
+
+  github-release:
+    needs: deb-package
+    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
+    name: GitHub Release
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: deb-package
+
+      - name: Extract current changes
+        run: cat *.changes | sed '0,/^Changes:$/d' | sed '/Checksums.*/Q' | sed '1,2d' | tail >> ./current-changes
+
+      - name: Define distribution variables
+        run: |
+          export DISTRIBUTION=$(grep -i ^Distribution *.changes | awk -F\: '{ print $2 }' | awk '{ print $1 }')
+          echo "DISTRIBUTION=$DISTRIBUTION" >> $GITHUB_ENV
+
+          export VERSION=$(grep -i ^Version *.changes | awk -F\: '{ print $2 }' | awk '{ print $1 }')
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Test if it's a testing prerelease
+        id: check_prerelease
+        uses: haya14busa/action-cond@v1
+        with:
+          cond: ${{ env.DISTRIBUTION == 'lmn71' }}
+          if_true: "false"
+          if_false: "true"
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ env.VERSION }} (${{ env.DISTRIBUTION }})
+          draft: false
+          prerelease: ${{ steps.check_prerelease.outputs.value }}
+          body_path: ./current-changes
+
+      - name: Delete current changes file
+        run: rm ./current-changes
+
+      - name: Upload Release Assets
+        id: upload-release-assets
+        uses: dwenegar/upload-release-assets@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          release_id: ${{ steps.create_release.outputs.id }}
+          assets_path: .
+
+  publish:
+    needs: deb-package
+    name: Push latest release to archive repo
+    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/') && github.repository == 'linuxmuster/linuxmuster-linbo7'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup SSH Key
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+          ssh-add - <<< "${{ secrets.REPO_SSH_KEY }}"
+
+      - name: Clone archive repo
+        uses: actions/checkout@v2
+        with:
+          repository: "linuxmuster/deb"
+          ssh-key: ${{ secrets.REPO_SSH_KEY }}
+          path: "./deb"
+
+      - name: Prepare download
+        run: mkdir "package"
+
+      - name: Download artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: deb-package
+          path: "./package"
+
+      - name: Prepare environment
+        run: |
+          export PACKAGE=$(grep -i ^Source package/*.changes | awk -F\: '{ print $2 }' | awk '{ print $1 }')
+          echo "PACKAGE=$PACKAGE" >> $GITHUB_ENV
+
+          export DISTRIBUTION=$(grep -i ^Distribution package/*.changes | awk -F\: '{ print $2 }' | awk '{ print $1 }')
+          echo "DISTRIBUTION=$DISTRIBUTION" >> $GITHUB_ENV
+
+          export VERSION=$(grep -i ^Version package/*.changes | awk -F\: '{ print $2 }' | awk '{ print $1 }')
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+          export BRANCH_NAME=$(echo "$PACKAGE-$DISTRIBUTION-$VERSION" | sed 's/~/tilde/')
+          echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+
+      - name: Copy packages
+        run: |
+          mkdir -p deb/packages/$PACKAGE/$DISTRIBUTION
+          rm -rf deb/packages/$PACKAGE/$DISTRIBUTION/*
+
+          cp package/* deb/packages/$PACKAGE/$DISTRIBUTION
+
+      - name: Push to repo
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+          cd deb
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git checkout -b update/$BRANCH_NAME
+          git add *
+          git commit -a -m "Update $PACKAGE/$DISTRIBUTION to $VERSION (By GitHub actions)"
+          git push --set-upstream origin update/$BRANCH_NAME
