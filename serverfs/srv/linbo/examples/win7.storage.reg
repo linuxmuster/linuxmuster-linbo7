@@ -1,62 +1,62 @@
 Windows Registry Editor Version 5.00
 
-[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\ahcix86s]
+[HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\services\ahcix86s]
 "Start"=dword:00000000
 
-[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\aliide]
+[HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\services\aliide]
 "Start"=dword:00000000
 
-[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\amdide]
+[HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\services\amdide]
 "Start"=dword:00000000
 
-[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\amdsata]
+[HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\services\amdsata]
 "Start"=dword:00000000
 
-[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\amd_sata]
+[HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\services\amd_sata]
 "Start"=dword:00000000
 
-[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\atapi]
+[HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\services\atapi]
 "Start"=dword:00000000
 
-[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\cmdide]
+[HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\services\cmdide]
 "Start"=dword:00000000
 
-[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\iaStorV]
+[HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\services\iaStorV]
 "Start"=dword:00000000
 
-[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\intelide]
+[HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\services\intelide]
 "Start"=dword:00000000
 
-[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\iteraid]
+[HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\services\iteraid]
 "Start"=dword:00000000
 
-[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\msahci]
+[HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\services\msahci]
 "Start"=dword:00000000
 
-[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\nvraid]
+[HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\services\nvraid]
 "Start"=dword:00000000
 
-[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\nvstor]
+[HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\services\nvstor]
 "Start"=dword:00000000
 
-[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\nvstor32]
+[HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\services\nvstor32]
 "Start"=dword:00000000
 
-[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\pciide]
+[HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\services\pciide]
 "Start"=dword:00000000
 
-[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\SiSRaid2]
+[HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\services\SiSRaid2]
 "Start"=dword:00000000
 
-[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\SiSRaid4]
+[HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\services\SiSRaid4]
 "Start"=dword:00000000
 
-[HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\toside]
+[HKEY_LOCAL_MACHINE\System\ControlSet001\Services\toside]
 Start"=dword:00000000
 
-[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\viaide]
+[HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\services\viaide]
 "Start"=dword:00000000
 
-[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\viostor]
+[HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\services\viostor]
 "Start"=dword:00000000
 

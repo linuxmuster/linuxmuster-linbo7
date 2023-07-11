@@ -3,19 +3,19 @@ Windows Registry Editor Version 5.00
 ; 26.10.2015
 
 ; Win7/Samba 3.4.x - Workstation Share, AutoDisconnect ausschalten
-[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\lanmanserver\parameters]
+[HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\services\lanmanserver\parameters]
 "AutoShareWks"=dword:00000001
 "AutoDisconnect"=dword:FFFFFFFF
 
 ; notwendig, damit der Domaenenbeitritt klappt
-[HKEY_LOCAL_MACHINE\System\CurrentControlSet\services\LanmanWorkstation\Parameters]
+[HKEY_LOCAL_MACHINE\System\ControlSet001\services\LanmanWorkstation\Parameters]
 "DNSNameResolutionRequired"=dword:00000000
 "DomainCompatibilityMode"=dword:00000001
 "RequireSecuritySignature"=dword:00000000
 "EnableSecuritySignature"=dword:00000000
 
 ; notwendig, damit der Domaenenbeitritt klappt
-[HKEY_LOCAL_MACHINE\System\CurrentControlSet\services\Netlogon\Parameters]
+[HKEY_LOCAL_MACHINE\System\ControlSet001\services\Netlogon\Parameters]
 "DisablePasswordChange"=dword:00000001
 "MaximumPasswordAge"=dword:000f4240
 "RefusePasswordChange"=dword:00000001
@@ -30,7 +30,7 @@ Windows Registry Editor Version 5.00
 "CompatibleRUPSecurity"=dword:00000001
 
 ; optional, schaltet Security Center Meldungen ab
-[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\wscsvc]
+[HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\services\wscsvc]
 "Start"=dword:00000003
 
 ; optional, deaktiviert UAC
@@ -39,11 +39,11 @@ Windows Registry Editor Version 5.00
 "LocalAccountTokenFilterPolicy"=dword:00000001
 
 ; optional, deaktiviert den automatischen Neustart bei Bluescreen
-[HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\CrashControl]
+[HKEY_LOCAL_MACHINE\System\ControlSet001\Control\CrashControl]
 "AutoReboot"=dword:00000000
 
 ; optional, deaktiviert die automatische Umstellung von Sommer-/Winterzeit
-[HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\TimeZoneInformation\]
+[HKEY_LOCAL_MACHINE\System\ControlSet001\Control\TimeZoneInformation\]
 "DynamicDaylightTimeDisabled"=dword:00000001
 
 ; optional, unterdrueckt die "Neue Hardware gefunden"-Infobox

@@ -1,12 +1,12 @@
 Windows Registry Editor Version 5.00
 
-[HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\ComputerName\ActiveComputerName\]
+[HKEY_LOCAL_MACHINE\System\ControlSet001\Control\ComputerName\ActiveComputerName\]
 "ComputerName"="{$HostName$}"
 
-[HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\ComputerName\ComputerName\]
+[HKEY_LOCAL_MACHINE\System\ControlSet001\Control\ComputerName\ComputerName\]
 "ComputerName"="{$HostName$}"
 
-[HKEY_LOCAL_MACHINE\System\CurrentControlSet\services\Tcpip\Parameters\]
+[HKEY_LOCAL_MACHINE\System\ControlSet001\services\Tcpip\Parameters\]
 "Hostname"="{$HostName$}"
 "NV Hostname"="{$HostName$}"
 

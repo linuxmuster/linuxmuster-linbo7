@@ -5,7 +5,7 @@ Windows Registry Editor Version 5.00
 ; to be applied once before domain join and image creation
 
 ; machine account password may not expire
-[HKEY_LOCAL_MACHINE\System\CurrentControlSet\services\Netlogon\Parameters]
+[HKEY_LOCAL_MACHINE\System\ControlSet001\Services\Netlogon\Parameters]
 "DisablePasswordChange"=dword:00000001
 "MaximumPasswordAge"=dword:000f4240
 "RefusePasswordChange"=dword:00000001
@@ -19,7 +19,7 @@ Windows Registry Editor Version 5.00
 ; disable hiberboot
 [HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Control\Session Manager\Power]
 "HiberbootEnabled"=dword:00000000
-[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Power]
+[HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Control\Session Manager\Power]
 "HiberbootEnabled"=dword:00000000
 
 ; allow users to install printer drivers
