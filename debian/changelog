@@ -1,3 +1,9 @@
+linuxmuster-linbo7 (4.0.45-0) lmn71; urgency=low
+
+  * Removed correction of registry key paths from regpatcher, adjusted reg file examples accordingly (6fdeb7a).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 11 Jul 2023 08:58:00 +0200
+
 linuxmuster-linbo7 (4.0.44-0) lmn71; urgency=low
 
   * Initiate reboot if warmstart is disabled  (c0ff8a4).
