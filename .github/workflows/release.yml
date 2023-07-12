@@ -11,10 +11,10 @@ name: Build Release
 jobs:
   deb-package:
     name: build DEB-Package
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Get artifact
         run: ./get-pkg.sh
@@ -29,7 +29,7 @@ jobs:
     needs: deb-package
     if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
     name: GitHub Release
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v2
