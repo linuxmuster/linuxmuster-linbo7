@@ -2,7 +2,7 @@
 #
 # linbo_patch_registry
 # thomas@linuxmuster.net
-# 20220613
+# 20230713
 #
 
 usage(){
@@ -58,35 +58,10 @@ header="Windows Registry Editor Version 5.00"
 # prefix for the created regfiles
 prefix="/tmp/reg.$$."
 
-# strings to repair
-repstrings="HKEY_LOCAL_MACHINE
-            ActiveComputerName
-            ComputerName
-            Control
-            HardenedPaths
-            Microsoft
-            Netlogon
-            NetworkProvider
-            Parameters
-            Policies
-            Printers
-            PointAndPrint
-            Services
-            Session+Manager
-            Software
-            System
-            Tcpip
-            Windows
-            Windows+NT"
-
 # replace template with hostname & repair case of registry paths
 cp "$regfile" "$regtmp"
 sed -i 's|{\$HostName\$}|'"$HOSTNAME"'|g
-        s|@@hostname@@|'"$HOSTNAME"'|g
-        s|\\currentcontrolset\\|\\ControlSet001\\|Ig' "$regtmp"
-for i in $repstrings; do
-  sed -i 's|\\'"${i/+/ }"'\\|\\'"${i/+/ }"'\\|Ig' "$regtmp"
-done
+        s|@@hostname@@|'"$HOSTNAME"'|g' "$regtmp"
 
 # split regfile into handy parts
 grep ^"[\[\"]" "$regtmp" | csplit -s -z -f "$prefix" - '/^\[/' '{*}'
