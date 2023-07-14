@@ -2,7 +2,7 @@
 # helperfunctions for linbo scripts
 #
 # thomas@linuxmuster.net
-# 20220803
+# 20230714
 #
 
 # get linuxmuster environment variables
@@ -51,8 +51,7 @@ validip(){
 
 # test valid mac address syntax
 validmac(){
-  [ `expr length $1` -ne "17" ] && return 1
-  (expr match "$1" '\([a-fA-F0-9-][a-fA-F0-9-]\+\(\:[a-fA-F0-9-][a-fA-F0-9-]\+\)\+$\)') &> /dev/null || return 1
+  [[ "$1" =~ ^([a-fA-F0-9]{2}:){5}[a-fA-F0-9]{2}$ ]] || return 1
 }
 
 # test for valid hostname
