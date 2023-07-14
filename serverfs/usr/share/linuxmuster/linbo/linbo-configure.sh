@@ -2,7 +2,7 @@
 #
 # configure script for linuxmuster-linbo7 package
 # thomas@linuxmuster.net
-# 20230511
+# 20230714
 #
 
 # read constants & setup values
@@ -106,6 +106,16 @@ if grep -q "$lmn71_string" "$conf"; then
   cp "$conf" "${conf}.lmn71"
   lmn72_string="HostKeyAlgorithms +ssh-rsa"
   sed -i "s|$lmn71_string|$lmn72_string|" "$conf"
+fi
+
+# provide rsync service override
+tpl="$TPLDIR/rsync.override.conf"
+conf="$(head -1 "$tpl" | awk '{print $2}')"
+if [ ! -s "$conf" ]; then
+  mkdir -p "$(dirname "$conf")"
+  cp -f "$tpl" "$conf"
+  systemctl daemon-reload
+  systemctl restart rsync.service
 fi
 
 update-linbofs || exit 1
