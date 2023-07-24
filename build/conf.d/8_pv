@@ -1,0 +1,6 @@
+# pv build environment
+
+PVNAME="pv"
+PVURL="https://github.com/icetee/$PVNAME"
+PVSRCDIR="$SRC/$PVNAME"
+PVBIN="$PVSRCDIR/$PVNAME"

@@ -1,0 +1,3 @@
+# ctorrent
+
+file /usr/bin/pv @@PVBIN@@ 755 0 0

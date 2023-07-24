@@ -118,18 +118,22 @@ mk_baseimage(){
   local rootdev="$1"
   local imagefile="$2"
   echo "Filling up partition with zeroes..." | tee -a /tmp/image.log
+  freespace=$(df -kP $rootdev | awk 'NR==2 {print $4}')k
+  interruptible pv -s $freespace -tprebf /dev/zero | dd of=/mnt/zero.tmp bs=1024k 2>/tmp/image.log
+
+
   # Create nulled files of size 1GB, should work on any FS.
-  local count=0
-  while true; do
-    # tschmitt: log errors to image.log
-    interruptible dd if=/dev/zero of="/mnt/zero$count.tmp" bs=1024k count=1000 2>>/tmp/image.log || break
-    [ -s "/mnt/zero$count.tmp" ] || break
-    let count++
-    echo "$(du -ch /mnt/zero*.tmp | tail -1 | awk '{ print $1 }') zeroed ... " | tee -a /tmp/image.log
-  done
+  #local count=0
+  #while true; do
+  #  # tschmitt: log errors to image.log
+  #  interruptible dd if=/dev/zero of="/mnt/zero$count.tmp" bs=1024k count=1000 2>>/tmp/image.log || break
+  #  [ -s "/mnt/zero$count.tmp" ] || break
+  #  let count++
+  #  echo "$(du -ch /mnt/zero*.tmp | tail -1 | awk '{ print $1 }') zeroed ... " | tee -a /tmp/image.log
+  #done
   # Sync is asynchronous, unless started twice at least.
   sync ; sync ; sync
-  rm -f /mnt/zero*.tmp
+  rm -f /mnt/zero.tmp
   umount /mnt || umount -l /mnt
   echo "Starting compression of $rootdev -> $imagefile (full partition, ${size}K)."
   echo "qemu-img convert -p -c -f raw -O qcow2 $rootdev $imagefile"
