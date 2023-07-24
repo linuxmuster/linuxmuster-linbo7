@@ -1,3 +1,16 @@
+linuxmuster-linbo7 (4.1.32-0) lmn72; urgency=low
+
+  * Update kernel to 6.4.5 (e049c01).
+  * Removed correction of registry key paths from regpatcher (bf571a5).
+  * Improved function validmac in helperfunctions (3e3e4ad).
+  * Fix rsync service's write permissions to /etc (cdd2ea6).
+  * Added i2c drivers (#96, 442ec03).
+  * Merge pull request #98 from netzint/update-zeroing-pv (5dab3c7).
+  * Revert 5b23751 (bbeff5f).
+  * Moved linbofs build script to last position (71ae29b).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 24 Jul 2023 22:08:00 +0200
+
 linuxmuster-linbo7 (4.1.31-0) lmn72; urgency=low
 
   * Update kernel to 6.4.2 (3e2e303).
