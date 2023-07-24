@@ -4,7 +4,7 @@
 # (C) Klaus Knopper 2007
 # License: GPL V2
 # thomas@linuxmuster.net
-# 20230710
+# 20230724
 #
 
 # Reset fb color mode
@@ -61,7 +61,6 @@ else # handle missing gui problem
     echo "Console boot menue of group $HOSTGROUP"
     echo "----------------------------------------"
     count=0
-    if [ -d "/conf/" ]; then
     for item in /conf/os.*; do
       [ -s "$item" ] || continue
       name=""
@@ -72,7 +71,6 @@ else # handle missing gui problem
       count=$(( count + 1 ))
       echo "[$count] Sync & start $name"
     done
-    fi
     echo "----------------------------------------"
     echo "[R] Reboot"
     echo "[S] Shutdown"
