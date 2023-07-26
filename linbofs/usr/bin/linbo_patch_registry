@@ -2,7 +2,7 @@
 #
 # linbo_patch_registry
 # thomas@linuxmuster.net
-# 20230713
+# 20230726
 #
 
 usage(){
@@ -61,7 +61,8 @@ prefix="/tmp/reg.$$."
 # replace template with hostname & repair case of registry paths
 cp "$regfile" "$regtmp"
 sed -i 's|{\$HostName\$}|'"$HOSTNAME"'|g
-        s|@@hostname@@|'"$HOSTNAME"'|g' "$regtmp"
+        s|@@hostname@@|'"$HOSTNAME"'|g
+        s|\\currentcontrolset\\|\\ControlSet001\\|Ig' "$regtmp"
 
 # split regfile into handy parts
 grep ^"[\[\"]" "$regtmp" | csplit -s -z -f "$prefix" - '/^\[/' '{*}'
