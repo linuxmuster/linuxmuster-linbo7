@@ -2,7 +2,7 @@
 #
 # linbo_patch_registry
 # thomas@linuxmuster.net
-# 20230711
+# 20230726
 #
 
 usage(){
@@ -35,7 +35,8 @@ hive_dir="/mnt/Windows/System32/config"
 # replace template with hostname & repair case of registry paths
 cp "$regfile" "$regtmp"
 sed -i 's|{\$HostName\$}|'"$myname"'|g
-        s|@@hostname@@|'"$myname"'|g' "$regtmp"
+        s|@@hostname@@|'"$myname"'|g
+        s|\\currentcontrolset\\|\\ControlSet001\\|Ig' "$regtmp"
 
 # split regfile into handy parts
 grep ^"[\[\"]" "$regtmp" | csplit -s -z -f "$prefix" - '/^\[/' '{*}'
