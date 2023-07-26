@@ -1,3 +1,9 @@
+linuxmuster-linbo7 (4.0.46-0) lmn71; urgency=low
+
+  * Fix CurrentControlSet with regpatcher (9d6734b).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 26 Jul 2023 15:12:00 +0200
+
 linuxmuster-linbo7 (4.0.45-0) lmn71; urgency=low
 
   * Removed correction of registry key paths from regpatcher, adjusted reg file examples accordingly (6fdeb7a).
