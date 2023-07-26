@@ -1,3 +1,10 @@
+linuxmuster-linbo7 (4.1.33-0) lmn72; urgency=low
+
+  * Force pulling r8168 source code on kernel update (08b0b5a).
+  * Fix CurrentControlSet with regpatcher (c288909).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 26 Jul 2023 14:20:00 +0200
+
 linuxmuster-linbo7 (4.1.32-0) lmn72; urgency=low
 
   * Update kernel to 6.4.5 (e049c01).
