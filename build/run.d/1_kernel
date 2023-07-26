@@ -33,8 +33,8 @@ else
   make -j2 bzImage modules || exit 1
   # remove initramfs config link
   rm -f "$SRC/initramfs_kernel.conf"
-  # remove r8168 module
-  rm -f "$$R81MOD"
+  # remove r8168 source dir
+  rm -rf "$$R81DIR"
 fi
 
 echo "Linking LINBO kernel to /srv/linbo/linbo64 ..."
