@@ -1,6 +1,10 @@
 #!/bin/bash
 #
 # download and build kernel
+#
+# thomas@linuxmuster.net
+# 20230727
+#
 
 # read build environment
 for i in build/conf.d/*; do source "$i" || exit 1; done
@@ -34,7 +38,7 @@ else
   # remove initramfs config link
   rm -f "$SRC/initramfs_kernel.conf"
   # remove r8168 source dir
-  rm -rf "$$R81DIR"
+  rm -rf "$R81DIR"
 fi
 
 echo "Linking LINBO kernel to /srv/linbo/linbo64 ..."
