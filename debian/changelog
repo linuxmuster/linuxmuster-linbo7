@@ -1,3 +1,9 @@
+linuxmuster-linbo7 (4.1.34-0) lmn72; urgency=low
+
+  * Fix typo in kernel build run script (3a06c81).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 27 Jul 2023 13:25:00 +0200
+
 linuxmuster-linbo7 (4.1.33-0) lmn72; urgency=low
 
   * Force pulling r8168 source code on kernel update (08b0b5a).
