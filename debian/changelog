@@ -1,8 +1,10 @@
 linuxmuster-linbo7 (4.1.34-0) lmn72; urgency=low
 
+  * Update kernel to 6.4.7 (4a2b48a).
   * Fix typo in kernel build run script (3a06c81).
+  * Fix #100: dropbear ssh keys not generated when making an fresh install of 7.2 (no upgrade).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 27 Jul 2023 13:25:00 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sun, 30 Jul 2023 17:10:00 +0200
 
 linuxmuster-linbo7 (4.1.33-0) lmn72; urgency=low
 
