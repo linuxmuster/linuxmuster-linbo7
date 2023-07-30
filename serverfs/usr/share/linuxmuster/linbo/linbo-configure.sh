@@ -2,7 +2,7 @@
 #
 # configure script for linuxmuster-linbo7 package
 # thomas@linuxmuster.net
-# 20230714
+# 20230730
 #
 
 # read constants & setup values
@@ -20,12 +20,14 @@ mkdir -p "$LINBODIR/tmp"
 chown nobody $LINBOLOGDIR -R
 
 # create dropbear ssh keys
-if [ ! -s "$SYSDIR/linbo/ssh_host_rsa_key" ]; then
-  ssh-keygen -t rsa -N "" -f $SYSDIR/linbo/ssh_host_rsa_key
+if [ ! -s "$SYSDIR/linbo/dropbear_rsa_host_key" ]; then
+  rm -f $SYSDIR/linbo/ssh_host_rsa_key*
+  ssh-keygen -m PEM -t rsa -N "" -f $SYSDIR/linbo/ssh_host_rsa_key
   /usr/lib/dropbear/dropbearconvert openssh dropbear $SYSDIR/linbo/ssh_host_rsa_key $SYSDIR/linbo/dropbear_rsa_host_key
 fi
-if [ ! -s "$SYSDIR/linbo/ssh_host_dsa_key" ]; then
-  ssh-keygen -t dsa -N "" -f $SYSDIR/linbo/ssh_host_dsa_key
+if [ ! -s "$SYSDIR/linbo/dropbear_dss_host_key" ]; then
+  rm -f $SYSDIR/linbo/ssh_host_dsa_key*
+  ssh-keygen -m PEM -t dsa -N "" -f $SYSDIR/linbo/ssh_host_dsa_key
   /usr/lib/dropbear/dropbearconvert openssh dropbear $SYSDIR/linbo/ssh_host_dsa_key $SYSDIR/linbo/dropbear_dss_host_key
 fi
 
