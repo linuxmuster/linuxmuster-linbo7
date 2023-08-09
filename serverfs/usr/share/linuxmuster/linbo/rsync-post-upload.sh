@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # thomas@linuxmuster.net
-# 20220908
+# 20230809
 #
 
 # read in linuxmuster specific environment
@@ -61,7 +61,7 @@ if [ -s "$BACKUP" ]; then
         for i in reg postsync prestart; do
           cp -f "$IMGDIR"/*."$i" "$BAKTMP" &> /dev/null
         done
-        for i in macct opsi torrent; do
+        for i in macct torrent; do
           cp -f "$FILE.$i" "$BAKTMP" &> /dev/null
         done
         # move differential image away if qcow2 image was uploaded
