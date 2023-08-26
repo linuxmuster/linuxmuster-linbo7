@@ -1,4 +1,8 @@
 #!/bin/bash
+#
+# thomas@linuxmuster.net
+# 20230826
+#
 
 # read build environment
 for i in build/conf.d/*; do source "$i" || exit 1; done
@@ -20,13 +24,12 @@ else
     [ -d "$R81DIR" ] && rm -rf "$R81DIR"
     cd "$SRC"
     git clone "$R81GITURL" || exit 1
-    # get patch
-    echo "Fetching r8168 patch ..."
     cd "$R81DIR"
-    wget "$R81PATCHURL" || exit 1
-    # apply patch
-    echo "Applying r8168 patch ..."
-    patch -p1 < "$R81PATCH" || exit 1
+    # apply patches
+    for item in $R81PATCHDIR/*; do
+        echo "Applying $(basename $item) ..."
+        patch -p1 < "$item" || exit 1
+    done
 
     # compile r8168
     echo "Compiling r8168 ..."

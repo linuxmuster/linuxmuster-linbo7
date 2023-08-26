@@ -1,10 +1,14 @@
 # r8168 build environment
+#
+# thomas@linuxmuster.net
+# 20230826
+#
 
 # module source
-R81URL="https://github.com/mtorromeo/r8168"
+R81NAME="r8168"
+R81URL="https://github.com/mtorromeo/$R81NAME"
 R81GITURL="$R81URL.git"
-R81PATCH="47.patch"
-R81PATCHURL="$R81URL/pull/$R81PATCH"
-R81DIR="$SRC/r8168"
+R81PATCHDIR="$BUILDPATCHES/$R81NAME"
+R81DIR="$SRC/$R81NAME"
 R81SRCDIR="$R81DIR/src"
-R81MOD="$R81SRCDIR/r8168.ko"
+R81MOD="$R81SRCDIR/$R81NAME.ko"
