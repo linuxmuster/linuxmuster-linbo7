@@ -1,4 +1,8 @@
 # firmware related environment variables
+#
+# thomas@linuxmuster.net
+# 20230826
+#
 
 # git url
 FWNAME="linux-firmware"
@@ -9,4 +13,4 @@ FWSRCDIR="$SRC/$FWNAME"
 FWTMPDIR="$KMODTMPDIR/lib/firmware"
 
 # list of firmware files to be installed
-FWLIST="RTL8192E rtl_nic"
+FWLIST="rtl_nic"

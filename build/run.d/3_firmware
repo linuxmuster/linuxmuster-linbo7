@@ -1,4 +1,8 @@
 #!/bin/bash
+#
+# thomas@linuxmuster.net
+# 20230826
+#
 
 # read build environment
 for i in build/conf.d/*; do source "$i" || exit 1; done
