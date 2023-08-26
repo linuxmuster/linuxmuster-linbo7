@@ -1,3 +1,14 @@
+linuxmuster-linbo7 (4.1.35-0) lmn72; urgency=low
+
+  * linbo-configure.sh: refactor dropbear ssh key creation (7b62add).
+  * rsync-post-upload.sh: remove last remnants of opsi (1868db1).
+  * fix providing rtl8168 firmware (312cc3d).
+  * add r8168 patches (0dc0d45).
+  * refactor r8168 build (e768b1a).
+  * update kernel to 6.4.12 (dba4f3e).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 25 Aug 2023 14:09:00 +0200
+
 linuxmuster-linbo7 (4.1.34-0) lmn72; urgency=low
 
   * Update kernel to 6.4.7 (4a2b48a).
