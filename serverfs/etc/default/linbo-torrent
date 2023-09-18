@@ -1,6 +1,6 @@
 # default values for linbo-torrenthelper service provided by ctorrent
 # thomas@linuxmuster.net
-# 20220317
+# 20230918
 #
 # note: you have to invoke 'linbo-torrent restart' after you have changed any values
 #
@@ -31,3 +31,6 @@ TIMEOUT="300"
 
 # user to run ctorrent (server only)
 CTUSER="nobody"
+
+# Piece length (torrent file option)
+PIECELEN="524288"

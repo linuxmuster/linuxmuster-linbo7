@@ -2,7 +2,7 @@
 #
 # linbo_download_image
 # thomas@linuxmuster.net
-# 20230426
+# 20230918
 #
 
 
@@ -74,7 +74,6 @@ download_torrent(){
   local SLICESIZE=128
   local TIMEOUT=300
   local OPTIONS
-  [ -e /torrent-client.conf ] && . /torrent-client.conf
   local pid="$(ps w | grep ctorrent | grep "$torrent" | grep -v grep | awk '{ print $1 }')"
   [ -n "$pid" ] && kill "$pid"
   local CTOPTS="-I $IP -m $MINPEERS -M $MAXPEERS -z $SLICESIZE"

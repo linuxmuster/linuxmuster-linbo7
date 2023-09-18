@@ -2,7 +2,7 @@
 #
 # starts tmux sessions for each valid torrent in LINBODIR
 # thomas@linuxmuster.net
-# 20221103
+# 20230918
 #
 
 # read environment
@@ -10,6 +10,10 @@
 THELPER=$LINBOSHAREDIR/linbo-torrenthelper.sh
 . $LINBOSHAREDIR/helperfunctions.sh || exit 1
 LINBOIMGEXT="qcow2 qdiff"
+
+# get ctorrent options from file
+[ -e /etc/default/linbo-torrent ] && source /etc/default/linbo-torrent
+isinteger "$PIECELEN" && plopt="-l $PIECELEN"
 
 # start of functions
 
@@ -68,7 +72,7 @@ create(){
   echo "Creating $torrent ..."
   cd "$tdir"
   rm -f "$torrent"
-  if ctorrent -t -u "http://$serverip:6969/announce" -s "$torrent" "$image" ; then
+  if ctorrent -t -u "http://$serverip:6969/announce" $plopt -s "$torrent" "$image" ; then
     [ "$START" = "no" ] || linbo-torrent start "$IMGLIST"
   else
     echo "Failed!"
