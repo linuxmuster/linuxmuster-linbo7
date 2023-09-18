@@ -1,3 +1,11 @@
+linuxmuster-linbo7 (4.1.36-0) lmn72; urgency=low
+
+  * Update kernel to 6.5.3 (a3ad8b7).
+  * Fix #101: images with a qcow2-size of ca 52 GB and bigger cannot be
+    distributed via torrent because of an invalid metainfo file. (30d83f8).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 18 Sep 2023 18:33:00 +0200
+
 linuxmuster-linbo7 (4.1.35-0) lmn72; urgency=low
 
   * linbo-configure.sh: refactor dropbear ssh key creation (7b62add).
