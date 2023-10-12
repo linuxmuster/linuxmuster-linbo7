@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # thomas@linuxmuster.net
-# 20230826
+# 20231012
 #
 
 # read build environment
@@ -26,10 +26,12 @@ else
     git clone "$R81GITURL" || exit 1
     cd "$R81DIR"
     # apply patches
-    for item in $R81PATCHDIR/*; do
-        echo "Applying $(basename $item) ..."
-        patch -p1 < "$item" || exit 1
-    done
+    if [ -d "$R81PATCHDIR" ]; then
+        for item in $R81PATCHDIR/*.patch; do
+            echo "Applying $(basename $item) ..."
+            patch -p1 < "$item" || exit 1
+        done
+    fi
 
     # compile r8168
     echo "Compiling r8168 ..."
