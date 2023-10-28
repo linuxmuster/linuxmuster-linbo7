@@ -2,7 +2,7 @@
 #
 # configure script for linuxmuster-linbo7 package
 # thomas@linuxmuster.net
-# 20230801
+# 20231014
 #
 
 # read constants & setup values
@@ -105,7 +105,7 @@ for i in opentracker linbo-torrent linbo-multicast; do
 done
 
 # repair ssh_config
-conf="$SYSDIR/linbo/ssh_config"
+conf="$LINBOSYSDIR/ssh_config"
 lmn71_string="PubkeyAcceptedKeyTypes=+ssh-dss"
 if grep -q "$lmn71_string" "$conf"; then
   cp "$conf" "${conf}.lmn71"
