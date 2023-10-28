@@ -1,3 +1,9 @@
+linuxmuster-linbo7 (4.2.0-0) lmn72; urgency=low
+
+  * Update kernel to 6.5.9 (37436af).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 28 Oct 2023 12:53:30 +0200
+
 linuxmuster-linbo7 (4.1.36-0) lmn72; urgency=low
 
   * Update kernel to 6.5.3 (a3ad8b7).

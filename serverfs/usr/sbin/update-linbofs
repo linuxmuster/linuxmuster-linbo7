@@ -6,7 +6,7 @@
 #
 # thomas@linuxmuster.net
 # GPL V3
-# 20230710
+# 20231028
 #
 
 # read linuxmuster environment
@@ -59,29 +59,33 @@ exec_hooks() {
 }
 
 
-update_linbofs() {
-	local suffix="64"
-	local linbovardir="$VARDIR/linbo"
-	local linbofstpl="$linbovardir/linbofs64.cpio"
-	local linbofscachedir="$LINBOCACHEDIR/linbofs$suffix"
-	local linbofs="$LINBODIR/linbofs${suffix}.lz"
-	local linbofs_md5="$linbofs".md5
+create_linbofs() {
+	local linbofs="linbofs64"
+	local linbofs_cpio="$LINBOVARDIR/${linbofs}.cpio"
+	local linbofs_cache="$LINBOCACHEDIR/$linbofs"
+	local linbofs_lz="$LINBODIR/${linbofs}.lz"
+	local linbofs_md5="${linbofs_lz}.md5"
+	local conf
+	local fw_base="/lib/firmware"
+	local fw_dir
+	local fw_source
+	local fw_target
 	local i
 
 	rm -f "$linbofs_md5"
-	rm -rf "$linbofscachedir"
-	mkdir -p "$linbofscachedir"
+	rm -rf "$linbofs_cache"
+	mkdir -p "$linbofs_cache"
 
-	# begin to process linbofs${suffix}.lz
-	echo "Processing linbofs${suffix} update ..."
+	# begin to process linbofs64.lz
+	echo "Creating new linbo filesystem ..."
 
 	# sync linbofs filesystem to cache dir
-	mkdir -p "$linbofscachedir"
-	cd "$linbofscachedir" || bailout "Failed to change to $linbofscachedir!"
+	mkdir -p "$linbofs_cache"
+	cd "$linbofs_cache" || bailout "Failed to change to $linbofs_cache!"
 	set -o pipefail
-	cat "$linbofstpl" | cpio -i -d -H newc --no-absolute-filenames &> /dev/null ; RC="$?"
+	cat "$linbofs_cpio" | cpio -i -d -H newc --no-absolute-filenames &> /dev/null ; RC="$?"
 	set +o pipefail
-	[ "$RC" = "0" ] || bailout " Failed to unpack $(basename "$linbofstpl")!"
+	[ "$RC" = "0" ] || bailout " Failed to unpack $(basename "$linbofs_cpio")!"
 
 	# store linbo password hash
 	echo -n "$linbo_pwhash" > etc/linbo_pwhash
@@ -90,9 +94,9 @@ update_linbofs() {
 
 	# provide dropbear ssh host key
 	mkdir -p etc/dropbear
-	cp $SYSDIR/linbo/dropbear_*_host_key etc/dropbear
+	cp $LINBOSYSDIR/dropbear_*_host_key etc/dropbear
 	mkdir -p etc/ssh
-	cp $SYSDIR/linbo/ssh_host_*_key* etc/ssh
+	cp $LINBOSYSDIR/ssh_host_*_key* etc/ssh
 	mkdir -p .ssh
 	cat /root/.ssh/id_*.pub > .ssh/authorized_keys
 	# supplemental authorized_keys
@@ -118,17 +122,34 @@ update_linbofs() {
 	# copy timezone info file
 	[ -e /etc/localtime ] && cp -L "/etc/localtime" etc/localtime
 
+	# provide firmware
+	conf="$LINBOSYSDIR/firmware"
+	if [ -s "$conf" ]; then
+		echo "Copying firmware ..."
+		grep -v ^# "$conf" | while read line; do
+			[ -z "$line" ] && continue
+			fw_source="$fw_base/$line"
+			[ -e "$fw_source" ] || continue
+			echo "  $line"
+			fw_target="${fw_source/\/}"
+			fw_dir="$(dirname "$fw_target")"
+			mkdir -p "$fw_dir"
+			cp -a "$fw_source" "$fw_dir"
+		done
+	fi
+
 	# execute pre hook scripts
 	exec_hooks pre
 
-	# pack linbofs${suffix}.lz
+	# pack linbofs64.lz
+	echo "Creating lzma archive (may take a while) ..."
 	set -o pipefail
-	find . | cpio --quiet -o -H newc | lzma -zcv > "$linbofs" ; RC="$?"
+	find . | cpio --quiet -o -H newc | lzma --threads=0 -zcv > "$linbofs_lz" ; RC="$?"
 	set +o pipefail
-  [ $RC -ne 0 ] && bailout "failed!"
+  	[ $RC -ne 0 ] && bailout "failed!"
 
 	# create md5sum file
-	md5sum "$linbofs"  | awk '{ print $1 }' > "$linbofs_md5"
+	md5sum "$linbofs_lz"  | awk '{ print $1 }' > "$linbofs_md5"
 
 	cd "$curdir"
 
@@ -154,8 +175,8 @@ else
 	exit 1
 fi
 
-# process linbofs updates
-update_linbofs
+# create new linbo filesystem
+create_linbofs
 
 # create iso files
 "$LINBOSHAREDIR"/make-linbo-iso.sh
