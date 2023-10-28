@@ -1,11 +1,11 @@
 # kernel build environment variables
 #
 # thomas@linuxmuster.net
-# 20231012
+# 20231027
 #
 
 # kernel version
-KVERS="6.5.7"
+KVERS="6.5.9"
 
 # kernel archive and get script
 KDIR="linux-$KVERS"
@@ -21,6 +21,9 @@ KIMAGE="$KSRCDIR/arch/x86/boot/bzImage"
 
 # where kernel modules were temporary installed
 KMODTMPDIR="$TMPDIR/modules"
+
+# where sources of external modules are located
+KEXTMODDIR="$SRC/extmod"
 
 # initramfs file used during kernel build
 INITRAMFS_KERNEL="$BUILDINITD/00_basic"
