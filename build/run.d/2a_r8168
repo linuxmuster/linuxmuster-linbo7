@@ -1,16 +1,11 @@
 #!/bin/bash
 #
 # thomas@linuxmuster.net
-# 20231012
+# 20231025
 #
 
 # read build environment
 for i in build/conf.d/*; do source "$i" || exit 1; done
-
-# install modules into temporary dir
-mkdir -p "$KMODTMPDIR"
-cd "$KSRCDIR"
-make INSTALL_MOD_PATH="$KMODTMPDIR" modules_install || exit 1
 
 # compile r8168 only if it is not already there
 if [ -s "$R81MOD" ]; then
@@ -22,7 +17,8 @@ else
     # get r8168
     echo "Cloning r8168 source ..."
     [ -d "$R81DIR" ] && rm -rf "$R81DIR"
-    cd "$SRC"
+    mkdir -p "$KEXTMODDIR"
+    cd "$KEXTMODDIR"
     git clone "$R81GITURL" || exit 1
     cd "$R81DIR"
     # apply patches
@@ -45,6 +41,3 @@ fi
 R81MOD_TARGET="$KMODTMPDIR/lib/modules/$KVERS/kernel/drivers/net/ethernet/$(basename "$R81MOD")"
 echo "  INSTALL $R81MOD_TARGET"
 cp "$R81MOD" "$R81MOD_TARGET" || exit 1
-
-# final depmod
-depmod -a -b "$KMODTMPDIR" "$KVERS" || exit 1

@@ -138,6 +138,10 @@ create_linbofs() {
 		done
 	fi
 
+	# provide wpa_supplicant config
+	conf="$LINBOSYSDIR/wpa_supplicant.conf"
+	[ -s "$conf" ] && cp "$conf" etc
+
 	# execute pre hook scripts
 	exec_hooks pre
 

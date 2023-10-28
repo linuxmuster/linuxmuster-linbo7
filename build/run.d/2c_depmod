@@ -1,0 +1,11 @@
+#!/bin/bash
+#
+# thomas@linuxmuster.net
+# 20231016
+#
+
+# read build environment
+for i in build/conf.d/*; do source "$i" || exit 1; done
+
+# final depmod
+depmod -a -b "$KMODTMPDIR" "$KVERS" || exit 1

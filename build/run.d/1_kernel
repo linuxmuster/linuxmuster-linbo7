@@ -3,7 +3,7 @@
 # download and build kernel
 #
 # thomas@linuxmuster.net
-# 20230727
+# 20231025
 #
 
 # read build environment
@@ -34,14 +34,19 @@ else
   # provide initramfs config
   ln -snf "$INITRAMFS_KERNEL" "$SRC/initramfs_kernel.conf"
   # make
-  make -j2 bzImage modules || exit 1
+  make bzImage modules || exit 1
   # remove initramfs config link
   rm -f "$SRC/initramfs_kernel.conf"
-  # remove r8168 source dir
-  rm -rf "$R81DIR"
+  # remove external modules source dir
+  rm -rf "$KEXTMODDIR"
 fi
 
 echo "Linking LINBO kernel to /srv/linbo/linbo64 ..."
 mkdir -p "$LINBODIR"
 cp "$KIMAGE" "$LINBODIR/linbo64" || exit 1
 md5sum "$LINBODIR/linbo64" | cut -f1 -d" " > "$LINBODIR/linbo64.md5" || exit 1
+
+# install modules into temporary dir
+mkdir -p "$KMODTMPDIR"
+cd "$KSRCDIR"
+make INSTALL_MOD_PATH="$KMODTMPDIR" modules_install || exit 1
