@@ -1,0 +1,12 @@
+# wpasupplicant
+
+file /lib/libgcrypt.so.20 /lib/x86_64-linux-gnu/libgcrypt.so.20 755 0 0
+file /lib/libgpg-error.so.0 /lib/x86_64-linux-gnu/libgpg-error.so.0 755 0 0
+file /lib/libnl-3.so.200 /lib/x86_64-linux-gnu/libnl-3.so.200 755 0 0
+file /lib/libnl-genl-3.so.200 /lib/x86_64-linux-gnu/libnl-genl-3.so.200 755 0 0
+file /lib/libnl-route-3.so.200 /lib/x86_64-linux-gnu/libnl-route-3.so.200 755 0 0
+file /lib/libpcsclite.so.1 /lib/x86_64-linux-gnu/libpcsclite.so.1 755 0 0
+file /lib/libssl.so.3 /lib/x86_64-linux-gnu/libssl.so.3 755 0 0
+file /lib/libsystemd.so.0 /lib/x86_64-linux-gnu/libsystemd.so.0 755 0 0
+
+file /usr/sbin/wpa_supplicant /usr/sbin/wpa_supplicant 755 0 0
