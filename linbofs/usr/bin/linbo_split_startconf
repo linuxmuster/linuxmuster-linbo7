@@ -2,14 +2,14 @@
 #
 # split start.conf in machine parseable chunks
 # thomas@linuxmuster.net
-# 20230206
+# 20231016
 #
 
 # check for complete start.conf
 if grep -qi ^'\[os\]' /start.conf; then
-  echo "Splitting start.conf to /conf."
+  [ -z "$QUIET" ] && echo "Splitting start.conf to /conf."
 else
-  echo "Not splitting minimal start.conf."
+  [ -z "$QUIET" ] && echo "Not splitting minimal start.conf." >&2
   exit
 fi
 
