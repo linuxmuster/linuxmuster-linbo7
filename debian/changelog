@@ -4,8 +4,9 @@ linuxmuster-linbo7 (4.2.0-0) lmn72; urgency=low
   * Make firmware configurable, use new environment variables LINBOSYSDIR and LINBOVARDIR (6e0423d).
   * Refactor external modules build (53d3952).
   * Wifi support #103: Add wpa_supplicant to linbofs (d9c4d93).
+  * Use new environment variables LINBOSYSDIR and LINBOVARDIR (20f8e92).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 28 Oct 2023 13:41:27 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 28 Oct 2023 13:44:10 +0200
 
 linuxmuster-linbo7 (4.1.36-0) lmn72; urgency=low
 
