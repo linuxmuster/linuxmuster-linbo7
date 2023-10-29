@@ -3,7 +3,7 @@
 # linbo_hostname [-f|--full] | [-h|help|--help]
 # prints hostname
 # thomas@linuxmuster.net
-# 20220610
+# 20231016
 #
 
 usage(){
@@ -23,7 +23,7 @@ source /usr/share/linbo/shell_functions
 
 if localmode; then
   mount | grep -q " /cache " && cache_mounted="yes"
-  [ -z "$cache_mounted" ] && linbo_mountcache
+  [ -z "$cache_mounted" ] && linbo_mountcache &> /dev/null
   [ -s /cache/hostname ] || exit 1
   FQDN="$(cat /cache/hostname)"
   HOSTNAME="${FQDN%%.*}"
