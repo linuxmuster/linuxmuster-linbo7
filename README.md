@@ -296,7 +296,7 @@ icons="win10.svg ubuntu.svg"
 ## Adding firmware
 From Linbo 4.2.0 there is a configuration file `/etc/linuxmuster/linbo/firmware` which can be used to integrate supplemental firmware files into the Linbo filesystem. Here is an example:
 ```
-# Realtek r8168 ethernet adaptors firmware (whole directory)
+# Realtek r8168 ethernet adapters firmware (whole directory)
 rtl_nic
 
 # Realtek RTL8821AE wifi firmware (single file)
