@@ -293,6 +293,28 @@ icons="win10.svg ubuntu.svg"
 ```
  This makes the LINBO client shell more powerful than ever. For more details please take a look at [#72](https://github.com/linuxmuster/linuxmuster-linbo7/issues/72).
 
+## Adding Firmware
+From Linbo 4.2.0 there is a configuration file `/etc/linuxmuster/linbo/firmware` which can be used to integrate supplemental firmware files into the Linbo filesystem. Here is an example:
+```
+# Realtek r8168 ethernet adaptors firmware (whole directory)
+rtl_nic
+
+# Realtek RTL8821AE wifi firmware (single file)
+rtlwifi/rtl8821aefw.bin
+
+# Intel Wi-Fi 6 AX200 firmware (single file)
+iwlwifi-cc-a0-77.ucode
+```
+You can enter files or whole directories, one per line. The firmware files were taken from the linux-firmware package, which is installed on the server per default. Note that the path to the firmware must be specified relative to `/lib/firmware`.
+Examine the output of `dmesg` on the Linbo client to get infos about missing firmware:
+```
+r100-pc01: ~ # dmesg | grep firmware
+i915 0000:00:02.0: Direct firmware load for i915/kbl_dmc_ver1_04.bin failed with error -2
+i915 0000:00:02.0: [drm] Failed to load DMC firmware i915/kbl_dmc_ver1_04.bin. Disabling runtime power management.
+i915 0000:00:02.0: [drm] DMC firmware homepage: https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git/tree/i915
+```
+In this case you have to add the line `i915/kbl_dmc_ver1_04.bin` to `/etc/linuxmuster/linbo/firmware`. Finally you have to invoke `update-linbofs` to add the firmware file to the linbofs archive.
+
 ## Build environment
 
 ### Source tree structure
