@@ -316,7 +316,7 @@ i915 0000:00:02.0: [drm] DMC firmware homepage: https://git.kernel.org/pub/scm/l
 In this case you have to add the line `i915/kbl_dmc_ver1_04.bin` to `/etc/linuxmuster/linbo/firmware`. Finally you have to invoke `update-linbofs` on the server to add the firmware file to the linbofs archive.
 
 ## Wifi support
-From version 4.2.0 Linbo is able to use wireless networks. For this purpose the program `wpa_supplicant` was integrated.
+From version 4.2.0 Linbo is able to use wireless networks. For this purpose the program [wpa_supplicant](https://w1.fi/wpa_supplicant/) was integrated.
 To use this feature you first have to examine whether the built-in wireless network adapter misses any firmware (see the above section).
 Second you have to provide a configuration file `/etc/linuxmuster/linbo/wpa_supplicant.conf`, where you define the wireless network to be used. Here are two examples:
 ```
