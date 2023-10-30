@@ -293,7 +293,7 @@ icons="win10.svg ubuntu.svg"
 ```
  This makes the LINBO client shell more powerful than ever. For more details please take a look at [#72](https://github.com/linuxmuster/linuxmuster-linbo7/issues/72).
 
-## Adding Firmware
+## Adding firmware
 From Linbo 4.2.0 there is a configuration file `/etc/linuxmuster/linbo/firmware` which can be used to integrate supplemental firmware files into the Linbo filesystem. Here is an example:
 ```
 # Realtek r8168 ethernet adaptors firmware (whole directory)
@@ -313,7 +313,39 @@ i915 0000:00:02.0: Direct firmware load for i915/kbl_dmc_ver1_04.bin failed with
 i915 0000:00:02.0: [drm] Failed to load DMC firmware i915/kbl_dmc_ver1_04.bin. Disabling runtime power management.
 i915 0000:00:02.0: [drm] DMC firmware homepage: https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git/tree/i915
 ```
-In this case you have to add the line `i915/kbl_dmc_ver1_04.bin` to `/etc/linuxmuster/linbo/firmware`. Finally you have to invoke `update-linbofs` to add the firmware file to the linbofs archive.
+In this case you have to add the line `i915/kbl_dmc_ver1_04.bin` to `/etc/linuxmuster/linbo/firmware`. Finally you have to invoke `update-linbofs` on the server to add the firmware file to the linbofs archive.
+
+## Wifi support
+From Linbo 4.2.0 Linbo is able to use wireless networks. For this purpose the program `wpa_supplicant` was integrated.
+To use this feature you first have to examine whether the built-in wireless network adapter misses any firmware (see the above section).
+Second you have to provide a configuration file `/etc/linuxmuster/linbo/wpa_supplicant.conf`, where you define the wireless network to be used. Here are two examples:
+```
+# wpa-psk secured
+network={
+  ssid="LINBO_MGMT"
+  scan_ssid=1
+  key_mgmt=WPA-PSK
+  psk="My Secret Passphrase"
+}
+
+# open
+network={
+   ssid="LINBO_MGMT"
+   key_mgmt=NONE
+}
+```
+For more examples see https://linux.die.net/man/5/wpa_supplicant.conf.
+After you have provided the file `wpa_supplicant.conf`, you have to invoke `update-linbofs` on the server to apply the changes to linbofs.
+To supply the full Linbo experience to the wireless client, you have to make an additional entry with the wifi adapter's mac address to `devices.csv`. Note that the hostname of the wireless client has to be different. Example:
+```
+notebooks;nb-01;nbclass;4d:b6:a7:12:45:79;10.0.100.1;;;;classroom-studentcomputer;;1
+notebooks;nb-01w;nbclass;b2:5f:5e:32:12:65;DHCP;;;;classroom-studentcomputer;;1
+```
+There are some restrictions by the use of wireless network connections:
+* Wireless pxe boot is not possible. Linbo establishes the wireless connection on boot.
+* The initial Linbo installation on a client has to be done over a wired network connection.
+* Assume that huge image downloads will reduce your wireless experience.
+* Consider to setup a restricted wireless network for Linbo management purposes to limit unauthorized use.
 
 ## Build environment
 
