@@ -308,12 +308,12 @@ iwlwifi-cc-a0-77.ucode
 You can enter files or whole directories, one per line. The firmware files are taken from the linux-firmware package, which is installed on the server per default. Note that the path to the firmware must be specified relative to /lib/firmware.
 Examine the output of `dmesg` on the Linbo client to get infos about missing firmware:
 ```
-r100-pc01: ~ # dmesg | grep firmware
+nb-01: ~ # dmesg | grep firmware
 i915 0000:00:02.0: Direct firmware load for i915/kbl_dmc_ver1_04.bin failed with error -2
 i915 0000:00:02.0: [drm] Failed to load DMC firmware i915/kbl_dmc_ver1_04.bin. Disabling runtime power management.
 i915 0000:00:02.0: [drm] DMC firmware homepage: https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git/tree/i915
 ```
-In this case you have to add the line `i915/kbl_dmc_ver1_04.bin` to `/etc/linuxmuster/linbo/firmware`. Finally you have to invoke `update-linbofs` on the server to add the firmware file to the linbofs archive.
+In this case you have to add the line "i915/kbl_dmc_ver1_04.bin" to the firmware configuration file. Finally you have to invoke `update-linbofs` on the server terminal to add the firmware file to the linbofs archive.
 
 ## Wifi support
 From version 4.2.0 Linbo is able to use wireless networks. For this purpose the program [wpa_supplicant](https://w1.fi/wpa_supplicant/) was integrated.
