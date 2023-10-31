@@ -345,7 +345,7 @@ Don't forget to apply the changes either by invoking the command `linuxmuster-im
 Note that there are some restrictions by the use of wireless network connections:
 * Wireless pxe boot is not possible. Linbo establishes the wireless connection only during the boot process.
 * The initial Linbo installation on a client has to be done over a wired network connection.
-* Assume that huge downloads of operating system images will reduce your wireless experience.
+* Assume that huge downloads of operating system images may reduce your wireless experience.
 * Consider to setup a restricted wireless network for Linbo management purposes to limit unauthorized use.
 
 ## Build environment
