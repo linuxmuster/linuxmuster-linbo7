@@ -305,7 +305,7 @@ rtlwifi/rtl8821aefw.bin
 # Intel Wi-Fi 6 AX200 firmware (single file)
 iwlwifi-cc-a0-77.ucode
 ```
-You can enter files or whole directories, one per line. The firmware files are taken from the linux-firmware package, which is installed on the server per default. Note that the path to the firmware must be specified relative to `/lib/firmware`.
+You can enter files or whole directories, one per line. The firmware files are taken from the linux-firmware package, which is installed on the server per default. Note that the path to the firmware must be specified relative to /lib/firmware.
 Examine the output of `dmesg` on the Linbo client to get infos about missing firmware:
 ```
 r100-pc01: ~ # dmesg | grep firmware
