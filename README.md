@@ -343,7 +343,7 @@ notebooks;nb-01w;nbclass;b2:5f:5e:32:12:65;DHCP;;;;classroom-studentcomputer;;1
 ```
 Don't forget to apply the changes either by invoking the command `linuxmuster-import-devices` on the server terminal or by pressing the button "Save & import" in the School Console.
 Note that there are some restrictions by the use of wireless network connections:
-* Wireless pxe boot is not possible. Linbo establishes the wireless connection on boot.
+* Wireless pxe boot is not possible. Linbo establishes the wireless connection only during the boot process.
 * The initial Linbo installation on a client has to be done over a wired network connection.
 * Assume that huge image downloads will reduce your wireless experience.
 * Consider to setup a restricted wireless network for Linbo management purposes to limit unauthorized use.
