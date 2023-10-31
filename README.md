@@ -336,7 +336,7 @@ network={
 ```
 For more examples see https://linux.die.net/man/5/wpa_supplicant.conf.
 After you have provided the configuration file, you have to invoke the command `update-linbofs` on the server to apply the changes to linbofs.
-In the last step you have to add an entry with the wifi adapter's mac address in the file `devices.csv`. Note that the hostname of the wireless client has to be different. Example:
+In the last step you have to add an entry with the wifi adapter's mac address in the file devices.csv or in the School Console under "Devices". Note that you then have two entries for the same device and the hostnames must differ. Example:
 ```
 notebooks;nb-01;nbclass;4d:b6:a7:12:45:79;10.0.100.1;;;;classroom-studentcomputer;;1
 notebooks;nb-01w;nbclass;b2:5f:5e:32:12:65;DHCP;;;;classroom-studentcomputer;;1
