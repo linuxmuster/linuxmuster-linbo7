@@ -318,7 +318,7 @@ In this case you have to add the line `i915/kbl_dmc_ver1_04.bin` to `/etc/linuxm
 ## Wifi support
 From version 4.2.0 Linbo is able to use wireless networks. For this purpose the program [wpa_supplicant](https://w1.fi/wpa_supplicant/) was integrated.
 To use this feature you first have to examine whether the built-in wireless network adapter misses any firmware (see the above section).
-Second you have to provide a configuration file under `/etc/linuxmuster/linbo/wpa_supplicant.conf` on the server, where you define the wireless network to be used. Here are two examples:
+Second you have to provide a configuration file under /etc/linuxmuster/linbo/wpa_supplicant.conf on the server, where you define the wireless network to be used. Here are two examples:
 ```
 # wpa-psk secured
 network={
