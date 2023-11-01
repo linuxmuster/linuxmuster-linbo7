@@ -1,3 +1,10 @@
+linuxmuster-linbo7 (4.2.1-0) lmn72; urgency=low
+
+  * linbo_sync: Use partition labels for fstab if available (1fd8e9e).
+  * Remove interface link detection ().
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 1 Nov 2023 18:10:30 +0100
+
 linuxmuster-linbo7 (4.2.0-0) lmn72; urgency=low
 
   * Wifi support #103:
