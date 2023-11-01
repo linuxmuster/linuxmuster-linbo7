@@ -2,7 +2,7 @@
 #
 # linbo_sync
 # thomas@linuxmuster.net
-# 20230511
+# 20231101
 #
 
 
@@ -215,6 +215,16 @@ set_guid(){
 }
 
 
+# get partition label
+get_label(){
+  echo "$1" | grep -q ^/dev/ || return
+  local conf="$(grep "$1" /conf/part.* | awk -F\: '{print $1}')"
+  [ -s "$conf" ] || return
+  source "$conf"
+  [ -n "$label" ] && echo "$label"
+}
+
+
 # patch fstab with root partition and root fstype: patch_fstab rootdev
 patch_fstab(){
   echo -n "patch_fstab " ;  printargs "$@"
@@ -229,6 +239,7 @@ patch_fstab(){
   local options=""
   local dump=""
   local pass=""
+  local rootlabel=""
   [ -z "$rootdev" ] && return 1
   [ -e "$rootdev" ] || return 1
   [ -e /tmp/fstab ] && rm -f /tmp/fstab
@@ -249,8 +260,13 @@ patch_fstab(){
         [ -z "$pass" ] && return 1
         if [ "$rootdev_fstab" != "$rootdev" ]; then
           # change root partition if necessary
-          echo "Setze Rootpartition: $rootdev."
-          rootdev_fstab="$rootdev"
+          echo "Patching root partition: $rootdev."
+          rootlabel="$(get_label "$rootdev")"
+          if [ -n "$rootlabel" ]; then
+            rootdev_fstab="LABEL=$rootlabel"
+          else
+            rootdev_fstab="$rootdev"
+          fi
           line="$rootdev_fstab $mntpnt $fstype_fstab $options $dump $pass"
           changed=yes
         fi # rootdev
@@ -259,7 +275,7 @@ patch_fstab(){
         [ -z "$fstype_mount" ] && return 1
         if [ "$fstype_fstab" != "$fstype_mount" ]; then
           # change filesystem
-          echo "Setze Dateisystem: $fstype_mount."
+          echo "Patching filesystem: $fstype_mount."
           fstype_fstab="$fstype_mount"
           line="$rootdev_fstab $mntpnt $fstype_fstab $options $dump $pass"
           changed=yes
