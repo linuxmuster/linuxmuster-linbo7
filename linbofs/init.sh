@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20231024
+# 20231101
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -403,11 +403,13 @@ network(){
   [ -z "$dhcpretry" ] && dhcpretry=3
   print_status "Requesting ip address per dhcp (retry=$dhcpretry) ..."
   for dev in `grep ':' /proc/net/dev | awk -F\: '{ print $1 }' | awk '{ print $1}' | grep -v ^lo`; do
-    ifconfig "$dev" up &> /dev/null
-    if [ "$dev" = "eth0" -a "$(ethtool "$dev" | grep Link\ detected | awk '{print $3}')" = "no" ]; then
-      print_status "Interface $dev: no link detected."
-      continue
-    fi
+    #ifconfig "$dev" up &> /dev/null
+    ip link set dev "$dev" up
+    # skip linkless ethernet interfaces
+    #if [ "${dev:0:1}" = "e" -a "$(cat /sys/class/net/$dev/carrier)" = "0" ]; then
+    #  print_status "Interface $dev: no link detected."
+    #  continue
+    #fi
     # activate wol
     ethtool -s "$dev" wol g &> /dev/null
     # check if using vlan
@@ -419,7 +421,13 @@ network(){
     fi
     # wifi support
     [ "$dev" = "wlan0" -a -s /etc/wpa_supplicant.conf ] && wpa_supplicant -B -c/etc/wpa_supplicant.conf -iwlan0
-    udhcpc -O nisdomain -n -i "$dev" -t $dhcpretry &> /dev/null ; RC="$?"
+    udhcpc -O nisdomain -n -i "$dev" -t $dhcpretry &> /tmp/linbo.log ; RC="$?"
+    # second try
+    if [ "$RC" != "0" ]; then
+      print_status "Interface $dev: no ip ... trying a second time."
+      #sleep 2
+      udhcpc -O nisdomain -n -i "$dev" -t $dhcpretry &> /tmp/linbo.log ; RC="$?"
+    fi
     if [ "$RC" = "0" ]; then
       # set mtu
       [ -n "$mtu" ] && ifconfig "$dev" mtu $mtu &> /dev/null
@@ -427,7 +435,7 @@ network(){
       print_status "Interface $dev: got $ipaddr."
       break
     else
-      print_status "Interface $dev: got no ip address."
+      print_status "Interface $dev: no ip."
     fi
   done
   # create environment
