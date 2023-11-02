@@ -248,18 +248,16 @@ patch_fstab(){
         [ -z "$dump" ] && return 1
         pass="$(echo "$line" | awk '{ print $6 }')"
         [ -z "$pass" ] && return 1
-        if [ "$rootdev_fstab" != "$rootdev" ]; then
-          # change root partition if necessary
-          echo "Patching root partition: $rootdev."
-          rootlabel="$(get_label "$rootdev")"
-          if [ -n "$rootlabel" ]; then
-            rootdev_fstab="LABEL=$rootlabel"
-          else
-            rootdev_fstab="$rootdev"
-          fi
-          line="$rootdev_fstab $mntpnt $fstype_fstab $options $dump $pass"
-          changed=yes
-        fi # rootdev
+        # change root partition if necessary
+        echo "Patching root partition: $rootdev."
+        rootlabel="$(get_label "$rootdev")"
+        if [ -n "$rootlabel" ]; then
+          rootdev_fstab="LABEL=$rootlabel"
+        else
+          rootdev_fstab="$rootdev"
+        fi
+        line="$rootdev_fstab $mntpnt $fstype_fstab $options $dump $pass"
+        changed=yes
         # check for changed filesytem type if partition was formatted
         fstype_mount="$(cat /proc/mounts | grep "^$rootdev" | awk '{ print $3 }')"
         [ -z "$fstype_mount" ] && return 1
