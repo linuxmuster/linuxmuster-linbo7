@@ -2,7 +2,7 @@
 #
 # linbo_sync
 # thomas@linuxmuster.net
-# 20231101
+# 20231102
 #
 
 
@@ -212,16 +212,6 @@ set_guid(){
     return 1
   fi
   blkid "$device" | grep -qi "$guid" || return 1
-}
-
-
-# get partition label
-get_label(){
-  echo "$1" | grep -q ^/dev/ || return
-  local conf="$(grep "$1" /conf/part.* | awk -F\: '{print $1}')"
-  [ -s "$conf" ] || return
-  source "$conf"
-  [ -n "$label" ] && echo "$label"
 }
 
 

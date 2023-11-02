@@ -1,7 +1,7 @@
 # common linbo shell functions
 #
 # thomas@linuxmuster.net
-# 20230918
+# 20231102
 #
 
 set -o pipefail
@@ -142,6 +142,27 @@ interruptible(){
   *) ;;
   esac
   return "$RC"
+}
+
+
+# get partition label by start.conf devicename
+# ex.: get_label /dev/sda4
+get_label(){
+  echo "$1" | grep -q ^/dev/ || return
+  local conf="$(grep "$1" /conf/part.* | awk -F\: '{print $1}')"
+  [ -s "$conf" ] || return
+  source "$conf"
+  [ -n "$label" ] && echo "$label"
+}
+
+
+# get real devicename by label
+# ex.: get_realdev /dev/sda4
+get_realdev(){
+  local label="$(get_label $1)"
+  [ -z "$label" ] && return
+  local dev="/dev/$(ls -l /dev/disk/by-label/$label | awk -F\> '{print $2}' | awk -F\/ '{print $3}')"
+  [ -b "$dev" ] && echo "$dev"
 }
 
 

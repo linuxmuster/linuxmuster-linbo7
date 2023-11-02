@@ -2,11 +2,15 @@
 #
 # linbo_mountcache [-r] | [help]
 # thomas@linuxmuster.net
-# 20230219
+# 20231102
 #
 
 
 #### functions begin ####
+
+# read common shell functions
+source /usr/share/linbo/shell_functions
+
 
 usage(){
   local RC="$1"
@@ -51,6 +55,8 @@ if [ -b "$1" ]; then
   shift
 fi
 [ -z "$cache" -a -s /conf/linbo ] && source /conf/linbo
+[ -n "$cache" ] && realcache="$(get_realdev $cache)"
+[ -n "$realcache" ] && cache="$realcache"
 [ -z "$cache" ] && findcache
 [ -b "$cache" ] || usage 1
 

@@ -2,7 +2,7 @@
 #
 # linbo_mount
 # thomas@linuxmuster.net
-# 20220623
+# 20231102
 #
 
 usage(){
@@ -25,7 +25,9 @@ source /usr/share/linbo/shell_functions
 # get options
 type="$(linbo_fstype $1)"
 [ -z "$type" ] && exit 1
-partition="$1"
+# get real partition name by label
+partition="$(get_realdev $1)"
+[ -z "$partition" ] && partition="$1"
 destdir="$2"
 [ "$3" = "-r" ] && ro=",ro"
 
