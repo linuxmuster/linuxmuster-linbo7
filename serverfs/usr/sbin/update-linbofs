@@ -6,7 +6,7 @@
 #
 # thomas@linuxmuster.net
 # GPL V3
-# 20231028
+# 20231105
 #
 
 # read linuxmuster environment
@@ -140,7 +140,17 @@ create_linbofs() {
 
 	# provide wpa_supplicant config
 	conf="$LINBOSYSDIR/wpa_supplicant.conf"
-	[ -s "$conf" ] && cp "$conf" etc
+	if [ -s "$conf" ]; then
+		echo "Copying $(basename $conf) ..."
+		cp "$conf" etc
+	fi
+
+	# provide additional inittab entries
+	conf="$LINBOSYSDIR/inittab"
+	if [ -s "$conf" ]; then
+		echo "Adding $(basename $conf) entries ..."
+		cat "$conf" >> "etc/$(basename $conf)"
+	fi
 
 	# execute pre hook scripts
 	exec_hooks pre
