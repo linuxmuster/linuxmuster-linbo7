@@ -1,0 +1,25 @@
+#!/bin/bash
+#
+# download and build framebuffer-vncserver
+
+# read build environment
+for i in build/conf.d/*; do source "$i" || exit 1; done
+
+# check for binary
+if [ -s "$FBVNCBIN" -a -x "$FBVNCBIN" ]; then
+  echo "Framebuffer-vncserver binary exists, skipping build."
+
+else
+  # download
+  echo "Cloning $FBVNCNAME source ..."
+  [ -d "$FBVNCSRCDIR" ] && rm -rf "$FBVNCSRCDIR"
+  cd "$SRC"
+  git clone "$FBVNCURL" || exit 1
+  # compile
+  echo "Compiling $FBVNCNAME ..."
+  mkdir -p "$FBVNCBUILDDIR"
+  cd "$FBVNCBUILDDIR" || exit 1
+  cmake .. || exit 1
+  make || exit 1
+  strip "$FBVNCBIN" || exit 1
+fi
