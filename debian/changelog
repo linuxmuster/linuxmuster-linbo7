@@ -1,3 +1,16 @@
+linuxmuster-linbo7 (4.2.3-0) lmn72; urgency=low
+
+  * linbo_sync: Use partition labels for fstab in any case (073f347).
+  * Allow custom scripts to be executed on linbo boot (#105):
+    - Provide custom inittab entries (ad5cdc7).
+    - Filter custom inittab comments and empty lines (54f1fcd).
+    - Add update-linbofs pre hook example (e0a4632).
+  * Implementation of a framebuffer vncserver (#104):
+    - Add build tools for framebuffer vncserver (f363156).
+    - Add start scripts for framebuffer vncserver (a046256).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 6 Nov 2023 10:29:50 +0100
+
 linuxmuster-linbo7 (4.2.2-0) lmn72; urgency=low
 
   * Use label to determine real partition devicename (411b707).
