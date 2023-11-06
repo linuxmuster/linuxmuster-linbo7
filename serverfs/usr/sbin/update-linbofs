@@ -148,8 +148,9 @@ create_linbofs() {
 	# provide additional inittab entries
 	conf="$LINBOSYSDIR/inittab"
 	if [ -s "$conf" ]; then
-		echo "Adding $(basename $conf) entries ..."
-		cat "$conf" >> "etc/$(basename $conf)"
+		echo "Adding custom $(basename $conf) entries ..."
+		echo "# custom entries" >> "etc/$(basename $conf)"
+		grep -v ^# "$conf" | grep -v '^$' >> "etc/$(basename $conf)"
 	fi
 
 	# execute pre hook scripts
