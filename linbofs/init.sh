@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20231101
+# 20231107
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -422,12 +422,6 @@ network(){
     # wifi support
     [ "$dev" = "wlan0" -a -s /etc/wpa_supplicant.conf ] && wpa_supplicant -B -c/etc/wpa_supplicant.conf -iwlan0
     udhcpc -O nisdomain -n -i "$dev" -t $dhcpretry &> /tmp/linbo.log ; RC="$?"
-    # second try
-    if [ "$RC" != "0" ]; then
-      print_status "Interface $dev: no ip ... trying a second time."
-      #sleep 2
-      udhcpc -O nisdomain -n -i "$dev" -t $dhcpretry &> /tmp/linbo.log ; RC="$?"
-    fi
     if [ "$RC" = "0" ]; then
       # set mtu
       [ -n "$mtu" ] && ifconfig "$dev" mtu $mtu &> /dev/null
