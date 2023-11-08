@@ -2,7 +2,7 @@
 #
 # linbo_vnc
 # thomas@linuxmuster.net
-# 20231105
+# 20231108
 #
 
 # test if framebuffer is active
@@ -29,15 +29,15 @@ start(){
     fi
     if [ -z "$mouse_opt" ]; then
         mouse="$(echo $VNCSERVER | awk -F\, '{print $2}')"
-        [ -n "$mouse" -a -c "/dev/input/$mouse" ] && mouse_opt="-k /dev/input/$mouse"
+        [ -n "$mouse" -a -c "/dev/input/$mouse" ] && mouse_opt="-m /dev/input/$mouse"
     fi
     # try to get kbd and mouse from /proc
     if [ -z "$kbd_opt" ]; then
-        kbd="$(grep -i kbd /proc/bus/input/devices | tail -1 | tr ' ' '\n' | grep ^event)"
+        kbd="$(grep kbd /proc/bus/input/devices | grep sysrq | tr ' ' '\n' | grep ^event | tail -1)"
         [ -n "$kbd" ] && kbd_opt="-k /dev/input/$kbd"
     fi
     if [ -z "$mouse_opt" ]; then
-        mouse="$(grep -i mouse /proc/bus/input/devices | tail -1 | tr ' ' '\n' | grep ^event)"
+        mouse="$(grep mouse /proc/bus/input/devices | grep mouse0 | tr ' ' '\n' | grep ^event | tail -1)"
         [ -n "$mouse" ] && mouse_opt="-m /dev/input/$mouse"
     fi
     port="9999"
