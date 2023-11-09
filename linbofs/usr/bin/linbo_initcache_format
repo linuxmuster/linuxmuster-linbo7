@@ -2,7 +2,7 @@
 #
 # linbo_initcache_format
 # thomas@linuxmuster.net
-# 20220610
+# 20231109
 #
 
 usage(){
@@ -18,6 +18,6 @@ usage(){
 [ "$1" = "help" ] && usage
 
 export FORMAT="yes"
-linbo_initcache $@
+linbo_initcache
 
 exit $?

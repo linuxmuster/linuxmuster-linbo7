@@ -3,7 +3,7 @@
 # linbo_cmd - collects all linbo commands for compatibility with legacy linbo_cmd
 #
 # thomas@linuxmuster.net
-# 20230511
+# 20231109
 # GPL v3
 #
 
@@ -42,9 +42,9 @@ case "$1" in
   partition) shift; linbo_partition_format "$@" ;;
   preregister) shift; linbo_preregister "$@" ;;
   download) shift; linbo_download "$@" ;;
-  initcache) shift; linbo_initcache "$@" ;;
-  initcache_format) shift; linbo_initcache_format "$@" ;;
-  mountcache) shift; linbo_mountcache "$@" ;;
+  initcache) shift; linbo_initcache ;;
+  initcache_format) shift; linbo_initcache_format ;;
+  mountcache) shift; linbo_mountcache ;;
   mount) shift; linbo_mount "$@" ;;
   fstype) shift; linbo_fstype "$@" ;;
   readfile) shift; linbo_readfile "$@" ;;
