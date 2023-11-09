@@ -6,7 +6,7 @@
 #
 # thomas@linuxmuster.net
 # GPL V3
-# 20231105
+# 20231109
 #
 
 # read linuxmuster environment
@@ -29,6 +29,19 @@ fi
 touch $locker || exit 1
 chmod 400 "$locker"
 curdir=`pwd`
+
+# use custom kernel, if provided
+[ -s "$LINBOSYSDIR/custom_kernel" ] && source "$LINBOSYSDIR/custom_kernel"
+if [ -n "$KERNELPATH" -a ! -s "$KERNELPATH" ]; then
+	echo "Custom kernel $KERNELPATH not found!"
+	exit 1
+fi
+[ -z "$KERNELPATH" ] && MODULESPATH=""
+if [ -n "$MODULESPATH" -a ! -d "$MODULESPATH" ]; then
+	echo "Custom modules directory $MODULESPATH not found!"
+	exit 1
+fi
+
 
 
 # clean tmpdir and exit with error
@@ -86,6 +99,13 @@ create_linbofs() {
 	cat "$linbofs_cpio" | cpio -i -d -H newc --no-absolute-filenames &> /dev/null ; RC="$?"
 	set +o pipefail
 	[ "$RC" = "0" ] || bailout " Failed to unpack $(basename "$linbofs_cpio")!"
+
+	# custom modules
+	if [ -d "$MODULESPATH" ]; then
+		echo "Copying custom modules directory $(basename $MODULESPATH) ..."
+		rm -rf lib/modules/*
+		cp -r "$MODULESPATH" lib/modules
+	fi
 
 	# store linbo password hash
 	echo -n "$linbo_pwhash" > etc/linbo_pwhash
@@ -165,6 +185,13 @@ create_linbofs() {
 
 	# create md5sum file
 	md5sum "$linbofs_lz"  | awk '{ print $1 }' > "$linbofs_md5"
+
+	# copy custom kernel image
+	if [ -s "$KERNELPATH" ]; then
+		echo "Copying custom kernel image $(basename $KERNELPATH) ..."
+		cp "$KERNELPATH" "$LINBODIR/linbo64"
+		md5sum "$LINBODIR/linbo64"  | awk '{ print $1 }' > "$LINBODIR/linbo64.md5"
+	fi
 
 	cd "$curdir"
 
