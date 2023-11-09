@@ -354,7 +354,7 @@ Note that there are some restrictions by the use of wireless network connections
 
 ## Execute your own boot scripts
 Perform the following 4 steps to execute your own boot script during the linbo-client's init process:
-1. Create the script, which you want to execute during linbo boot, for example under `/root/linbofs/mybootscript.sh`. Note that you can use the linbo environment in your script by sourcing the file `/.env` (see above).  
+1. Create the script, which you want to execute during linbo boot, for example under `/root/linbofs/mybootscript.sh`. Note that you can use the linbo environment in your script by sourcing the file ```/.env``` (see above).  
 2. Create an update-linbofs pre-hook script in `/var/lib/linuxmuster/hooks/update-linbofs.pre.d` named for example `copy_myscript` to copy your boot script to the linbo filesystem:
     ```
     #!/bin/bash
