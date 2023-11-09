@@ -354,22 +354,22 @@ Note that there are some restrictions by the use of wireless network connections
 
 ## Execute your own boot scripts
 Perform the following 4 steps to execute your own boot script during the linbo-client's init process:
-1. Create the script, which you want to execute during linbo boot, for example under `/root/linbofs/mybootscript.sh`. Note that you can use the linbo environment in your script by sourcing the file `/.env` (see above).
+1. Create the script, which you want to execute during linbo boot, for example under `/root/linbofs/mybootscript.sh`. Note that you can use the linbo environment in your script by sourcing the file `/.env` (see above).  
 2. Create an update-linbofs pre-hook script in `/var/lib/linuxmuster/hooks/update-linbofs.pre.d` named for example `copy_myscript` to copy your boot script to the linbo filesystem:
-  ```
-  #!/bin/bash
-  # copies my script to /usr/bin in the linbo filesystem
-  myscript="/root/linbofs/mybootscript.sh"
-  echo "### copy $myscript ###"
-  cp "$myscript" usr/bin
+    ```
+    #!/bin/bash
+    # copies my script to /usr/bin in the linbo filesystem
+    myscript="/root/linbofs/mybootscript.sh"
+    echo "### copy $myscript ###"
+    cp "$myscript" usr/bin
 
-  ```
-  Note that the pre-hook script will be executed in the root directory of the linbo filesystem so you have to give the target path relative to it (no leading /). Don't forget to make the pre-hook script executable.
+    ```
+  Note that the pre-hook script will be executed in the root directory of the linbo filesystem so you have to give the target path relative to it (no leading /). Don't forget to make the pre-hook script executable.  
 3. Create a file `/etc/linuxmuster/linbo/inittab` with the following content:
-  ```
-  ::wait:/usr/bin/mybootscript.sh
-  ```
-  The content of this file will be appended to the inittab in the linbo filesystem by `update-linbofs`. In the example the init process will wait until the script has been completed. For more information about inittab see https://manpages.debian.org/unstable/sysvinit-core/inittab.5.en.html.
+    ```
+    ::wait:/usr/bin/mybootscript.sh
+    ```
+  The content of this file will be appended to the inittab in the linbo filesystem by `update-linbofs`. In the example the init process will wait until the script has been completed. For more information about inittab see https://manpages.debian.org/unstable/sysvinit-core/inittab.5.en.html.  
 4. Apply your changes to the linbo filesystem by executing `update-linbofs`.
 
 ## Build environment
