@@ -1,9 +1,4 @@
 #!/bin/bash
-#
-# create linbo filesystem
-# thomas@linuxmuster.net
-# 20231102
-#
 
 echo "Creating linbofs ..."
 
@@ -23,7 +18,6 @@ for i in "$BUILDINITD"/*; do
           s|@@CTORRENTBIN@@|$CTORRENTBIN|g
           s|@@PVBIN@@|$PVBIN|g
           s|@@KXBIN@@|$KXBIN|g
-          s|@@FBVNCBIN@@|$FBVNCBIN|g
           s|@@LINBOFS@@|$LINBOFS|g
           s|@@SERVERFS@@|$SERVERFS|g" "$i" >> "$INITRAMFS_BUILD" || exit 1
 done

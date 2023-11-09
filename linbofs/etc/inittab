@@ -1,15 +1,8 @@
-# /etc/inittab
-#
-# thomas@linuxmuster.net
-# 20231103
-#
 # This is run first except when booting in single-user mode.
 #
-
 #::sysinit:/bin/bash
 ::sysinit:/init.sh
 ::respawn:/linbo.sh
-::wait:/usr/bin/linbo_vnc onboot
 # /bin/sh invocations on selected ttys
 #
 # Start an "askfirst" shell on the console (whatever that may be)
