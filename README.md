@@ -369,7 +369,7 @@ Perform the following 4 steps to execute your own boot script during the linbo-c
     ```
     ::wait:/usr/bin/mybootscript.sh
     ```
-  The content of this file will be appended to the inittab in the linbo filesystem by `update-linbofs`. In the example the init process will wait until the script has been completed. For more information about inittab see https://manpages.debian.org/unstable/sysvinit-core/inittab.5.en.html.  
+    The content of this file will be appended to the inittab in the linbo filesystem by `update-linbofs`. In the example the init process will wait until the script has been completed. For more information about inittab see https://manpages.debian.org/unstable/sysvinit-core/inittab.5.en.html.  
 4. Apply your changes to the linbo filesystem by executing `update-linbofs`.
 
 ## Build environment
