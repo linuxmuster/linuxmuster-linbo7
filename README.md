@@ -364,7 +364,7 @@ Perform the following 4 steps to execute your own boot script during the linbo-c
     cp "$myscript" usr/bin
 
     ```
-  Note that the pre-hook script will be executed in the root directory of the linbo filesystem so you have to give the target path relative to it (no leading /). Don't forget to make the pre-hook script executable.  
+    Note that the pre-hook script will be executed in the root directory of the linbo filesystem so you have to give the target path relative to it (no leading /). Don't forget to make the pre-hook script executable.  
 3. Create a file `/etc/linuxmuster/linbo/inittab` with the following content:
     ```
     ::wait:/usr/bin/mybootscript.sh
