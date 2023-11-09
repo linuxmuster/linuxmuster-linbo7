@@ -320,7 +320,7 @@ In this case you have to add the line "i915/kbl_dmc_ver1_04.bin" to the firmware
 ## Wifi support
 From version 4.2.0 Linbo is able to use wireless networks. For this purpose the program [wpa_supplicant](https://w1.fi/wpa_supplicant/) was integrated.
 To use this feature you first have to examine whether the built-in wireless network adapter misses any firmware (see the above section).
-Additionally there is a configuration file `/etc/linuxmuster/linbo/wpa_supplicant.conf`, in which you have to define the wireless network to be used. Here are two examples:
+Additionally there is a configuration file `/etc/linuxmuster/linbo/wpa_supplicant.conf`, in which you have to<> define the wireless network to be used. Here are two examples:
 ```
 # /etc/linuxmuster/linbo/wpa_supplicant.conf
 
@@ -351,6 +351,26 @@ Note that there are some restrictions by the use of wireless network connections
 * The initial Linbo installation on a client has to be done over a wired network connection.
 * Assume that huge downloads of operating system images may reduce your wireless experience.
 * Consider to setup a restricted wireless network for Linbo management purposes to limit unauthorized use.
+
+## Execute your own boot scripts
+Perform the following 4 steps to execute your own boot script during the linbo-client's init process:
+1. Create the script, which you want to execute during linbo boot, for example under `/root/linbofs/mybootscript.sh`. Note that you can use the linbo environment in your script by sourcing the file `/.env` (see above).
+2. Create an update-linbofs pre-hook script in `/var/lib/linuxmuster/hooks/update-linbofs.pre.d` named for example `copy_myscript` to copy your boot script to the linbo filesystem:
+  ```
+  #!/bin/bash
+  # copies my script to /usr/bin in the linbo filesystem
+  myscript="/root/linbofs/mybootscript.sh"
+  echo "### copy $myscript ###"
+  cp "$myscript" usr/bin
+
+  ```
+  Note that the pre-hook script will be executed in the root directory of the linbo filesystem so you have to give the target path relative to it (no leading /). Don't forget to make the pre-hook script executable.
+3. Create a file `/etc/linuxmuster/linbo/inittab` with the following content:
+  ```
+  ::wait:/usr/bin/mybootscript.sh
+  ```
+  The content of this file will be appended to the inittab in the linbo filesystem by `update-linbofs`. In the example the init process will wait until the script has been completed. For more information about inittab see https://manpages.debian.org/unstable/sysvinit-core/inittab.5.en.html.
+4. Apply your changes to the linbo filesystem by executing `update-linbofs`.
 
 ## Build environment
 
