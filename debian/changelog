@@ -2,15 +2,15 @@ linuxmuster-linbo7 (4.2.3-0) lmn72; urgency=low
 
   * linbo_sync: Use partition labels for fstab in any case (073f347).
   * make-linbo-iso.sh: Increase EFIIMAGESIZE to 192M (349d0d5).
+  * init.sh: remove unnecessary second try to get a dhcp address (6948135).
+  * Remove unnecessary cache parameters from linbo_cmd (fed1e8a).
+  * Update kernel to 6.6.1, enabled expert config options (8b48b61).
   * Allow custom scripts to be executed on linbo boot (#105):
     - Provide custom inittab entries (ad5cdc7).
     - Filter custom inittab comments and empty lines (54f1fcd).
     - Add update-linbofs pre hook example (e0a4632).
-  * Implementation of a framebuffer vncserver (#104):
-    - Add build tools for framebuffer vncserver (f363156).
-    - Add start scripts for framebuffer vncserver (a046256).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 6 Nov 2023 17:11:45 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 9 Nov 2023 15:56:12 +0100
 
 linuxmuster-linbo7 (4.2.2-0) lmn72; urgency=low
 
