@@ -1,11 +1,11 @@
 # kernel build environment variables
 #
 # thomas@linuxmuster.net
-# 20231027
+# 20231109
 #
 
 # kernel version
-KVERS="6.5.9"
+KVERS="6.6.1"
 
 # kernel archive and get script
 KDIR="linux-$KVERS"
