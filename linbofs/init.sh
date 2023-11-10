@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20231107
+# 20231110
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -162,8 +162,9 @@ init_setup(){
 
   # load modules from /etc/modules and cmdline
   for i in $(grep -v ^# /etc/modules) $loadmodules; do
+    [ -z "$i" ] && continue
     echo "Loading module $i ..."
-    modprobe "$i"
+    modprobe "$i" || true
   done
 }
 
