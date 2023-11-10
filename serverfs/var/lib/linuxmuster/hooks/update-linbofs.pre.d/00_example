@@ -1,14 +1,25 @@
 #!/bin/bash
 #
 # update-linbofs pre hook example
+# DON'T make this script executable!
+#
 # thomas@linuxmuster.net
-# 20231106
+# 20231110
 #
 
 echo "### pre hook example ###"
 
-# this script will be executed in the root directory of linbofs
+# this script will be executed in the root directory of the linbo filesystem
 
 # copies my script to linbofs
 myscript="/root/linbofs/myscript.sh"
 cp "$myscript" usr/bin
+
+# removes unwanted modules from distro kernel
+source /usr/share/linuxmuster/linbo/helperfunctions.sh
+wanted="block crypto drivers fs lib net"
+for item in lib/modules/*/kernel/*; do
+    dir="$(basename "$item")"
+    stringinstring "$dir" "$wanted" || rm -rf "$item"
+done
+depmod -a -b . "$(basename $(ls -d lib/modules/*))"
