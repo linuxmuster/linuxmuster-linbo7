@@ -287,7 +287,7 @@ guidisabled="no"
 theme="test_theme"
 useminimallayout="no"
 locale="de-de"
-systemtype="efi64"
+systemtype="efi64"12
 kerneloptions="quiet splash forcegrub"
 icons="win10.svg ubuntu.svg"
 ```
@@ -371,6 +371,17 @@ Perform the following 4 steps to execute your own boot script during the linbo-c
     ```
     The content of this file will be appended to the inittab in the linbo filesystem by `update-linbofs`. In the example the init process will wait until the script has been completed. For more information about inittab see https://manpages.debian.org/unstable/sysvinit-core/inittab.5.en.html.  
 4. Apply your changes to the linbo filesystem by executing `update-linbofs`.
+
+## Integrate your own kernel
+From Linbo version 4.2.4 you can integrate your own kernel into the Linbo file system. Simply create a file under `/etc/linuxmuster/linbo/custom_kernel` and define the paths to the kernel image and the module directory:
+```
+# path to kernel image
+KERNELPATH="/boot/vmlinuz-$(uname -r)"
+
+# path to the corresponding modules directory
+MODULESPATH="/lib/modules/$(uname -r)"
+```
+To apply your own kernel you have to execute `update-linbofs`. The example above points to the currently active kernel image and modules used by the server. But you can use any other kernel, kernels delivered with the server or other distros or even one compiled on another machine and copied to the server. You only have to provide the paths to the kernel image and the module directory. Note that your own kernel will be a much larger than the included linbo kernel and that you have to test it if it fits to your client hardware. With self-compiled Linbo kernels, art is to omit unneededed modules to optimize size. A starting point can be the [configuration file of the supplied kernel](https://github.com/linuxmuster/linuxmuster-linbo7/blob/main/build/config/kernel).
 
 ## Build environment
 

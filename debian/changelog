@@ -1,3 +1,10 @@
+linuxmuster-linbo7 (4.2.4-0) lmn72; urgency=low
+
+  * update-linbofs: use custom kernel optional (#107, c96f13b, 0ad09de, d4201cb).
+  * make-linbo-iso.sh: Increase EFIIMAGESIZE to 256M (#107, ee86245).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 10 Nov 2023 09:07:03 +0100
+
 linuxmuster-linbo7 (4.2.3-0) lmn72; urgency=low
 
   * linbo_sync: Use partition labels for fstab in any case (073f347).
