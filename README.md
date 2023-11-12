@@ -381,7 +381,7 @@ KERNELPATH="/var/lib/linuxmuster/linbo/legacy/linbo64"
 # path to the corresponding modules directory
 MODULESPATH="/var/lib/linuxmuster/linbo/legacy/modules"
 ```
-To apply then changes you have to execute `update-linbofs`. The example above points to the alternative Linbo legacy kernel image and modules. But you can use any other kernel, kernels delivered with the server or other distros or even one compiled on another machine and copied to the server. You only have to provide the paths to the kernel image and the modules directory. Note that your own kernel will be a much larger than the included linbo kernels and that you have to test it if it fits to your client hardware. With self-compiled Linbo kernels, art is to omit unneededed modules to optimize size. A starting point can be the [configuration file of the supplied kernel](https://github.com/linuxmuster/linuxmuster-linbo7/blob/main/build/config/kernel).
+To apply your changes you have to execute `update-linbofs`. The example above points to the alternative Linbo legacy kernel image and modules. But you can use any other kernel, kernels delivered with the server or other distros or even one compiled on another machine and copied to the server. You only have to provide the paths to the kernel image and the modules directory. Note that your own kernel will be a much larger than the included linbo kernels and that you have to test it if it fits to your client hardware. With self-compiled Linbo kernels, art is to omit unneededed modules to optimize size. A starting point can be the [configuration file of the supplied kernel](https://github.com/linuxmuster/linuxmuster-linbo7/blob/main/build/config/kernel).
 
 ## Build environment
 
