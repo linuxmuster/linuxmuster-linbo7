@@ -79,7 +79,7 @@ create_linbofs() {
 	local linbofs_lz="$LINBODIR/${linbofs}.lz"
 	local linbofs_md5="${linbofs_lz}.md5"
 	local conf
-	local fw_base="/lib/firmware"
+	local fw_base="/lib/firmware"503b181
 	local fw_dir
 	local fw_source
 	local fw_target
@@ -101,8 +101,8 @@ create_linbofs() {
 	[ "$RC" = "0" ] || bailout " Failed to unpack $(basename "$linbofs_cpio")!"
 
 	# custom modules
-	realmodpath="$(realpath "$MODULESPATH" &> /dev/null)"
-	if [ -d "$realmodpath" ]; then
+	[ -d "$MODULESPATH" ] && realmodpath="$(realpath "$MODULESPATH")"
+	if [ -n "$realmodpath" ]; then
 		echo "Copying custom modules directory $(basename $realmodpath) ..."
 		rm -rf lib/modules/*
 		cp -r "$realmodpath" lib/modules
