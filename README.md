@@ -373,15 +373,15 @@ Perform the following 4 steps to execute your own boot script during the linbo-c
 4. Apply your changes to the linbo filesystem by executing `update-linbofs`.
 
 ## Integrate your own kernel
-From Linbo version 4.2.4 you can integrate your own kernel into the Linbo file system. Simply create a file under `/etc/linuxmuster/linbo/custom_kernel` and define the paths to the kernel image and the module directory:
+From Linbo version 4.2.4 you can integrate an alternative kernel into the Linbo file system. Simply create a file under `/etc/linuxmuster/linbo/custom_kernel` and define the paths to the kernel image and the modules directory. For the legacy kernel shipped with Linbo you have to make the following two entries:
 ```
 # path to kernel image
-KERNELPATH="/boot/vmlinuz-$(uname -r)"
+KERNELPATH="/var/lib/linuxmuster/linbo/legacy/linbo64"
 
 # path to the corresponding modules directory
-MODULESPATH="/lib/modules/$(uname -r)"
+MODULESPATH="/var/lib/linuxmuster/linbo/legacy/modules"
 ```
-To apply your own kernel you have to execute `update-linbofs`. The example above points to the currently active kernel image and modules used by the server. But you can use any other kernel, kernels delivered with the server or other distros or even one compiled on another machine and copied to the server. You only have to provide the paths to the kernel image and the module directory. Note that your own kernel will be a much larger than the included linbo kernel and that you have to test it if it fits to your client hardware. With self-compiled Linbo kernels, art is to omit unneededed modules to optimize size. A starting point can be the [configuration file of the supplied kernel](https://github.com/linuxmuster/linuxmuster-linbo7/blob/main/build/config/kernel).
+To apply then changes you have to execute `update-linbofs`. The example above points to the alternative Linbo legacy kernel image and modules. But you can use any other kernel, kernels delivered with the server or other distros or even one compiled on another machine and copied to the server. You only have to provide the paths to the kernel image and the modules directory. Note that your own kernel will be a much larger than the included linbo kernels and that you have to test it if it fits to your client hardware. With self-compiled Linbo kernels, art is to omit unneededed modules to optimize size. A starting point can be the [configuration file of the supplied kernel](https://github.com/linuxmuster/linuxmuster-linbo7/blob/main/build/config/kernel).
 
 ## Build environment
 
