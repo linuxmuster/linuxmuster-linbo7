@@ -1,0 +1,52 @@
+#!/bin/bash
+#
+# download and build kernel
+#
+# thomas@linuxmuster.net
+# 20231112
+#
+
+# read build environment
+for i in build/conf.d/*; do source "$i" || exit 1; done
+
+# download verified kernel archive
+if [ ! -s "$KARCHIVE_LGC" ]; then
+  echo "Downloading kernel $KVERS_LGC ..."
+  "$KGET" "$KVERS_LGC" || exit 1
+fi
+
+# unpack
+if [ -d "$KSRCDIR_LGC" ]; then
+  echo "$KSRCDIR_LGC exists, skipping archive extraction."
+else
+  tar xf "$KARCHIVE_LGC" -C "$SRC" || exit 1
+fi
+
+# compile
+if [ -s "$KIMAGE_LGC" ]; then
+  echo "Kernelimage exists, skipping compilation."
+else
+  # copy kernel config file
+  cp "$KCONFIG_LGC" "$KSRCDIR_LGC/.config" || exit 1
+  # configure kernel
+  cd "$KSRCDIR_LGC"
+  make olddefconfig || exit 1
+  # provide initramfs config
+  ln -snf "$INITRAMFS_KERNEL" "$SRC/initramfs_kernel.conf"
+  # make
+  make bzImage modules || exit 1
+  # remove initramfs config link
+  rm -f "$SRC/initramfs_kernel.conf"
+  # remove external modules source dir
+  rm -rf "$KEXTMODDIR_LGC"
+fi
+
+echo "Copying LINBO legacy kernel ..."
+mkdir -p "$LGCDIR"
+cp "$KIMAGE_LGC" "$LGCDIR/linbo64" || exit 1
+#md5sum "$LINBODIR/linbo64" | cut -f1 -d" " > "$LINBODIR/linbo64.md5" || exit 1
+
+# install modules into temporary dir
+cd "$KSRCDIR_LGC"
+make INSTALL_MOD_PATH="$LGCDIR" modules_install || exit 1
+ln -s "lib/modules/$KVERS_LGC" "$LGCDIR/modules"

@@ -6,7 +6,7 @@
 #
 # thomas@linuxmuster.net
 # GPL V3
-# 20231109
+# 20231112
 #
 
 # read linuxmuster environment
@@ -101,10 +101,11 @@ create_linbofs() {
 	[ "$RC" = "0" ] || bailout " Failed to unpack $(basename "$linbofs_cpio")!"
 
 	# custom modules
-	if [ -d "$MODULESPATH" ]; then
-		echo "Copying custom modules directory $(basename $MODULESPATH) ..."
+	realmodpath="$(realpath "$MODULESPATH" &> /dev/null)"
+	if [ -d "$realmodpath" ]; then
+		echo "Copying custom modules directory $(basename $realmodpath) ..."
 		rm -rf lib/modules/*
-		cp -r "$MODULESPATH" lib/modules
+		cp -r "$realmodpath" lib/modules
 	fi
 
 	# store linbo password hash

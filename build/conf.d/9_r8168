@@ -1,7 +1,7 @@
 # r8168 build environment
 #
 # thomas@linuxmuster.net
-# 20231016
+# 20231111
 #
 
 # read kernel build environment
@@ -13,5 +13,8 @@ R81URL="https://github.com/mtorromeo/$R81NAME"
 R81GITURL="$R81URL.git"
 R81PATCHDIR="$BUILDPATCHES/$R81NAME"
 R81DIR="$KEXTMODDIR/$R81NAME"
+R81DIR_LGC="$KEXTMODDIR_LGC/$R81NAME"
 R81SRCDIR="$R81DIR/src"
+R81SRCDIR_LGC="$R81DIR_LGC/src"
 R81MOD="$R81SRCDIR/$R81NAME.ko"
+R81MOD_LGC="$R81SRCDIR_LGC/$R81NAME.ko"

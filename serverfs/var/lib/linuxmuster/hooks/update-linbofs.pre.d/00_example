@@ -4,7 +4,7 @@
 # DON'T make this script executable!
 #
 # thomas@linuxmuster.net
-# 20231110
+# 20231112
 #
 
 echo "### pre hook example ###"
@@ -14,12 +14,3 @@ echo "### pre hook example ###"
 # copies my script to linbofs
 myscript="/root/linbofs/myscript.sh"
 cp "$myscript" usr/bin
-
-# removes unwanted modules from distro kernel
-source /usr/share/linuxmuster/linbo/helperfunctions.sh
-wanted="block crypto drivers fs lib net"
-for item in lib/modules/*/kernel/*; do
-    dir="$(basename "$item")"
-    stringinstring "$dir" "$wanted" || rm -rf "$item"
-done
-depmod -a -b . "$(basename $(ls -d lib/modules/*))"

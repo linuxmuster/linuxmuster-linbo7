@@ -1,0 +1,22 @@
+# legacy kernel build environment variables
+#
+# thomas@linuxmuster.net
+# 20231112
+#
+
+# kernel version
+KVERS_LGC="5.15.138"
+
+# kernel archive and get script
+KDIR_LGC="linux-$KVERS_LGC"
+KSRCDIR_LGC="$SRC/$KDIR_LGC"
+KARCHIVE_LGC="$CACHE/$KDIR_LGC.tar.xz"
+
+# kernel config file
+KCONFIG_LGC="$BUILDCONFIG/kernel-lgc"
+
+# kernel image
+KIMAGE_LGC="$KSRCDIR_LGC/arch/x86/boot/bzImage"
+
+# where sources of external modules are located
+KEXTMODDIR_LGC="$SRC/extmod-lgc"

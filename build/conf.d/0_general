@@ -1,7 +1,7 @@
 # build.conf
 # general environment variables
 # thomas@linuxmuster.net
-# 20210507
+# 20231111
 #
 
 # must be buildroot
@@ -32,3 +32,4 @@ PKGVARDIR="$PKGBUILDROOT/var/lib/linuxmuster/linbo"
 
 # linbo related
 LINBODIR="$PKGBUILDROOT/srv/linbo"
+LGCDIR="$PKGVARDIR/legacy"
