@@ -6,7 +6,7 @@
 #
 # thomas@linuxmuster.net
 # GPL V3
-# 20231112
+# 20231113
 #
 
 # read linuxmuster environment
@@ -79,7 +79,7 @@ create_linbofs() {
 	local linbofs_lz="$LINBODIR/${linbofs}.lz"
 	local linbofs_md5="${linbofs_lz}.md5"
 	local conf
-	local fw_base="/lib/firmware"503b181
+	local fw_base="/lib/firmware"
 	local fw_dir
 	local fw_source
 	local fw_target
