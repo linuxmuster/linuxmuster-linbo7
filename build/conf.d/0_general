@@ -32,4 +32,7 @@ PKGVARDIR="$PKGBUILDROOT/var/lib/linuxmuster/linbo"
 
 # linbo related
 LINBODIR="$PKGBUILDROOT/srv/linbo"
-LGCDIR="$PKGVARDIR/legacy"
+
+# compiler
+JOBS=$(( $(grep ^processor /proc/cpuinfo | tail -1 | awk '{print $3}') + 1 ))
+[ -n $JOBS ] && J_OPT="-j $JOBS"
