@@ -20,3 +20,6 @@ KIMAGE_LGC="$KSRCDIR_LGC/arch/x86/boot/bzImage"
 
 # where sources of external modules are located
 KEXTMODDIR_LGC="$SRC/extmod-lgc"
+
+# install dir
+LGCDIR="$PKGVARDIR/legacy"

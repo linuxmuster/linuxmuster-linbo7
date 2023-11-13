@@ -1,0 +1,38 @@
+#!/bin/bash
+#
+# thomas@linuxmuster.net
+# 20231112
+#
+
+# read build environment
+for i in build/conf.d/*; do source "$i" || exit 1; done
+
+# compile r8168 only if it is not already there
+if [ -s "$R81MOD_LTS" ]; then
+
+    echo "Skipping r8168 build for legacy kernel."
+
+else
+
+    # get r8168
+    echo "Cloning r8168 source ..."
+    [ -d "$R81DIR_LTS" ] && rm -rf "$R81DIR_LTS"
+    mkdir -p "$KEXTMODDIR_LTS"
+    cd "$KEXTMODDIR_LTS"
+    git clone "$R81GITURL" || exit 1
+    cd "$R81DIR_LTS"
+
+    # compile r8168
+    echo "Compiling r8168 ..."
+    cd "$R81SRCDIR_LTS" || exit 1
+    make -C "$KSRCDIR_LTS" M="$(pwd)" modules
+    [ -s "$R81MOD_LTS" ] || exit 1
+
+fi
+
+[ "$1" = "noinstall" ] && exit 0
+
+# install r8168
+R81MOD_TARGET="$LTSDIR/lib/modules/$KVERS_LTS/kernel/drivers/net/ethernet/$(basename "$R81MOD_LTS")"
+echo "  INSTALL $R81MOD_TARGET"
+cp "$R81MOD_LTS" "$R81MOD_TARGET" || exit 1

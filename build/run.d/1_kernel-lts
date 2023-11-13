@@ -10,26 +10,26 @@
 for i in build/conf.d/*; do source "$i" || exit 1; done
 
 # download verified kernel archive
-if [ ! -s "$KARCHIVE_LGC" ]; then
-  echo "Downloading kernel $KVERS_LGC ..."
-  "$KGET" "$KVERS_LGC" || exit 1
+if [ ! -s "$KARCHIVE_LTS" ]; then
+  echo "Downloading kernel $KVERS_LTS ..."
+  "$KGET" "$KVERS_LTS" || exit 1
 fi
 
 # unpack
-if [ -d "$KSRCDIR_LGC" ]; then
-  echo "$KSRCDIR_LGC exists, skipping archive extraction."
+if [ -d "$KSRCDIR_LTS" ]; then
+  echo "$KSRCDIR_LTS exists, skipping archive extraction."
 else
-  tar xf "$KARCHIVE_LGC" -C "$SRC" || exit 1
+  tar xf "$KARCHIVE_LTS" -C "$SRC" || exit 1
 fi
 
 # compile
-if [ -s "$KIMAGE_LGC" ]; then
+if [ -s "$KIMAGE_LTS" ]; then
   echo "Kernelimage exists, skipping compilation."
 else
   # copy kernel config file
-  cp "$KCONFIG_LGC" "$KSRCDIR_LGC/.config" || exit 1
+  cp "$KCONFIG_LTS" "$KSRCDIR_LTS/.config" || exit 1
   # configure kernel
-  cd "$KSRCDIR_LGC"
+  cd "$KSRCDIR_LTS"
   make olddefconfig || exit 1
   # provide initramfs config
   ln -snf "$INITRAMFS_KERNEL" "$SRC/initramfs_kernel.conf"
@@ -38,15 +38,17 @@ else
   # remove initramfs config link
   rm -f "$SRC/initramfs_kernel.conf"
   # remove external modules source dir
-  rm -rf "$KEXTMODDIR_LGC"
+  rm -rf "$KEXTMODDIR_LTS"
 fi
 
+[ "$1" = "noinstall" ] && exit 0
+
 echo "Copying LINBO legacy kernel ..."
-mkdir -p "$LGCDIR"
-cp "$KIMAGE_LGC" "$LGCDIR/linbo64" || exit 1
+mkdir -p "$LTSDIR"
+cp "$KIMAGE_LTS" "$LTSDIR/linbo64" || exit 1
 #md5sum "$LINBODIR/linbo64" | cut -f1 -d" " > "$LINBODIR/linbo64.md5" || exit 1
 
 # install modules into temporary dir
-cd "$KSRCDIR_LGC"
-make INSTALL_MOD_PATH="$LGCDIR" modules_install || exit 1
-ln -s "lib/modules/$KVERS_LGC" "$LGCDIR/modules"
+cd "$KSRCDIR_LTS"
+make INSTALL_MOD_PATH="$LTSDIR" modules_install || exit 1
+ln -s "lib/modules/$KVERS_LTS" "$LTSDIR/modules"

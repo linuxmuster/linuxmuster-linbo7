@@ -10,3 +10,4 @@ for i in build/conf.d/*; do source "$i" || exit 1; done
 # final depmod
 depmod -a -b "$KMODTMPDIR" "$KVERS" || exit 1
 depmod -a -b "$LGCDIR" "$KVERS_LGC" || exit 1
+depmod -a -b "$LTSDIR" "$KVERS_LTS" || exit 1

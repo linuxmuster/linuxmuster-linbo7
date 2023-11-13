@@ -34,7 +34,7 @@ else
   # provide initramfs config
   ln -snf "$INITRAMFS_KERNEL" "$SRC/initramfs_kernel.conf"
   # make
-  make bzImage modules || exit 1
+  make $J_OPT bzImage modules || exit 1
   # remove initramfs config link
   rm -f "$SRC/initramfs_kernel.conf"
   # remove external modules source dir

@@ -1,0 +1,25 @@
+# legacy kernel build environment variables
+#
+# thomas@linuxmuster.net
+# 20231112
+#
+
+# kernel version
+KVERS_LTS="6.1.62"
+
+# kernel archive and get script
+KDIR_LTS="linux-$KVERS_LTS"
+KSRCDIR_LTS="$SRC/$KDIR_LTS"
+KARCHIVE_LTS="$CACHE/$KDIR_LTS.tar.xz"
+
+# kernel config file
+KCONFIG_LTS="$BUILDCONFIG/kernel-lts"
+
+# kernel image
+KIMAGE_LTS="$KSRCDIR_LTS/arch/x86/boot/bzImage"
+
+# where sources of external modules are located
+KEXTMODDIR_LTS="$SRC/extmod-lts"
+
+# install dir
+LTSDIR="$PKGVARDIR/longterm"

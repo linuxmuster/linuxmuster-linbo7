@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # thomas@linuxmuster.net
-# 20231025
+# 20231112
 #
 
 # read build environment
@@ -17,7 +17,7 @@ else
     # get 8812au
     echo "Cloning 8812au source ..."
     [ -d "$R8812DIR" ] && rm -rf "$R8812DIR"
-    mkdir -p  "$KEXTMODDIR"
+    mkdir -p "$KEXTMODDIR"
     cd "$KEXTMODDIR"
     git clone "$R8812GITURL" || exit 1
 

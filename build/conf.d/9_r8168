@@ -1,11 +1,11 @@
 # r8168 build environment
 #
 # thomas@linuxmuster.net
-# 20231111
+# 20231112
 #
 
 # read kernel build environment
-for i in build/conf.d/*_kernel; do source "$i" || exit 1; done
+for i in build/conf.d/*_kernel*; do source "$i" || exit 1; done
 
 # module source
 R81NAME="r8168"
@@ -14,7 +14,10 @@ R81GITURL="$R81URL.git"
 R81PATCHDIR="$BUILDPATCHES/$R81NAME"
 R81DIR="$KEXTMODDIR/$R81NAME"
 R81DIR_LGC="$KEXTMODDIR_LGC/$R81NAME"
+R81DIR_LTS="$KEXTMODDIR_LTS/$R81NAME"
 R81SRCDIR="$R81DIR/src"
 R81SRCDIR_LGC="$R81DIR_LGC/src"
+R81SRCDIR_LTS="$R81DIR_LTS/src"
 R81MOD="$R81SRCDIR/$R81NAME.ko"
 R81MOD_LGC="$R81SRCDIR_LGC/$R81NAME.ko"
+R81MOD_LTS="$R81SRCDIR_LTS/$R81NAME.ko"
