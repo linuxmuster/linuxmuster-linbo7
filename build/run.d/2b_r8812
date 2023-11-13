@@ -28,7 +28,7 @@ else
     sed -i "s|^KVER .*|KVER := $KVERS|g
             s|^KSRC := .*|KSRC := $KSRCDIR|g
             s|^MODDESTDIR := .*|MODDESTDIR := $R8812MOD_TARGET|g" Makefile
-    make
+    make $J_OPT
 
     [ -s "$R8812MOD" ] || exit 1
 

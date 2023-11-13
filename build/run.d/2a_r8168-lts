@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # thomas@linuxmuster.net
-# 20231112
+# 20231113
 #
 
 # read build environment
@@ -25,7 +25,7 @@ else
     # compile r8168
     echo "Compiling r8168 ..."
     cd "$R81SRCDIR_LTS" || exit 1
-    make -C "$KSRCDIR_LTS" M="$(pwd)" modules
+    make $J_OPT -C "$KSRCDIR_LTS" M="$(pwd)" modules
     [ -s "$R81MOD_LTS" ] || exit 1
 
 fi
