@@ -1,7 +1,7 @@
 # legacy kernel build environment variables
 #
 # thomas@linuxmuster.net
-# 20231112
+# 20231114
 #
 
 # kernel version
@@ -22,4 +22,4 @@ KIMAGE_LGC="$KSRCDIR_LGC/arch/x86/boot/bzImage"
 KEXTMODDIR_LGC="$SRC/extmod-lgc"
 
 # install dir
-LGCDIR="$PKGVARDIR/legacy"
+KLGCDIR="$PKGVARDIR/legacy"

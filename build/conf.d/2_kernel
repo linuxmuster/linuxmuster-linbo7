@@ -1,7 +1,7 @@
 # kernel build environment variables
 #
 # thomas@linuxmuster.net
-# 20231109
+# 20231114
 #
 
 # kernel version
@@ -19,8 +19,8 @@ KCONFIG="$BUILDCONFIG/kernel"
 # kernel image
 KIMAGE="$KSRCDIR/arch/x86/boot/bzImage"
 
-# where kernel modules were temporary installed
-KMODTMPDIR="$TMPDIR/modules"
+# install dir
+KSTBDIR="$PKGVARDIR/stable"
 
 # where sources of external modules are located
 KEXTMODDIR="$SRC/extmod"

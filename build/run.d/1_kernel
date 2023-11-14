@@ -3,7 +3,7 @@
 # download and build kernel
 #
 # thomas@linuxmuster.net
-# 20231025
+# 20231114
 #
 
 # read build environment
@@ -41,12 +41,11 @@ else
   rm -rf "$KEXTMODDIR"
 fi
 
-echo "Linking LINBO kernel to /srv/linbo/linbo64 ..."
-mkdir -p "$LINBODIR"
-cp "$KIMAGE" "$LINBODIR/linbo64" || exit 1
-md5sum "$LINBODIR/linbo64" | cut -f1 -d" " > "$LINBODIR/linbo64.md5" || exit 1
+echo "Copying LINBO stable kernel ..."
+mkdir -p "$KSTBDIR"
+cp "$KIMAGE" "$KSTBDIR/linbo64" || exit 1
 
-# install modules into temporary dir
-mkdir -p "$KMODTMPDIR"
+# install modules
 cd "$KSRCDIR"
-make INSTALL_MOD_PATH="$KMODTMPDIR" modules_install || exit 1
+make INSTALL_MOD_PATH="$KSTBDIR" modules_install || exit 1
+ln -s "lib/modules/$KVERS" "$KSTBDIR/modules"

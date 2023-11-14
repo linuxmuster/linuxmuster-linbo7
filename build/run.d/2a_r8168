@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # thomas@linuxmuster.net
-# 20231113
+# 20231114
 #
 
 # read build environment
@@ -38,6 +38,6 @@ else
 fi
 
 # install r8168
-R81MOD_TARGET="$KMODTMPDIR/lib/modules/$KVERS/kernel/drivers/net/ethernet/$(basename "$R81MOD")"
+R81MOD_TARGET="$KSTBDIR/lib/modules/$KVERS/kernel/drivers/net/ethernet/$(basename "$R81MOD")"
 echo "  INSTALL $R81MOD_TARGET"
 cp "$R81MOD" "$R81MOD_TARGET" || exit 1

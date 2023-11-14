@@ -6,7 +6,7 @@
 #
 # thomas@linuxmuster.net
 # GPL V3
-# 20231113
+# 20231114
 #
 
 # read linuxmuster environment
@@ -30,6 +30,9 @@ touch $locker || exit 1
 chmod 400 "$locker"
 curdir=`pwd`
 
+# default stable kernel
+KERNELPATH="$LINBOVARDIR/stable/linbo64"
+MODULESPATH="$LINBOVARDIR/stable/modules"
 # use custom kernel, if provided
 [ -s "$LINBOSYSDIR/custom_kernel" ] && source "$LINBOSYSDIR/custom_kernel"
 if [ -n "$KERNELPATH" -a ! -s "$KERNELPATH" ]; then
@@ -103,8 +106,9 @@ create_linbofs() {
 	# custom modules
 	[ -d "$MODULESPATH" ] && realmodpath="$(realpath "$MODULESPATH")"
 	if [ -n "$realmodpath" ]; then
-		echo "Copying custom modules directory $(basename $realmodpath) ..."
-		rm -rf lib/modules/*
+		echo "Copying modules directory $(basename $realmodpath) ..."
+		rm -rf lib/modules
+		mkdir -p lib/modules
 		cp -r "$realmodpath" lib/modules
 	fi
 

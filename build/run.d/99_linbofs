@@ -1,4 +1,10 @@
 #!/bin/bash
+#
+# collect all components for linbo filesystem
+#
+# thomas@linuxmuster.net
+# 20231114
+#
 
 echo "Creating linbofs ..."
 
@@ -46,15 +52,6 @@ find /lib/udev -type d -printf "dir %p %m 0 0\n" && \
   find /lib/udev -type f -printf "file %p %p %m 0 0\n" | \
   sed -e 's|\./|/|g' >> "$INITRAMFS_BUILD" || exit 1
 
-# add modules
-echo "Adding kernel modules ..."
-echo "# kernel modules" >> "$INITRAMFS_BUILD"
-cd "$KMODTMPDIR"
-find . -type d -printf "dir %p %m 0 0\n" && \
-  find . -type f -printf "file %p $KMODTMPDIR%p %m 0 0\n" | \
-  sed -e 's|\./|/|g' >> "$INITRAMFS_BUILD" || exit 1
-echo >> "$INITRAMFS_BUILD"
-
 # add busybox stuff
 echo "Adding busybox applets ..."
 echo "# busybox applets" >> "$INITRAMFS_BUILD"
@@ -72,7 +69,6 @@ find . -type d -printf "dir %p %m 0 0\n" | sed -e 's|^dir ./|dir /|g' \
 find . -type f -printf "file %p %p %m 0 0\n" | \
   sed -e "s|^file ./|file /|g
           s| ./| $LINBOFS/|g" >> "$INITRAMFS_BUILD" || exit 1
-
 
 # create linbofs cpio archive from created initramfs.conf
 cd "$KSRCDIR"

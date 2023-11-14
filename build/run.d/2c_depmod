@@ -1,13 +1,13 @@
 #!/bin/bash
 #
 # thomas@linuxmuster.net
-# 20231112
+# 20231114
 #
 
 # read build environment
 for i in build/conf.d/*; do source "$i" || exit 1; done
 
 # final depmod
-depmod -a -b "$KMODTMPDIR" "$KVERS" || exit 1
-depmod -a -b "$LGCDIR" "$KVERS_LGC" || exit 1
-depmod -a -b "$LTSDIR" "$KVERS_LTS" || exit 1
+depmod -a -b "$KSTBDIR" "$KVERS" || exit 1
+depmod -a -b "$KLGCDIR" "$KVERS_LGC" || exit 1
+depmod -a -b "$KLTSDIR" "$KVERS_LTS" || exit 1

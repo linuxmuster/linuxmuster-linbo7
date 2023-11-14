@@ -1,7 +1,7 @@
 # legacy kernel build environment variables
 #
 # thomas@linuxmuster.net
-# 20231112
+# 20231114
 #
 
 # kernel version
@@ -22,4 +22,4 @@ KIMAGE_LTS="$KSRCDIR_LTS/arch/x86/boot/bzImage"
 KEXTMODDIR_LTS="$SRC/extmod-lts"
 
 # install dir
-LTSDIR="$PKGVARDIR/longterm"
+KLTSDIR="$PKGVARDIR/longterm"
