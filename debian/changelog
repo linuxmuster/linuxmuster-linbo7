@@ -1,3 +1,11 @@
+linuxmuster-linbo7 (4.2.8-0) lmn72; urgency=low
+
+  * add lenovo hid drivers to default kernel (dad2efa).
+  * fix handling of unregistered and unpartitioned clients (3f61f9c).
+  * pack modules in xz archives to decrease package size ().
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 15 Nov 2023 20:31:53 +0000
+
 linuxmuster-linbo7 (4.2.7-0) lmn72; urgency=low
 
   * use jobs to compile external modules (b0d6a7d).
