@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20231110
+# 20231116
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -113,12 +113,11 @@ do_env(){
   done
   source /.env
   # check if school network is present and set further environment accordingly
-  if [ -n "$HOSTGROUP" ]; then
-    # add linboserver to environment if not set on kernel cl
-    if [ -z "$LINBOSERVER" ]; then
-      echo "export LINBOSERVER='"${SERVERID}"'" >> /.env
-      export LINBOSERVER="${SERVERID}"
-    fi
+  if [ -z "$LINBOSERVER" -a "$HOSTNAME" = "pxeclient" ]; then
+    echo "export LINBOSERVER='"${SERVERID}"'" >> /.env
+    export LINBOSERVER="${SERVERID}"
+  fi
+  if [ -n "$LINBOSERVER" ]; then
     # add fqdn to environment
     echo "export FQDN='"${HOSTNAME}.${DOMAIN}"'" >> /.env
     export FQDN="${HOSTNAME}.${DOMAIN}"
