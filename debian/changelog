@@ -1,3 +1,9 @@
+linuxmuster-linbo7 (4.2.8-1) lmn72; urgency=low
+
+  * update-linbofs fix (3e191d0).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 15 Nov 2023 21:26:43 +0000
+
 linuxmuster-linbo7 (4.2.8-0) lmn72; urgency=low
 
   * add lenovo hid drivers to default kernel (dad2efa).

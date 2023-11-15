@@ -373,13 +373,26 @@ Perform the following 4 steps to execute your own boot script during the linbo-c
 4. Apply your changes to the linbo filesystem by executing `update-linbofs`.
 
 ## Integrate your own kernel
-From Linbo version 4.2.4 you can integrate an alternative kernel into the Linbo file system. Simply create a file under `/etc/linuxmuster/linbo/custom_kernel` and define the paths to the kernel image and the modules directory. For the legacy kernel shipped with Linbo you have to make the following two entries:
+From Linbo version 4.2.4 you can integrate an alternative kernel into the Linbo file system. Simply create a file under `/etc/linuxmuster/linbo/custom_kernel` and define the paths to the kernel image and the modules directory:
 ```
+# currently active kernel image and modules used by the server
 # path to kernel image
-KERNELPATH="/var/lib/linuxmuster/linbo/legacy/linbo64"
-
+KERNELPATH="/boot/vmlinuz-$(uname -r)"
 # path to the corresponding modules directory
-MODULESPATH="/var/lib/linuxmuster/linbo/legacy/modules"
+MODULESPATH="/lib/modules/$(uname -r)"
+
+# custom kernel image and modules
+KERNELPATH="/path/to/my/kernelimage"
+# path to the corresponding modules directory
+MODULESPATH="/path/to/my/lib/modules/n.n.n"
+```
+If you want to use the legacy or longterm kernels shipped with Linbo you have to make simply the following entries:
+```
+# use Linbo's alternative legacy kernel
+KERNELPATH="legacy"
+
+# use Linbo's alternative longterm kernel
+KERNELPATH="longterm"
 ```
 To apply your changes you have to execute `update-linbofs`. The example above points to the alternative Linbo legacy kernel image and modules. But you can use any other kernel, kernels delivered with the server or other distros or even one compiled on another machine and copied to the server. You only have to provide the paths to the kernel image and the modules directory. Note that your own kernel will be a much larger than the included linbo kernels and that you have to test it if it fits to your client hardware. With self-compiled Linbo kernels, art is to omit unneededed modules to optimize size. A starting point can be the [configuration file of the supplied kernel](https://github.com/linuxmuster/linuxmuster-linbo7/blob/main/build/config/kernel).
 
