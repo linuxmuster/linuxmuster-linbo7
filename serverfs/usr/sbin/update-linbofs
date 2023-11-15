@@ -35,7 +35,7 @@ curdir=`pwd`
 if [ -s "$LINBOSYSDIR/custom_kernel" ]; then
 	# read custom kernel config if provided
 	source "$LINBOSYSDIR/custom_kernel"
-	if [ -s "$KERNELPATH" ]; then
+	if [ -n "$KERNELPATH" ]; then
 		# validate entries
 		case "$KERNELPATH" in
 			${KLGCDIR}*|legacy)
@@ -54,6 +54,10 @@ if [ -s "$LINBOSYSDIR/custom_kernel" ]; then
 				;;
 			*)
 				# custom kernel stuff (see /etc/linuxmuster/linbo/custom_kernel.ex for examples)
+				if [ ! -s "$KERNELPATH" ]; then
+					echo "KERNELPATH $KERNELPATH is not valid!"
+					exit 1
+				fi
 				if [ ! -d "$MODULESPATH" ]; then
 					echo "MODULESPATH $MODULESPATH is not valid!"
 					exit 1
@@ -62,9 +66,6 @@ if [ -s "$LINBOSYSDIR/custom_kernel" ]; then
 				KTYPE="custom"
 				;;
 		esac
-	else
-		# no valid path is given
-		KERNELPATH=""
 	fi
 fi
 # otherwise set default kernel to stable
