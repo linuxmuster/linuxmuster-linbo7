@@ -6,7 +6,7 @@
 #
 # thomas@linuxmuster.net
 # GPL V3
-# 20231114
+# 20231116
 #
 
 # read linuxmuster environment
@@ -30,21 +30,50 @@ touch $locker || exit 1
 chmod 400 "$locker"
 curdir=`pwd`
 
-# default stable kernel
-KERNELPATH="$LINBOVARDIR/stable/linbo64"
-MODULESPATH="$LINBOVARDIR/stable/modules"
-# use custom kernel, if provided
-[ -s "$LINBOSYSDIR/custom_kernel" ] && source "$LINBOSYSDIR/custom_kernel"
-if [ -n "$KERNELPATH" -a ! -s "$KERNELPATH" ]; then
-	echo "Custom kernel $KERNELPATH not found!"
-	exit 1
+# get kernel image, modules and version
+# first set custom kernel, if provided
+if [ -s "$LINBOSYSDIR/custom_kernel" ]; then
+	# read custom kernel config if provided
+	source "$LINBOSYSDIR/custom_kernel"
+	if [ -s "$KERNELPATH" ]; then
+		# validate entries
+		case "$KERNELPATH" in
+			${KLGCDIR}*|legacy)
+				# legacy kernel stuff
+				KERNELPATH="$KLGCDIR/linbo64"
+				MODULESPATH="$KLGCDIR/modules.tar.xz"
+				KVERS="$(cat "$KLGCDIR/version")"
+				KTYPE="legacy"
+				;;
+			${KLTSDIR}*|longterm)
+				# longterm kernel stuff
+				KERNELPATH="$KLTSDIR/linbo64"
+				MODULESPATH="$KLTSDIR/modules.tar.xz"
+				KVERS="$(cat "$KLTSDIR/version")"
+				KTYPE="longterm"
+				;;
+			*)
+				# custom kernel stuff (see /etc/linuxmuster/linbo/custom_kernel.ex for examples)
+				if [ ! -d "$MODULESPATH" ]; then
+					echo "MODULESPATH $MODULESPATH is not valid!"
+					exit 1
+				fi
+				KVERS="$(basename "$MODULESPATH")"
+				KTYPE="custom"
+				;;
+		esac
+	else
+		# no valid path is given
+		KERNELPATH=""
+	fi
 fi
-[ -z "$KERNELPATH" ] && MODULESPATH=""
-if [ -n "$MODULESPATH" -a ! -d "$MODULESPATH" ]; then
-	echo "Custom modules directory $MODULESPATH not found!"
-	exit 1
+# otherwise set default kernel to stable
+if [ -z "$KERNELPATH" ]; then
+	KERNELPATH="$KSTBDIR/linbo64"
+	MODULESPATH="$KSTBDIR/modules.tar.xz"
+	KVERS="$(cat "$KSTBDIR/version")"
+	KTYPE="stable"
 fi
-
 
 
 # clean tmpdir and exit with error
@@ -103,14 +132,21 @@ create_linbofs() {
 	set +o pipefail
 	[ "$RC" = "0" ] || bailout " Failed to unpack $(basename "$linbofs_cpio")!"
 
-	# custom modules
-	[ -d "$MODULESPATH" ] && realmodpath="$(realpath "$MODULESPATH")"
-	if [ -n "$realmodpath" ]; then
-		echo "Copying modules directory $(basename $realmodpath) ..."
-		rm -rf lib/modules
-		mkdir -p lib/modules
-		cp -r "$realmodpath" lib/modules
-	fi
+	# provide modules
+	echo "Using $KTYPE kernel version $KVERS ..."
+	mkdir -p lib/modules
+	case "$KTYPE" in
+		stable|longterm|legacy)
+			echo "Extracting modules ..."
+			tar xf "$MODULESPATH" | exit 1
+			;;
+		*)
+			echo "Copying modules ..."
+			cp -r "$MODULESPATH" lib/modules
+			;;
+	esac
+	echo "Generating modules.dep and map files ..."
+	depmod -a -b . "$KVERS"
 
 	# store linbo password hash
 	echo -n "$linbo_pwhash" > etc/linbo_pwhash
@@ -191,17 +227,14 @@ create_linbofs() {
 	# create md5sum file
 	md5sum "$linbofs_lz"  | awk '{ print $1 }' > "$linbofs_md5"
 
-	# copy custom kernel image
-	if [ -s "$KERNELPATH" ]; then
-		echo "Copying custom kernel image $(basename $KERNELPATH) ..."
-		cp "$KERNELPATH" "$LINBODIR/linbo64"
-		md5sum "$LINBODIR/linbo64"  | awk '{ print $1 }' > "$LINBODIR/linbo64.md5"
-	fi
+	# copy kernel image
+	echo "Copying $KTYPE kernel version $KVERS ..."
+	cp "$KERNELPATH" "$LINBODIR/linbo64"
+	md5sum "$LINBODIR/linbo64" | awk '{ print $1 }' > "$LINBODIR/linbo64.md5"
 
 	cd "$curdir"
 
 	echo "Ok!"
-
 }
 
 

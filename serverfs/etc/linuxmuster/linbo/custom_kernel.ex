@@ -2,18 +2,22 @@
 # to be placed under /etc/linuxmuster/linbo/custom_kernel
 #
 # thomas@linuxmuster.net
-# 20231112
+# 20231116
 #
 
 # use Linbo's alternative legacy kernel
-# path to kernel image
-KERNELPATH="/var/lib/linuxmuster/linbo/legacy/linbo64"
-# path to the corresponding modules directory
-MODULESPATH="/var/lib/linuxmuster/linbo/legacy/modules"
+KERNELPATH="legacy"
 
-# the example below points to the currently active kernel image
-# and modules used by the server
+# use Linbo's alternative longterm kernel
+KERNELPATH="longterm"
+
+# currently active kernel image and modules used by the server
 # path to kernel image
 KERNELPATH="/boot/vmlinuz-$(uname -r)"
 # path to the corresponding modules directory
 MODULESPATH="/lib/modules/$(uname -r)"
+
+# custom kernel image and modules
+KERNELPATH="/path/to/my/kernelimage"
+# path to the corresponding modules directory
+MODULESPATH="/path/to/my/lib/modules/n.n.n"

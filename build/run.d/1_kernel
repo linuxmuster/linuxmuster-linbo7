@@ -3,7 +3,7 @@
 # download and build kernel
 #
 # thomas@linuxmuster.net
-# 20231114
+# 20231116
 #
 
 # read build environment
@@ -44,8 +44,10 @@ fi
 echo "Copying LINBO stable kernel ..."
 mkdir -p "$KSTBDIR"
 cp "$KIMAGE" "$KSTBDIR/linbo64" || exit 1
+echo "$KVERS" > "$KSTBDIR/version" || exit 1
 
-# install modules
+# install modules in tmp dir
+rm -rf "$KMODTMP"
+mkdir -p "$KMODTMP"
 cd "$KSRCDIR"
-make INSTALL_MOD_PATH="$KSTBDIR" modules_install || exit 1
-ln -s "lib/modules/$KVERS" "$KSTBDIR/modules"
+make INSTALL_MOD_PATH="$KMODTMP" modules_install || exit 1

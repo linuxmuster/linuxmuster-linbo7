@@ -1,7 +1,7 @@
 # r8168 build environment
 #
 # thomas@linuxmuster.net
-# 20231114
+# 20231116
 #
 
 # read kernel build environment
@@ -13,4 +13,4 @@ R8812GITNAME="$R8812NAME-20210629"
 R8812GITURL="https://github.com/morrownr/${R8812GITNAME}.git"
 R8812DIR="$KEXTMODDIR/$R8812GITNAME"
 R8812MOD="$R8812DIR/$R8812NAME.ko"
-R8812MOD_TARGET="$KSTBDIR/lib/modules/$KVERS/kernel/drivers/net/wireless/realtek/$R8812NAME"
+R8812MOD_TARGET="$KMODTMP/lib/modules/$KVERS/kernel/drivers/net/wireless/realtek/$R8812NAME"

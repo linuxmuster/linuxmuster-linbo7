@@ -1,0 +1,19 @@
+#!/bin/bash
+#
+# archiving modules
+#
+# thomas@linuxmuster.net
+# 20231116
+#
+
+# read build environment
+for i in build/conf.d/*; do source "$i" || exit 1; done
+
+cd "$KMODTMP"
+echo "Archiving modules ..."
+echo " * $KVERS ..."
+tar -c -I 'xz -T0' -f "$KSTBDIR/modules.tar.xz" "lib/modules/$KVERS" || exit 1
+echo " * $KVERS_LGC ..."
+tar -c -I 'xz -T0' -f "$KLGCDIR/modules.tar.xz" "lib/modules/$KVERS_LGC" || exit 1
+echo " * $KVERS_LTS ..."
+tar -c -I 'xz -T0' -f "$KLTSDIR/modules.tar.xz" "lib/modules/$KVERS_LTS" || exit 1

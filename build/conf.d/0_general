@@ -1,7 +1,7 @@
 # build.conf
 # general environment variables
 # thomas@linuxmuster.net
-# 20231111
+# 20231115
 #
 
 # must be buildroot
@@ -24,6 +24,7 @@ LINBOFS="$BUILDROOT/linbofs"
 SERVERFS="$BUILDROOT/serverfs"
 SRC="$BUILDROOT/src"
 TMPDIR="$BUILDROOT/tmp"
+KMODTMP="$TMPDIR/modules"
 
 # package data
 PKGNAME="linuxmuster-linbo7"

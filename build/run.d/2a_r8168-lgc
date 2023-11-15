@@ -31,6 +31,6 @@ else
 fi
 
 # install r8168
-R81MOD_TARGET="$KLGCDIR/lib/modules/$KVERS_LGC/kernel/drivers/net/ethernet/$(basename "$R81MOD_LGC")"
+R81MOD_TARGET="$KMODTMP/lib/modules/$KVERS_LGC/kernel/drivers/net/ethernet/$(basename "$R81MOD_LGC")"
 echo "  INSTALL $R81MOD_TARGET"
 cp "$R81MOD_LGC" "$R81MOD_TARGET" || exit 1

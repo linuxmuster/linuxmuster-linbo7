@@ -3,7 +3,7 @@
 # download and build kernel
 #
 # thomas@linuxmuster.net
-# 20231114
+# 20231116
 #
 
 # read build environment
@@ -46,8 +46,8 @@ fi
 echo "Copying LINBO legacy kernel ..."
 mkdir -p "$KLTSDIR"
 cp "$KIMAGE_LTS" "$KLTSDIR/linbo64" || exit 1
+echo "$KVERS_LTS" > "$KLTSDIR/version" || exit 1
 
-# install modules into temporary dir
+# install modules in tmp dir
 cd "$KSRCDIR_LTS"
-make INSTALL_MOD_PATH="$KLTSDIR" modules_install || exit 1
-ln -s "lib/modules/$KVERS_LTS" "$KLTSDIR/modules"
+make INSTALL_MOD_PATH="$KMODTMP" modules_install || exit 1

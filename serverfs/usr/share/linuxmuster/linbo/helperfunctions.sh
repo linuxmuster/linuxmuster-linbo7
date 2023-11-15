@@ -2,11 +2,16 @@
 # helperfunctions for linbo scripts
 #
 # thomas@linuxmuster.net
-# 20230714
+# 20231116
 #
 
 # get linuxmuster environment variables
 source /usr/share/linuxmuster/defaults.sh || exit 1
+
+# kernel paths
+KSTBDIR="$LINBOVARDIR/stable"
+KLGCDIR="$LINBOVARDIR/legacy"
+KLTSDIR="$LINBOVARDIR/longterm"
 
 # basic ldbsearch string
 LDBSEARCH="$(which ldbsearch) -b OU=SCHOOLS,$basedn -H /var/lib/samba/private/sam.ldb"
