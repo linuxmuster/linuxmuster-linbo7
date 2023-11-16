@@ -113,7 +113,7 @@ do_env(){
   done
   source /.env
   # check if school network is present and set further environment accordingly
-  if [ -z "$LINBOSERVER" -a "$HOSTNAME" = "pxeclient" ]; then
+  if [ -n "$HOSTGROUP" -o "$HOSTNAME" = "pxeclient" ]; then
     echo "export LINBOSERVER='"${SERVERID}"'" >> /.env
     export LINBOSERVER="${SERVERID}"
   fi
