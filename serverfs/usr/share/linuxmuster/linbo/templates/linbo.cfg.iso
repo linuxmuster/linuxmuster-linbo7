@@ -1,6 +1,6 @@
 # grub.cfg fuer linbo isoboot
 # thomas@linuxmuster.net
-# 20201127
+# 20231119
 #
 
 set default=0
@@ -9,20 +9,10 @@ set timeout=10
 
 set gfxpayload=800x600x16
 
-# 32bit pae, non pae or 64bit kernel
-if cpuid -l; then
- set linbo_kernel=/linbo64
- set linbo_initrd=/linbofs64.lz
- set NAME="LINBO (64bit)"
-elif cpuid -p; then
- set linbo_kernel=/linbo
- set linbo_initrd=/linbofs.lz
- set NAME="LINBO (32bit)"
-else
- set linbo_kernel=/linbo-np
- set linbo_initrd=/linbofs-np.lz
- set NAME="LINBO (32bit non pae)"
-fi
+# kernel & initrd
+set linbo_kernel=/linbo64
+set linbo_initrd=/linbofs64.lz
+set NAME="LINBO (64bit)"
 
 # theme settings (modify for custom theme)
 set theme=/boot/grub/themes/linbo/theme.txt

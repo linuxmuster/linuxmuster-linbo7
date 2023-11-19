@@ -1,6 +1,6 @@
 # global part of group specific grub.cfg template for linbo net boot
 # thomas@linuxmuster.net
-# 20210202
+# 20231119
 #
 
 # if you don't want this file being overwritten by import_workstations remove the following line:
@@ -25,17 +25,9 @@ terminal_output gfxterm
 
 background_color 42,68,87
 
-# 32bit pae, non pae or 64bit kernel
-if cpuid -l; then
- set linbo_kernel=/linbo64
- set linbo_initrd=/linbofs64.lz
-elif cpuid -p; then
- set linbo_kernel=/linbo
- set linbo_initrd=/linbofs.lz
-else
- set linbo_kernel=/linbo-np
- set linbo_initrd=/linbofs-np.lz
-fi
+# kernel & initrd
+set linbo_kernel=/linbo64
+set linbo_initrd=/linbofs64.lz
 
 # theme settings (modify for custom theme)
 set theme=/boot/grub/themes/linbo/theme.txt

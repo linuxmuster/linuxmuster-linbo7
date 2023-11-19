@@ -1,7 +1,7 @@
 #
 # default grub.cfg, pxe boot version (placed on server, don't edit!)
 # thomas@linuxmuster.net
-# 20231118
+# 20231119
 #
 
 set timeout=0
@@ -148,17 +148,9 @@ menuentry 'Default' {
  set root="${netroot}"
  set gfxpayload=640x480x16
 
- # 32bit pae, non pae or 64bit kernel
- if cpuid -l; then
-  set linbo_kernel=/linbo64
-  set linbo_initrd=/linbofs64.lz
- elif cpuid -p; then
-  set linbo_kernel=/linbo
-  set linbo_initrd=/linbofs.lz
- else
-  set linbo_kernel=/linbo-np
-  set linbo_initrd=/linbofs-np.lz
- fi
+ # kernel and initrd
+ set linbo_kernel=/linbo64
+ set linbo_initrd=/linbofs64.lz
  echo "LINBO netboot in failsafe mode"
  echo -n "Loading $linbo_kernel .."
  linux $linbo_kernel quiet netboot nomodeset
