@@ -1,7 +1,7 @@
 #
 # grub.cfg for forced netboot
 # thomas@linuxmuster.net
-# 20201127
+# 20231118
 #
 
 # if you don't want this file being overwritten by import_workstations remove the following line:
@@ -49,7 +49,7 @@ menuentry 'LINBO' --class linbo {
  #set root="(http)"
 
  echo -n "Loading $linbo_kernel ..."
- linux $linbo_kernel quiet splash netboot
+ linux $linbo_kernel quiet splash netboot nomodeset
  echo
  echo -n "Loading $linbo_initrd ..."
  initrd $linbo_initrd

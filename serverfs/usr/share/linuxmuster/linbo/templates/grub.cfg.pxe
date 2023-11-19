@@ -1,7 +1,7 @@
 #
 # default grub.cfg, pxe boot version (placed on server, don't edit!)
 # thomas@linuxmuster.net
-# 20210202
+# 20231118
 #
 
 set timeout=0
@@ -161,7 +161,7 @@ menuentry 'Default' {
  fi
  echo "LINBO netboot in failsafe mode"
  echo -n "Loading $linbo_kernel .."
- linux $linbo_kernel quiet netboot
+ linux $linbo_kernel quiet netboot nomodeset
  echo
  echo -n "Loading $linbo_initrd .."
  initrd $linbo_initrd
