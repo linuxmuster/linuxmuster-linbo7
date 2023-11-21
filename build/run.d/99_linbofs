@@ -3,7 +3,7 @@
 # collect all components for linbo filesystem
 #
 # thomas@linuxmuster.net
-# 20231114
+# 20231121
 #
 
 echo "Creating linbofs ..."
@@ -72,5 +72,5 @@ find . -type f -printf "file %p %p %m 0 0\n" | \
 
 # create linbofs cpio archive from created initramfs.conf
 cd "$KSRCDIR"
-rm -f initramfs.lz
-./usr/gen_init_cpio "$INITRAMFS_BUILD" > "$PKGVARDIR/linbofs64.cpio" || exit 1
+./usr/gen_init_cpio "$INITRAMFS_BUILD" > "$PKGVARDIR/linbofs64" || exit 1
+xz --threads=0 -zve "$PKGVARDIR/linbofs64" || exit 1
