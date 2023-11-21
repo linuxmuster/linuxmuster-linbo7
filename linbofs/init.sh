@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20231116
+# 20231121
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -402,7 +402,7 @@ network(){
   local ipaddr
   [ -z "$dhcpretry" ] && dhcpretry=3
   print_status "Requesting ip address per dhcp (retry=$dhcpretry) ..."
-  for dev in `grep ':' /proc/net/dev | awk -F\: '{ print $1 }' | awk '{ print $1}' | grep -v ^lo`; do
+  for dev in `grep ':' /proc/net/dev | awk -F\: '{ print $1 }' | awk '{ print $1}' | grep -v ^lo | sort`; do
     #ifconfig "$dev" up &> /dev/null
     ip link set dev "$dev" up
     # skip linkless ethernet interfaces
