@@ -1,11 +1,11 @@
 # legacy kernel build environment variables
 #
 # thomas@linuxmuster.net
-# 20231114
+# 20231121
 #
 
 # kernel version
-KVERS_LGC="5.15.138"
+KVERS_LGC="5.15.139"
 
 # kernel archive and get script
 KDIR_LGC="linux-$KVERS_LGC"
