@@ -21,7 +21,7 @@ Conflicts: atftpd, bittorrent, linuxmuster-linbo, linuxmuster-linbo-common,
 Depends: argon2, coreutils, ctorrent, dosfstools, dropbear-bin, grub-common,
   grub-efi-amd64-bin, grub-ipxe, grub-pc-bin, isolinux, libowfat0,
   linux-firmware, linuxmuster-base7, linuxmuster-linbo-gui7, mbr, python3,
-  qemu-utils, rsync, sed, shim-signed, ssh, syslinux-common, syslinux-utils,
+  qemu-utils, rsync, sed, ssh, syslinux-common, syslinux-utils,
   tftpd-hpa, tmux, udpcast, wakeonlan, xorriso, xz-utils, zip
 Suggests: isc-dhcp-server | dhcp3-server
 Description: linuxmuster-linbo7
