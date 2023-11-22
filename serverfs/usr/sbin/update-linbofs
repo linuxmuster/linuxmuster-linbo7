@@ -219,7 +219,7 @@ create_linbofs() {
 	# pack linbofs64.lz
 	echo "Creating xz archive (may take a while) ..."
 	set -o pipefail
-	find . -print | cpio --quiet -o -H newc | xz -e --check=none -z -f -9 -c -v > "$linbofs_xz" ; RC="$?"
+	find . -print | cpio --quiet -o -H newc | xz -e --check=none -z -f -T 0 -c -v > "$linbofs_xz" ; RC="$?"
 	set +o pipefail
   	[ $RC -ne 0 ] && bailout "failed!"
 
