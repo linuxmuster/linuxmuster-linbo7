@@ -3,7 +3,7 @@
 # download linbo_gui from server
 #
 # thomas@linuxmuster.net
-# 20230126
+# 20231122
 #
 
 if [ -e /tmp/.gui.done ]; then
@@ -35,7 +35,7 @@ if [ -n "$ISOBOOT" ]; then
   print_status "ISO/USB boot detected, trying to get linbo_gui from removable media." | tee -a /tmp/linbo.log
   mkdir -p /media
   for i in /dev/disk/by-id/*; do
-    if mount "$i" /media &> /dev/null; then
+    if mount -t iso9660 -o ro "$i" /media &> /dev/null; then
       # check for linbo_gui on iso
       if [ -s "/media/$gui_archive" ]; then
         tar xf "/media/$gui_archive" -C / || return 1
