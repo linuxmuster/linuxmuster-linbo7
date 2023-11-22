@@ -61,24 +61,24 @@ cd /cache
 # download newer linbo/linbofs if applicable and check download
 echo "Looking for LINBO updates."
 # first check md5sum of linbofs
-[ -e linbofs64.lz ] && md5_before="$(md5sum linbofs64.lz | awk '{ print $1 }')"
-[ -e linbofs64.lz.md5 ] && mv linbofs64.lz.md5 linbofs64.lz.md5.bak
-linbo_download linbofs64.lz.md5
-md5_after="$(cat linbofs64.lz.md5 2> /dev/null)"
+[ -e linbofs64 ] && md5_before="$(md5sum linbofs64 | awk '{ print $1 }')"
+[ -e linbofs64.md5 ] && mv linbofs64.md5 linbofs64.md5.bak
+linbo_download linbofs64.md5
+md5_after="$(cat linbofs64.md5 2> /dev/null)"
 if [ -z "$md5_after" ]; then
-  echo "Failed to download linbofs64.lz.md5!" >&2
-  [ -e linbofs64.lz.md5.bak ] && mv linbofs64.lz.md5.bak linbofs64.lz.md5
+  echo "Failed to download linbofs64.md5!" >&2
+  [ -e linbofs64.md5.bak ] && mv linbofs64.md5.bak linbofs64.md5
   exit 1
 fi
-rm -f linbofs64.lz.md5.bak
+rm -f linbofs64.md5.bak
 # if the linbofs checksum differs, download recent versions of linbofs and linbo
 if [ "$md5_before" != "$md5_after" ]; then
   # first linbofs
-  linbo_download linbofs64.lz
+  linbo_download linbofs64
   # verify download
-  md5_current="$(md5sum linbofs64.lz | awk '{ print $1 }')"
+  md5_current="$(md5sum linbofs64 | awk '{ print $1 }')"
   if [ "$md5_current" != "$md5_after" ]; then
-    echo "Checksums differ, failed to download linbofs64.lz!" >&2
+    echo "Checksums differ, failed to download linbofs64!" >&2
     exit 1
   fi
   # second linbo

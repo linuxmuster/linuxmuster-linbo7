@@ -17,7 +17,7 @@ set gfxpayload=800x600x16
 # 32bit pae, non pae or 64bit kernel
 if cpuid -l; then
  set linbo_kernel=/linbo64
- set linbo_initrd=/linbofs64.lz
+ set linbo_initrd=/linbofs64
 elif cpuid -p; then
  set linbo_kernel=/linbo
  set linbo_initrd=/linbofs.lz

@@ -150,7 +150,7 @@ menuentry 'Default' {
 
  # kernel and initrd
  set linbo_kernel=/linbo64
- set linbo_initrd=/linbofs64.lz
+ set linbo_initrd=/linbofs64
  echo "LINBO netboot in failsafe mode"
  echo -n "Loading $linbo_kernel .."
  linux $linbo_kernel quiet netboot nomodeset

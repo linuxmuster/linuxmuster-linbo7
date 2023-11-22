@@ -2,7 +2,7 @@
 #
 # Post-Download script for rsync/LINBO
 # thomas@linuxmuster.net
-# 20230209
+# 20231122
 #
 
 # read in paedml specific environment
@@ -76,19 +76,6 @@ case "$EXT" in
     fi
   ;;
 
-  gz)
-    # repair old linbofs filename
-    if [ "$(basename "$FILE")" = "linbofs.gz" ]; then
-      linbo-scp "$LINBODIR/linbofs.lz" "${RSYNC_HOST_NAME}:/cache"
-      linbo-ssh "$RSYNC_HOST_NAME" /bin/rm /cache/linbofs.gz /cache/linbo*.info
-    fi
-    # repair old linbofs64 filename
-    if [ "$(basename "$FILE")" = "linbofs64.gz" ]; then
-      linbo-scp "$LINBODIR/linbofs64.lz" "${RSYNC_HOST_NAME}:/cache"
-      linbo-ssh "$RSYNC_HOST_NAME" /bin/rm /cache/linbofs64.gz /cache/linbo64*.info
-    fi
-  ;;
-
   # handle server based grub reboot in case of remote cache
   reboot)
     # get reboot parameters from filename
@@ -107,18 +94,6 @@ case "$EXT" in
     screen -dmS "${compname}.reboot" "$LINBOSHAREDIR/reboot_pipe.sh" "$bootpart" "$kernel" "$initrd" "$append" "$grubenv_tpl" "$fifo"
   ;;
 
-  upgrade)
-    # update old 2.2 clients
-    LINBOFSCACHE="$LINBOCACHEDIR/linbofs"
-    linbo-ssh "$RSYNC_HOST_NAME" 'echo -e "#!/bin/sh\necho \"Processing LINBO upgrade ... waiting for reboot ...\"\nsleep 120\n/sbin/reboot" > /linbo.sh'
-    linbo-ssh "$RSYNC_HOST_NAME" chmod +x /linbo.sh
-    linbo-scp --exclude start.conf --exclude linbo.sh -a "$LINBOFSCACHE/" "${RSYNC_HOST_NAME}:/"
-    for i in linbo64 linbofs64.lz; do
-      linbo-scp "$LINBODIR/$i" "${RSYNC_HOST_NAME}:/cache"
-    done
-    linbo-ssh "$RSYNC_HOST_NAME" /usr/bin/linbo_cmd update "$serverip" "$CACHE"
-  ;;
-
   grub-local)
     if [ -e "$FILE" ]; then
       echo "Removing $FILE."
@@ -126,7 +101,7 @@ case "$EXT" in
     fi
   ;;
 
-  # handle lmn71 start.conf request
+  # handle lmn7* start.conf request
   start-conf)
     echo "Removing temporary $FILE."
     rm -f "$FILE"

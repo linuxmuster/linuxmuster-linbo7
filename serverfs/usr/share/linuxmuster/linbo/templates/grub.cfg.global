@@ -27,7 +27,7 @@ background_color 42,68,87
 
 # kernel & initrd
 set linbo_kernel=/linbo64
-set linbo_initrd=/linbofs64.lz
+set linbo_initrd=/linbofs64
 
 # theme settings (modify for custom theme)
 set theme=/boot/grub/themes/linbo/theme.txt

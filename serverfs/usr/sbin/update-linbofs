@@ -120,7 +120,7 @@ create_linbofs() {
 	rm -rf "$linbofs_cache"
 	mkdir -p "$linbofs_cache"
 
-	# begin to process linbofs64.lz
+	# begin to process linbofs64
 	echo "Creating new linbo filesystem ..."
 
 	# sync linbofs filesystem to cache dir
@@ -216,7 +216,7 @@ create_linbofs() {
 	# execute pre hook scripts
 	exec_hooks pre
 
-	# pack linbofs64.lz
+	# pack linbofs64
 	echo "Creating xz archive (may take a while) ..."
 	set -o pipefail
 	find . -print | cpio --quiet -o -H newc | xz -e --check=none -z -f -T 0 -c -v > "$linbofs_xz" ; RC="$?"

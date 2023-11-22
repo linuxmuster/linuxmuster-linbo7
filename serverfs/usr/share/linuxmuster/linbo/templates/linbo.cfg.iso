@@ -11,7 +11,7 @@ set gfxpayload=800x600x16
 
 # kernel & initrd
 set linbo_kernel=/linbo64
-set linbo_initrd=/linbofs64.lz
+set linbo_initrd=/linbofs64
 set NAME="LINBO (64bit)"
 
 # theme settings (modify for custom theme)

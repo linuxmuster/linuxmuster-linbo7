@@ -3,7 +3,7 @@
 # create bootable linbo isos
 #
 # thomas@linuxmuster.net
-# 20231109
+# 20231122
 # GPL V3
 #
 
@@ -51,7 +51,7 @@ mkdir -p "$GRUBPREFIX"
 rsync -a -L --delete --delete-excluded --exclude=*.cfg* --exclude=spool "$GRUBDIR/" "$GRUBPREFIX/"
 cp "$GRUBCFG" "$GRUBPREFIX/grub.cfg"
 cp "$LINBOCFG" "$GRUBPREFIX/linbo.cfg"
-for i in linbo64 linbofs64.lz linbo_gui64_7.tar.lz linbo-version; do
+for i in linbo64 linbofs64 linbo_gui64_7.tar.lz linbo-version; do
  cp "$LINBODIR/$i" "$ISOCACHE"
 done
 cp "$GRUBDIR"/ipxe.* "$ISOCACHE"

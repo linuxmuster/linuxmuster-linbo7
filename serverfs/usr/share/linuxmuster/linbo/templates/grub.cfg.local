@@ -122,7 +122,7 @@ menuentry 'OS localboot' {
 menuentry 'LINBO' {
  # kernel & initrd
  set linbo_kernel=/linbo64
- set linbo_initrd=/linbofs64.lz
+ set linbo_initrd=/linbofs64
 
  set root="${linboroot}"
  if [ -e "$linbo_kernel" -a -e "$linbo_initrd" ]; then
