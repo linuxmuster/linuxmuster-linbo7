@@ -1,7 +1,7 @@
 #
 # grub.cfg for forced netboot
 # thomas@linuxmuster.net
-# 20231118
+# 20231122
 #
 
 # if you don't want this file being overwritten by import_workstations remove the following line:
@@ -14,17 +14,8 @@ set timeout=0
 
 set gfxpayload=800x600x16
 
-# 32bit pae, non pae or 64bit kernel
-if cpuid -l; then
- set linbo_kernel=/linbo64
- set linbo_initrd=/linbofs64
-elif cpuid -p; then
- set linbo_kernel=/linbo
- set linbo_initrd=/linbofs.lz
-else
- set linbo_kernel=/linbo-np
- set linbo_initrd=/linbofs-np.lz
-fi
+set linbo_kernel=/linbo64
+set linbo_initrd=/linbofs64
 
 # theme settings (modify for custom theme)
 set theme=/boot/grub/themes/linbo/theme.txt
