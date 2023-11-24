@@ -1,3 +1,18 @@
+linuxmuster-linbo7 (4.2.10-0) lmn72; urgency=low
+
+  * make nomodeset kernel parameter default (7a80e76).
+  * clean up remnants of 32bit linbo (#106).
+  * remove deprecated kernel signing stuff (1835659, a453cb0).
+  * change kernel and linbofs compression to xz (#109).
+  * change filename of linbofs64.lz to linbofs (9e42a3d, f8fffbb).
+  * fix network device order (b717732).
+  * fix linbo_gui on iso boot (4692beb).
+  * update stable kernel to 6.6.2 (a5e6449).
+  * update longterm kernel to 6.1.63 (82d0259).
+  * update legacy kernel to 5.15.139 (a431b2f).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 24 Nov 2023 07:05:08 +0000
+
 linuxmuster-linbo7 (4.2.9-0) lmn72; urgency=low
 
   * fix localmode (ff6d102).
