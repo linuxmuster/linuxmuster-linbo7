@@ -7,41 +7,39 @@
 
 # get environment
 source /usr/share/linbo/shell_functions
-
-# no warmstart in this cases
-if ! warmstart; then
-  echo "Linbo warmstart is switched off."
-  exit 0
-fi
+source /conf/linbo || exit 1
 
 KEXEC="/sbin/kexec"
 KERNEL="/cache/linbo64"
 INITRD="/cache/linbofs64"
+TYPE="bzImage64"
 
 linbo_mountcache || exit 1
 
 if [ ! -s "$KERNEL" -o ! -s "$INITRD" ]; then
-  echo "Linbokernel not found!"
+  echo "Linbokernel not found in cache!"
   exit 1
 fi
 
+echo "Initiating linbo warmstart ..."
+
 if warmstart; then
 
-  echo "Initiating linbo warmstart ..."
-
   # load linbo kernel
-  if ! $KEXEC --type="bzImage64" --reuse-cmdline --initrd="$INITRD" --load "$KERNEL"; then
-    echo "Failed to load kernel!"
-    exit 1
-  fi
+  $KEXEC --type="$TYPE" --append="$kerneloptions" --initrd="$INITRD" --load "$KERNEL" | tee -a /tmp/linbo.log ; RC="$?"
+  [ "$RC" = "0" ] || exit 1
   # execute linbo kernel
-  if ! $KEXEC -e; then
-    echo "Failed to execute kernel!"
-    exit 1
-  fi
+  $KEXEC -e | tee -a /tmp/linbo.log ; RC="$?"
+  [ "$RC" = "0" ] || exit 1
 
 else
 
-  linbo_reboot
+  # initiate reboot bypassing an existing grub menu
+  FORCEGRUB="yes"
+  mk_boot "$cache" "$(basename $KERNEL)" "$(basename $INITRD)" "$kerneloptions" | tee -a /tmp/linbo.log ; RC="$?"
+  [ "$RC" = "0" ] || exit 1
+  /sbin/reboot -f
 
 fi
+
+sendlog
