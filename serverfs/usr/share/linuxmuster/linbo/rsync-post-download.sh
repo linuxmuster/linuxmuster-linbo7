@@ -2,7 +2,7 @@
 #
 # Post-Download script for rsync/LINBO
 # thomas@linuxmuster.net
-# 20231125
+# 20231122
 #
 
 # read in paedml specific environment
@@ -31,8 +31,6 @@ EXT="${BASENAME##*.}"
 # fetch host & domainname
 do_rsync_hostname
 
-LINBOLOG="$LINBOLOGDIR/${RSYNC_HOST_NAME%%.*}_linbo.log"
-
 echo "HOSTNAME: $RSYNC_HOST_NAME"
 echo "IP: $RSYNC_HOST_ADDR"
 echo "RSYNC_REQUEST: $RSYNC_REQUEST"
@@ -55,11 +53,6 @@ case "$EXT" in
   cmd)
     echo "Removing onboot linbocmd file $FILE."
     rm -f "$FILE"
-  ;;
-
-  # log client's linbo version
-  linbo64)
-    cat "$LINBODIR/linbo-version" >> "$LINBOLOG"
   ;;
 
   # remove dummy logfile after download

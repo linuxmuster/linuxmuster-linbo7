@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20231125
+# 20231121
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -344,7 +344,6 @@ do_housekeeping(){
 # update linbo and install it locally
 do_linbo_update(){
   local rebootflag="/tmp/.linbo.reboot"
-  linbo_mountcache
   linbo_update 2>&1 | tee /cache/update.log
   # initiate warm start
   if [ -e "$rebootflag" ]; then
