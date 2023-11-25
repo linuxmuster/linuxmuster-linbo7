@@ -2,7 +2,7 @@
 #
 # linbo_warmstart
 # thomas@linuxmuster.net
-# 20231122
+# 20231125
 #
 
 # get environment
@@ -25,15 +25,23 @@ if [ ! -s "$KERNEL" -o ! -s "$INITRD" ]; then
   exit 1
 fi
 
-echo "Initiating linbo warmstart ..."
+if warmstart; then
 
-# load linbo kernel
-if ! $KEXEC --type="bzImage64" --reuse-cmdline --initrd="$INITRD" --load "$KERNEL"; then
-  echo "Failed to load kernel!"
-  exit 1
-fi
-# execute linbo kernel
-if ! $KEXEC -e; then
-  echo "Failed to execute kernel!"
-  exit 1
+  echo "Initiating linbo warmstart ..."
+
+  # load linbo kernel
+  if ! $KEXEC --type="bzImage64" --reuse-cmdline --initrd="$INITRD" --load "$KERNEL"; then
+    echo "Failed to load kernel!"
+    exit 1
+  fi
+  # execute linbo kernel
+  if ! $KEXEC -e; then
+    echo "Failed to execute kernel!"
+    exit 1
+  fi
+
+else
+
+  linbo_reboot
+
 fi

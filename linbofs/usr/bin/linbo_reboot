@@ -1,0 +1,18 @@
+#!/bin/sh
+#
+# linbo_reboot
+# thomas@linuxmuster.net
+# 20231125
+#
+
+source /usr/share/linbo/shell_functions || exit 1
+source /conf/linbo || exit 1
+
+linbo_mountcache || exit 1
+
+FORCEGRUB="yes"
+
+mk_boot "$cache" "linbo64" "linbofs64" "$kerneloptions" | tee -a /tmp/linbo.log ; RC="$?"
+[ "$RC" = "0" ] || exit 1
+
+/sbin/reboot -f
