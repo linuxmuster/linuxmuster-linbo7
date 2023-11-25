@@ -60,6 +60,7 @@ case "$EXT" in
   # log client's linbo version
   linbo64)
     cat "$LINBODIR/linbo-version" >> "$LINBOLOG"
+    linbo-ssh "$RSYNC_HOST_ADDR" uname -a >> "$LINBOLOG"
   ;;
 
   # remove dummy logfile after download
