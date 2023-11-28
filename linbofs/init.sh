@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20231125
+# 20231128
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -506,7 +506,7 @@ network(){
   fi
   # start dropbear
   print_status "Starting ssh service."
-  /sbin/dropbear -s -g -E -p 2222 &> /tmp/linbo.log
+  /sbin/dropbear -r /etc/dropbear/dropbear_dss_host_key -r /etc/dropbear/dropbear_rsa_host_key -s -g -E -p 2222 &> /tmp/linbo.log
   # remove reboot flag, save windows activation
   do_housekeeping
   # done
