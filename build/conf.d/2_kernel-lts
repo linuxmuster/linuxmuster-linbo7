@@ -1,11 +1,11 @@
 # legacy kernel build environment variables
 #
 # thomas@linuxmuster.net
-# 20231121
+# 20231201
 #
 
 # kernel version
-KVERS_LTS="6.1.63"
+KVERS_LTS="6.1.64"
 
 # kernel archive and get script
 KDIR_LTS="linux-$KVERS_LTS"
