@@ -1,7 +1,7 @@
 # common linbo shell functions
 #
 # thomas@linuxmuster.net
-# 20231102
+# 20231201
 #
 
 set -o pipefail
@@ -227,7 +227,7 @@ sendlog(){
     if [ -s "/tmp/$item" ]; then
       if localmode; then
         echo "Saving $item to cache."
-        cp "/tmp/$item" /cache
+        cat "/tmp/$item" >> "/cache/$item"
       else
         [ -e /tmp/linbo-network.done ] || return 0
         echo "Uploading $item ..."
