@@ -1,3 +1,16 @@
+linuxmuster-linbo7 (4.2.11-0) lmn72; urgency=low
+
+  * initiate a warm reboot bypassing the grub menu if kexec warmstart is switched off (5635826).
+  * remove dropbear message about missing host keys (5efcb70).
+  * rather add than overwrite cached logs in localmode (041b122).
+  * refactor kernel build process (fb4971f).
+  * update stable kernel to 6.6.4 (2f8c1a6).
+  * update longterm kernel to 6.1.65 (4d12fa4).
+  * update legacy kernel to 5.15.141 (4d1aeac).
+  * add app harvesting script (88627bd).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 05 Dec 2023 06:37:01 +0000
+
 linuxmuster-linbo7 (4.2.10-0) lmn72; urgency=low
 
   * make nomodeset kernel parameter default (7a80e76).
