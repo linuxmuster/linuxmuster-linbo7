@@ -12,7 +12,7 @@ source /usr/share/linuxmuster/linbo/helperfunctions.sh
 # give full path to app
 APP="$1"
 
-[ -z "$APP" ] && exit 1
+[ -s "$APP" ] && exit 1
 
 # linbofs paths
 LINBOFSROOT="$LINBOCACHEDIR/linbofs64"
