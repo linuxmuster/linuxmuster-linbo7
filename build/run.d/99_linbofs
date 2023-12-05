@@ -71,6 +71,8 @@ find . -type f -printf "file %p %p %m 0 0\n" | \
           s| ./| $LINBOFS/|g" >> "$INITRAMFS_BUILD" || exit 1
 
 # create linbofs cpio archive from created initramfs.conf
-cd "$KSRCDIR"
+kvers="${KVERSARRAY[0]}"
+source "$KNAMES"
+cd "$ksrc"
 ./usr/gen_init_cpio "$INITRAMFS_BUILD" > "$PKGVARDIR/linbofs64" || exit 1
 xz --threads=0 -zve "$PKGVARDIR/linbofs64" || exit 1

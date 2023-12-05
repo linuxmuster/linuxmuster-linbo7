@@ -3,17 +3,29 @@
 # archiving modules
 #
 # thomas@linuxmuster.net
-# 20231116
+# 20231204
 #
 
 # read build environment
-for i in build/conf.d/*; do source "$i" || exit 1; done
+for item in build/conf.d/*; do source "$item" || exit 1; done
 
-cd "$KMODTMP"
-echo "Archiving modules ..."
-echo " * $KVERS ..."
-tar -c -I 'xz -T0' -f "$KSTBDIR/modules.tar.xz" "lib/modules/$KVERS" || exit 1
-echo " * $KVERS_LGC ..."
-tar -c -I 'xz -T0' -f "$KLGCDIR/modules.tar.xz" "lib/modules/$KVERS_LGC" || exit 1
-echo " * $KVERS_LTS ..."
-tar -c -I 'xz -T0' -f "$KLTSDIR/modules.tar.xz" "lib/modules/$KVERS_LTS" || exit 1
+
+# iterate over kernels
+for kvers in ${KVERSARRAY[@]}; do
+
+    # get kernel name & version
+    cd "$BUILDROOT"
+    source "$KNAMES"
+    echo "Packing $kname modules $kvers ..."
+
+    if [ ! -s "$kmodarc" ]; then
+        cd "$kroot"
+        tar -c -I 'xz -T0' -f "$kmodarc" "lib/modules/$kvers" || exit 1
+    fi
+
+    [ "$1" = "noinstall" ] && continue
+
+    # copy modules archive to package
+    cp "$kmodarc" "$kinst"
+
+done

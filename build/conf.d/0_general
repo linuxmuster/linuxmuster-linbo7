@@ -1,7 +1,7 @@
 # build.conf
 # general environment variables
 # thomas@linuxmuster.net
-# 20231115
+# 20231202
 #
 
 # must be buildroot
@@ -33,6 +33,14 @@ PKGVARDIR="$PKGBUILDROOT/var/lib/linuxmuster/linbo"
 
 # linbo related
 LINBODIR="$PKGBUILDROOT/srv/linbo"
+
+# kernel scripts
+KGET="$BUILDBIN/get-verified-kernel.sh"
+KNAMES="$BUILDBIN/kernel-names.sh"
+KRNLINDEX="$SRC/kernel.org"
+
+# initramfs file used during kernel build
+INITRAMFS_KERNEL="$BUILDINITD/00_basic"
 
 # compiler
 JOBS=$(( $(grep ^processor /proc/cpuinfo | tail -1 | awk '{print $3}') + 1 ))

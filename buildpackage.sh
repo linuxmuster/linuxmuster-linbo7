@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # thomas@linuxmuster.net
-# 20220624
+# 20231201
 #
 
 set -o pipefail
@@ -10,7 +10,6 @@ MY_DIR="$(dirname $0)"
 cd "$MY_DIR"
 
 rm -f debian/files
-rm -rf tmp/*
 
 dpkg-buildpackage \
     -tc -sn -us -uc \

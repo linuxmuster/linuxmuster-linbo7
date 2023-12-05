@@ -1,6 +1,10 @@
 #!/bin/bash
 #
 # download and build kexec-tools
+#
+# thomas@linuxmuster.net
+# 20231202
+#
 
 # read build environment
 for i in build/conf.d/*; do source "$i" || exit 1; done
@@ -20,6 +24,6 @@ else
   cd "$KXSRCDIR" || exit 1
   ./bootstrap || exit 1
   ./configure --prefix=/usr || exit 1
-  make || exit 1
+  make $J_OPT || exit 1
   strip "$KXBIN" || exit 1
 fi

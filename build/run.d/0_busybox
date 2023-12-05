@@ -1,6 +1,10 @@
 #!/bin/bash
 #
-# download and build cloop module
+# download and build busybox
+#
+# thomas@linuxmuster.net
+# 20231202
+#
 
 # read build environment
 for i in build/conf.d/*; do source "$i" || exit 1; done
@@ -35,5 +39,5 @@ else
   echo "Compiling busybox ..."
   cd "$BBSRCDIR"
   make oldconfig || exit 1
-  make install || exit 1
+  make $J_OPT install || exit 1
 fi

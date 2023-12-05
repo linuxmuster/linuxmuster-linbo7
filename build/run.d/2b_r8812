@@ -1,41 +1,53 @@
 #!/bin/bash
 #
 # thomas@linuxmuster.net
-# 20231112
+# 20231204
 #
 
 # read build environment
-for i in build/conf.d/*; do source "$i" || exit 1; done
+for item in build/conf.d/*; do source "$item" || exit 1; done
 
-# compile 8812au only if it is not already there
-if [ -s "$R8812MOD" ]; then
+# iterate over kernels
+for kvers in ${KVERSARRAY[@]}; do
 
-    echo "Skipping 8812au build."
+    # get kernel name & version
+    cd "$BUILDROOT"
+    source "$KNAMES"
+    echo "Processing $R8812NAME module for kernel $kvers ..."
 
-else
+    r8812dir="$kextmod/$R8812GITNAME"
+    r8812mod="$r8812dir/$R8812NAME.ko"
+    r8812target="$kmoddir/lib/modules/$kvers/kernel/drivers/net/wireless/realtek/$R8812NAME"
 
-    # get 8812au
-    echo "Cloning 8812au source ..."
-    [ -d "$R8812DIR" ] && rm -rf "$R8812DIR"
-    mkdir -p "$KEXTMODDIR"
-    cd "$KEXTMODDIR"
-    git clone "$R8812GITURL" || exit 1
+    # compile r8168 only if it is not already there
+    if [ -s "$r8812mod" -o -s "$kmodarc" ]; then
 
-    # compile 8812au
-    echo "Compiling 8812au ..."
-    cd "$R8812DIR" || exit 1
-    
-    sed -i "s|^KVER .*|KVER := $KVERS|g
-            s|^KSRC := .*|KSRC := $KSRCDIR|g
-            s|^MODDESTDIR := .*|MODDESTDIR := $R8812MOD_TARGET|g" Makefile
-    make $J_OPT
+        echo " * Skipping $R8812NAME build."
 
-    [ -s "$R8812MOD" ] || exit 1
+    else
 
-fi
+        # get 8812au
+        echo " * Cloning 8812au source ..."
+        rm -rf "$r8812dir"
+        cd "$kextmod"
+        git clone "$R8812GITURL" || exit 1
 
-# install 8812au
-mkdir -p "$R8812MOD_TARGET"
-echo "  INSTALL $R8812MOD_TARGET"
-cp "$R8812MOD" "$R8812MOD_TARGET" || exit 1
+        # compile 8812au
+        echo " * Compiling $R8812NAME ..."
+        cd "$r8812dir" || exit 1
+        
+        sed -i "s|^KVER .*|KVER := $kvers|g
+                s|^KSRC := .*|KSRC := $ksrc|g
+                s|^MODDESTDIR := .*|MODDESTDIR := $r8812target|g" Makefile
+        make $J_OPT
 
+        [ -s "$r8812mod" ] || exit 1
+
+    fi
+
+    # install 8812au
+    mkdir -p "$r8812target"
+    echo " * Installing  $R8812NAME ..."
+    cp "$r8812mod" "$r8812target" || exit 1
+
+done

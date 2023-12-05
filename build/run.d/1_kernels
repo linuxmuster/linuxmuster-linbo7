@@ -1,0 +1,81 @@
+#!/bin/bash
+#
+# download and build kernels
+#
+# thomas@linuxmuster.net
+# 20231204
+#
+
+# read build environment
+for item in build/conf.d/*; do source "$item" || exit 1; done
+
+# iterate over kernelversions
+for kvers in ${KVERSARRAY[@]}; do
+
+    # get kernel name & version
+    cd "$BUILDROOT"
+    source "$KNAMES"
+    echo "Processing $kname kernel $kvers ..."
+
+    mkdir -p "$kroot"
+
+    # download verified kernel archive
+    if [ ! -s "$karc" ]; then
+        echo "Downloading kernel archive $(basename $karc) ..."
+        "$KGET" "$kvers" || exit 1
+        # get rid of old archive
+        for item in $(ls $CACHE/linux-$kmajor.* 2> /dev/null); do
+            [ "$item" = "$karc" ] && continue
+            rm -f "$item"
+        done
+    fi
+
+    # unpack kernel archive
+    if [ -d "$ksrc" ]; then
+        echo "Directory $kdir exists already, skipping archive extraction."
+    else
+        tar xf "$karc" -C "$kroot" || exit 1
+        # get rid of old kernel source directory
+        for item in $(ls -d $kroot/linux-$kmajor.* 2> /dev/null); do
+            [ "$item" = "$ksrc" ] && continue
+            rm -rf "$item"
+        done
+    fi
+
+    # test if kernel config has changed
+    diff -q "$kcfg" "$ksrc/.config" || diff="yes"
+
+    # compile or not compile the kernel
+    if [ -s "$kimg" -a -d "$kmoddir" -a -z "$diff" ]; then
+        echo "Kernelimage and modules exist and config has not changed, skipping compilation."
+    else
+        # copy kernel config file
+        cp "$kcfg" "$ksrc/.config" || exit 1
+        # configure kernel
+        cd "$ksrc"
+        make olddefconfig || exit 1
+        # provide initramfs config
+        ln -snf "$INITRAMFS_KERNEL" "$kroot/initramfs_kernel.conf"
+        # make
+        rm -f "$klinbo"
+        make $J_OPT bzImage modules || exit 1
+        cp "$kimg" "$klinbo"
+        # remove initramfs config link
+        rm -f "$kroot/initramfs_kernel.conf"
+        # remove old modules
+        rm -rf "$klib" "$kmodarc" "$kextmod"
+        mkdir -p "$kextmod"
+        # install modules in tmp dir
+        make $J_OPT INSTALL_MOD_PATH="$kroot" modules_install || exit 1
+        # save kernel config
+        cp "$ksrc/.config" "$kcfg"
+    fi
+
+    [ "$1" = "noinstall" ] && continue
+
+    # install kernel to packcage
+    mkdir -p "$kinst"
+    cp "$klinbo" "$kinst" || exit 1
+    echo "$kvers" > "$kinst/version"
+
+done

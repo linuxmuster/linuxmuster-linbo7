@@ -1,6 +1,10 @@
 #!/bin/bash
 #
 # download and build chntpw
+#
+# thomas@linuxmuster.net
+# 20231202
+#
 
 # read build environment
 for i in build/conf.d/*; do source "$i" || exit 1; done
@@ -18,6 +22,7 @@ else
   # compile
   echo "Compiling $CHNTPWNAME ..."
   cd "$CHNTPWSRCDIR" || exit 1
+  #make $J_OPT || exit 1
   make || exit 1
   strip "$CHNTPWBIN" || exit 1
 fi

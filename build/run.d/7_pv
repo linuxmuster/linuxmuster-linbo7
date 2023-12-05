@@ -1,6 +1,10 @@
 #!/bin/bash
 #
-# download and build ctorrent
+# download and build pv
+#
+# thomas@linuxmuster.net
+# 20231202
+#
 
 # read build environment
 for i in build/conf.d/*; do source "$i" || exit 1; done
