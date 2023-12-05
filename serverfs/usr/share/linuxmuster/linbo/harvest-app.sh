@@ -8,7 +8,7 @@
 
 # get linbo env
 source /usr/share/linuxmuster/linbo/helperfunctions.sh
- 
+
 # give full path to app
 APP="$1"
 
