@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # thomas@linuxmuster.net
-# 20231202
+# 20231206
 #
 
 # read build environment
@@ -47,6 +47,8 @@ for kvers in ${KVERSARRAY[@]}; do
         [ -s "$r81mod" ] || exit 1
 
     fi
+
+    [ "$1" = "noinstall" ] && continue
 
     # install r8168
     r81target="$kmoddir/kernel/drivers/net/ethernet/$(basename "$r81mod")"
