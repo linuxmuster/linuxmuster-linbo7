@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # thomas@linuxmuster.net
-# 20231204
+# 20231206
 #
 
 # read build environment
@@ -44,6 +44,8 @@ for kvers in ${KVERSARRAY[@]}; do
         [ -s "$r8812mod" ] || exit 1
 
     fi
+
+    [ "$1" = "noinstall" ] && continue
 
     # install 8812au
     mkdir -p "$r8812target"
