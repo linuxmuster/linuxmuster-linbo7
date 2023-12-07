@@ -3,6 +3,7 @@ linuxmuster-linbo7 (4.3.0-0) lmn72-testing; urgency=low
   * fix app harvesting script (9b42592, 06cffc7).
   * add noinstall option to modules build script (7b6de80).
   * add uinput module to kernel configurations and linbofs (5302136, a28dc85).
+  * filter bad lines from linbofs environment file (c50a4a9).
 
  -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 06 Dec 2023 16:37:18 +0000
 
