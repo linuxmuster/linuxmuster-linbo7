@@ -3,7 +3,7 @@
 # harvest an app from server os for use in linbofs
 #
 # thomas@linuxmuster.net
-# 20231205
+# 20231207
 #
 
 # get linbo env
@@ -12,7 +12,7 @@ source /usr/share/linuxmuster/linbo/helperfunctions.sh
 # give full path to app
 APP="$1"
 
-[ -s "$APP" ] && exit 1
+[ -s "$APP" ] || exit 1
 
 # linbofs paths
 LINBOFSROOT="$LINBOCACHEDIR/linbofs64"
