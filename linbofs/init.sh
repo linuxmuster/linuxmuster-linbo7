@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20231128
+# 20231207
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -86,6 +86,16 @@ udev_extra_nodes() {
   done
 }
 
+# clean bad lines from .env
+clean_env(){
+  local line
+  grep -v "^#\|^$\|^export [A-Z0-9_-]*=[\"\'].*[\"\']" /.env | while read line; do
+    [ -z "$line" ] && continue
+    echo "Removing bad line ** $line ** from /.env ..." | tee -a /tmp/clean_env.log
+    sed -i "/$line/d" /.env
+  done
+}
+
 # provide environment variables from kernel cmdline and dhcp.log
 do_env(){
   local item
@@ -111,6 +121,7 @@ do_env(){
     # write entry to env file
     echo "export ${item/${varname}/${upvarname}}" >> /.env
   done
+  clean_env
   source /.env
   # check if school network is present and set further environment accordingly
   if [ -n "$HOSTGROUP" -o "$HOSTNAME" = "pxeclient" ]; then
@@ -136,6 +147,8 @@ do_env(){
   # save mac address in enviroment
   export MACADDR="`ifconfig | grep -B1 "$IP" | grep HWaddr | awk '{ print $5 }' | tr A-Z a-z`"
   echo "export MACADDR='"$MACADDR"'" >> /.env
+  clean_env
+  [ -s /tmp/clean_env.log ] && cat /tmp/clean_env.log >> /tmp/linbo.log
 }
 
 # initial setup
