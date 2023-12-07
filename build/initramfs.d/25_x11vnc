@@ -1,0 +1,16 @@
+# /usr/bin/x11vnc
+
+file /usr/bin/x11vnc /usr/bin/x11vnc 755 0 0
+file /lib/libvncserver.so.1 /lib/x86_64-linux-gnu/libvncserver.so.1 755 0 0
+file /lib/libvncclient.so.1 /lib/x86_64-linux-gnu/libvncclient.so.1 755 0 0
+file /lib/libXtst.so.6 /lib/x86_64-linux-gnu/libXtst.so.6 755 0 0
+file /lib/libXinerama.so.1 /lib/x86_64-linux-gnu/libXinerama.so.1 755 0 0
+file /lib/libXrandr.so.2 /lib/x86_64-linux-gnu/libXrandr.so.2 755 0 0
+file /lib/libXfixes.so.3 /lib/x86_64-linux-gnu/libXfixes.so.3 755 0 0
+file /lib/libXdamage.so.1 /lib/x86_64-linux-gnu/libXdamage.so.1 755 0 0
+file /lib/libavahi-common.so.3 /lib/x86_64-linux-gnu/libavahi-common.so.3 755 0 0
+file /lib/libavahi-client.so.3 /lib/x86_64-linux-gnu/libavahi-client.so.3 755 0 0
+file /lib/libXi.so.6 /lib/x86_64-linux-gnu/libXi.so.6 755 0 0
+file /lib/liblzo2.so.2 /lib/x86_64-linux-gnu/liblzo2.so.2 755 0 0
+file /lib/libjpeg.so.8 /lib/x86_64-linux-gnu/libjpeg.so.8 755 0 0
+file /lib/libsasl2.so.2 /lib/x86_64-linux-gnu/libsasl2.so.2 755 0 0
