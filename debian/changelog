@@ -1,11 +1,14 @@
 linuxmuster-linbo7 (4.2.12-0) lmn72; urgency=low
 
-  * add uinput module to kernel configurations (c3395d8).
-  * add noinstall option to modules build script (774f905).
-  * minor fixes in in harvest-app.sh (3e2bd31, d6d4843).
-  * filter bad lines from linbofs environment file (a9f74a9).
+  * development:
+    - add noinstall option to modules build script (774f905).
+    - harvest-app.sh fixes (3e2bd31, d6d4843, 0f85334).
+    - add script app2initramfs.sh to build environment (0328579).
+  * maintenance:
+    - add uinput module (c3395d8, f23c2f9).
+    - filter bad lines from linbofs environment file (a9f74a9).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 07 Dec 2023 15:06:20 +0000
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 07 Dec 2023 19:58:05 +0100
 
 linuxmuster-linbo7 (4.2.11-0) lmn72; urgency=low
 
