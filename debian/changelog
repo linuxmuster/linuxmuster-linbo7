@@ -1,3 +1,9 @@
+linuxmuster-linbo7 (4.2.12-0) lmn72; urgency=low
+
+  * add uinput module to kernel configurations. (c3395d8).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 05 Dec 2023 06:37:01 +0000
+
 linuxmuster-linbo7 (4.2.11-0) lmn72; urgency=low
 
   * initiate a warm reboot bypassing the grub menu if kexec warmstart is switched off (5635826).
