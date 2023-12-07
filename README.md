@@ -386,7 +386,7 @@ KERNELPATH="/path/to/my/kernelimage"
 # path to the corresponding modules directory
 MODULESPATH="/path/to/my/lib/modules/n.n.n"
 ```
-If you want to use the legacy or longterm kernels shipped with Linbo you have to make simply the following entries:
+If you want to use the legacy (5.15.\*) or longterm (6.1.\*) kernels shipped with Linbo you have to make simply the following entries:
 ```
 # use Linbo's alternative legacy kernel
 KERNELPATH="legacy"
