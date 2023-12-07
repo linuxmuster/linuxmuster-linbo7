@@ -1,11 +1,15 @@
 linuxmuster-linbo7 (4.3.0-0) lmn72-testing; urgency=low
 
-  * fix app harvesting script (9b42592, 06cffc7).
-  * add noinstall option to modules build script (7b6de80).
-  * add uinput module to kernel configurations and linbofs (5302136, a28dc85).
-  * filter bad lines from linbofs environment file (c50a4a9).
+  * development:
+    - fix app harvesting script (9b42592, 06cffc7, d040026).
+    - add script app2initramfs.sh to build environment (67555b9).
+    - add noinstall option to modules build script (7b6de80).
+  * improvements:
+    - add uinput module to kernel configurations and linbofs (5302136, a28dc85).
+    - filter bad lines from linbofs environment file (c50a4a9).
+    - implement framebuffer vncserver (#104).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 06 Dec 2023 16:37:18 +0000
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 07 Dec 2023 19:41:59 +0100
 
 linuxmuster-linbo7 (4.2.11-0) lmn72; urgency=low
 
