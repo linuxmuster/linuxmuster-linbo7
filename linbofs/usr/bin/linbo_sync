@@ -2,7 +2,7 @@
 #
 # linbo_sync
 # thomas@linuxmuster.net
-# 20231102
+# 20240123
 #
 
 
@@ -135,7 +135,13 @@ cp_image(){
 
   # restore
   qemu-nbd --disconnect /dev/nbd0 >> /tmp/image.log
-  interruptible qemu-img convert -p -f "$imagetype" -O raw "$imagefile" "$targetdev" | tee -a /tmp/image.log
+  # evaluate sync mode
+  case "$RESTOREMODE" in
+    dd) sync_cmd="qemu-img dd -f $imagetype -O raw bs=8M if=$imagefile of=$targetdev" ;;
+    ooo) sync_cmd="qemu-img convert -W -p -f $imagetype -O raw $imagefile $targetdev" ;;
+    *) sync_cmd="qemu-img convert -p -f $imagetype -O raw $imagefile $targetdev" ;;
+  esac
+  interruptible $sync_cmd | tee -a /tmp/image.log
   RC="$?"
   if [ "$RC" != "0" ]; then
     echo "Restore with $imagefile failed!"
