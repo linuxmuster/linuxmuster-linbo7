@@ -9,5 +9,5 @@ LONGTERM="6.1"
 LEGACY="5.15"
 
 # get current versions from kernel.org
-KVERSIONS="$(wget -q https://kernel.org -O - | grep tarball | grep -o "$STABLE.[0-9]*\|$LONGTERM.[0-9]*\|$LEGACY.[0-9]*")"
+KVERSIONS="$(wget -q https://kernel.org -O - | grep tarball | grep "linux-$STABLE\|linux-$LONGTERM\|linux-$LEGACY" | grep -o "$STABLE.[0-9]*\|$LONGTERM.[0-9]*\|$LEGACY.[0-9]*")"
 KVERSARRAY=($KVERSIONS)

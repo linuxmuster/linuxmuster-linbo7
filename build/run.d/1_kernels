@@ -3,7 +3,7 @@
 # download and build kernels
 #
 # thomas@linuxmuster.net
-# 20231204
+# 20240123
 #
 
 # read build environment
@@ -46,7 +46,7 @@ for kvers in ${KVERSARRAY[@]}; do
     diff -q "$kcfg" "$ksrc/.config" || diff="yes"
 
     # compile or not compile the kernel
-    if [ -s "$kimg" -a -d "$kmoddir" -a -z "$diff" ]; then
+    if [ -s "$kimg" -a -s "$klinbo" -a -d "$kmoddir" -a -z "$diff" ]; then
         echo "Kernelimage and modules exist and config has not changed, skipping compilation."
     else
         # copy kernel config file
@@ -59,7 +59,7 @@ for kvers in ${KVERSARRAY[@]}; do
         # make
         rm -f "$klinbo"
         make $J_OPT bzImage modules || exit 1
-        cp "$kimg" "$klinbo"
+        cp "$kimg" "$klinbo" || exit 1
         # remove initramfs config link
         rm -f "$kroot/initramfs_kernel.conf"
         # remove old modules
