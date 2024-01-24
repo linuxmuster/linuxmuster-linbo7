@@ -317,6 +317,8 @@ i915 0000:00:02.0: [drm] DMC firmware homepage: https://git.kernel.org/pub/scm/l
 ```
 In this case you have to add the line "i915/kbl_dmc_ver1_04.bin" to the firmware configuration file. Finally you have to invoke `update-linbofs` on the server terminal to add the firmware file to the linbofs archive.
 
+Note: If loaded wifi firmware leads to a non functional wifi adapter within a warm booted linux os, switch off warmstart by using the `nowarmstart` kernel option (see above).
+
 ## Wifi support
 From version 4.2.0 Linbo is able to use wireless networks. For this purpose the program [wpa_supplicant](https://w1.fi/wpa_supplicant/) was integrated.
 To use this feature you first have to examine whether the built-in wireless network adapter misses any firmware (see the above section).
