@@ -81,8 +81,13 @@ Note:
 ## New kernel parameters
 Parameter  |  Description
 --|--
-nogui  |  Does not start linbo_gui (for debugging purposes), console only mode.
-nowarmstart  |  Suppresses linbo warmstart after downloading a new linbo kernel from the server (in case warmstart causes problems). Note: The old parameter `warmstart=no` is still functional for compatibility reasons.
+`nogui`  |  Does not start linbo_gui (for debugging purposes), console only mode.
+`nowarmstart`  |  Suppresses linbo warmstart after downloading a new linbo kernel from the server (in case warmstart causes problems). Note: The old parameter `warmstart=no` is still functional for compatibility reasons.
+`restoremode`  |  Allows to control the writing performance of qemu-img when restoring whole partitions according to certain storage hardware.
+               |  * `restoremode=dd`  
+               |    Uses the dd mode of qemu-img, may improve performance writing to certain nvme disks.  
+               |  * `restoremode=ooo`  
+               |    Uses the out-of-order mode of qemu-img. This option may improve performance with other raw block devices.
 
 ## Improved LINBO server scripts
 
