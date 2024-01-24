@@ -1,3 +1,13 @@
+linuxmuster-linbo7 (4.2.13-0) lmn72; urgency=low
+
+  * kernel build fix (508105c). 
+  * update stable kernel to 6.7.1 (717a3c1).
+  * update legacy kernel to 5.15.147 (45688d2).
+  * update longterm kernel to 6.1.74 (410d019).
+  * add restoremode kernel option to control the restore performance of qemu-img (5719b27).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 23 Jan 2024 16:43:52 +0100
+
 linuxmuster-linbo7 (4.2.12-0) lmn72; urgency=low
 
   * development:
