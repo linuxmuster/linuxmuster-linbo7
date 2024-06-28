@@ -1,4 +1,4 @@
-# r8168 build environment
+# r8812au build environment
 #
 # thomas@linuxmuster.net
 # 20231202
@@ -6,5 +6,5 @@
 
 # module source
 R8812NAME="8812au"
-R8812GITNAME="$R8812NAME-20210629"
+R8812GITNAME="$R8812NAME-20210820"
 R8812GITURL="https://github.com/morrownr/${R8812GITNAME}.git"
