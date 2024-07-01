@@ -1,7 +1,7 @@
 # major stable kernelversions to use
 #
 # thomas@linuxmuster.net
-# 20240123
+# 20240701
 #
 
 STABLE="6.9"
