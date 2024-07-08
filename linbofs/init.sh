@@ -128,7 +128,7 @@ do_env(){
     echo "export LINBOSERVER='"${SERVERID}"'" >> /.env
     export LINBOSERVER="${SERVERID}"
   fi
-  if [ -n "$LINBOSERVER" ]; then
+  if [ -n "$SERVERID" ]; then
     # add fqdn to environment
     echo "export FQDN='"${HOSTNAME}.${DOMAIN}"'" >> /.env
     export FQDN="${HOSTNAME}.${DOMAIN}"
