@@ -72,7 +72,7 @@ icons_dir="$gui_dir/icons"
 themes_dir="$gui_dir/themes"
 
 
-if [ -z "$LINBOSERVER" ]; then
+if [ -z "$SERVERID" ]; then
 
   print_status "Cannot get linbo server, continuing offline." | tee -a /tmp/linbo.log
 
