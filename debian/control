@@ -11,7 +11,7 @@ Build-Depends: acl, argon2, bc, binutils, bison, build-essential, ctorrent,
   libnih-dbus1, libowfat-dev, libssl-dev, libz-dev, linux-libc-dev, nasm, ncurses-base,
   netpbm, ntfs-3g, parted, patchutils, perl, plymouth-label, qemu-utils,
   rsync, systemd, sysvinit-utils, tar, udev, udpcast, unzip, util-linux,
-  uuid-dev, uuid-runtime, wget, wpasupplicant, zlib1g-dev, xz-utils
+  uuid-dev, uuid-runtime, wget, wpasupplicant, zlib1g-dev, xvnc, xz-utils
 
 Package: linuxmuster-linbo7
 Architecture: all
