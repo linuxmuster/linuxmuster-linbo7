@@ -3,7 +3,7 @@ linuxmuster-linbo7 (4.2.14-0) lmn72; urgency=low
   * Merge pull request #115 from hermanntoast/fix-kernel-build.
   * Merge pull request #116 from hermanntoast/fix-linbo-offline-boot:    
     Change offline check from linboserver to serverid
-  * Kernel updates: 5.15.162, 6.1.97 & 6.9.8 (5aace74).
+  * Kernel updates: 5.15.162, 6.1.98 & 6.9.9 (5aace74, ce81bd2).
   * add a framebuffer vncserver to the linbo client (#104).
 
  -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 11 Jul 2024 16:22:12 +0200
