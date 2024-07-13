@@ -1,0 +1,54 @@
+#!/bin/sh
+#
+# linbo_vnc
+# thomas@linuxmuster.net
+# 20231207
+#
+
+# get environment
+source /usr/share/linbo/shell_functions
+
+daemon="/usr/bin/x11vnc"
+pidfile="/run/x11vnc.pid"
+
+start(){
+    echo -n "Starting $(basename $daemon) ... "
+    lsmod | grep -qw uinput || modprobe uinput
+    port="9999"
+    $daemon -rfbport "$port" -rawfb console -allow "$SERVERID" -forever &
+    pid="$!"
+    if [ -n "$pid" ]; then
+        echo "$pid" > "$pidfile"
+        echo "Ok."
+    else
+        echo "failed!"
+        exit 1
+    fi
+}
+
+
+case "$1" in
+    onboot) [ -n "$VNCSERVER" ] && start ;;
+    start)
+        if [ -s "$pidfile" ]; then
+            echo "Pidfile $pidfile found, not starting."
+        else
+            start
+        fi
+        ;;
+    stop)
+        if [ -s "$pidfile" ]; then
+            echo -n "Stopping $(basename $daemon) ... "
+            kill "$(cat $pidfile)"
+            rm -f "$pidfile"
+            echo "Ok."
+        else
+            echo "No pidfile found, not stopping."
+        fi
+        ;;
+    *)
+        echo "Usage: linbo_vnc <onboot|start|stop>"
+        ;;
+esac
+
+exit 0
