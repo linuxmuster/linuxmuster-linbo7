@@ -1,8 +1,9 @@
 linuxmuster-linbo7 (4.3.0-0) lmn72; urgency=low
 
+  * change release name to "Psycho Killer".
   * add a framebuffer vncserver to the linbo client (#104).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 13 Jul 2024 14:08:00 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sun, 14 Jul 2024 14:48:30 +0200
 
 linuxmuster-linbo7 (4.2.14-0) lmn72; urgency=low
 
