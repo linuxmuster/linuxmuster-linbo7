@@ -2,7 +2,7 @@
 #
 # linbo_vnc
 # thomas@linuxmuster.net
-# 20231207
+# 20240715
 #
 
 # get environment
@@ -15,7 +15,7 @@ start(){
     echo -n "Starting $(basename $daemon) ... "
     lsmod | grep -qw uinput || modprobe uinput
     port="9999"
-    $daemon -rfbport "$port" -rawfb console -allow "$SERVERID" -forever &
+    $daemon -rfbport "$port" -rawfb console -allow "$SERVERID" -forever -nopw &
     pid="$!"
     if [ -n "$pid" ]; then
         echo "$pid" > "$pidfile"
