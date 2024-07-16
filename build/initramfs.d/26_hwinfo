@@ -1,0 +1,5 @@
+# /usr/sbin/hwinfo
+
+file /usr/sbin/hwinfo /usr/sbin/hwinfo 755 0 0
+file /lib/libhd.so.21 /lib/x86_64-linux-gnu/libhd.so.21 755 0 0
+file /lib/libx86emu.so.3 /lib/x86_64-linux-gnu/libx86emu.so.3 755 0 0
