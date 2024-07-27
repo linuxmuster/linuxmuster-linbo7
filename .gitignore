@@ -1,5 +1,6 @@
 .directory
 .debhelper
+.vscode
 *.bak
 *.log
 build-stamp
