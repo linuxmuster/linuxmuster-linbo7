@@ -4,7 +4,7 @@
 # (C) Klaus Knopper 2007
 # License: GPL V2
 # thomas@linuxmuster.net
-# 20230724
+# 20240720
 #
 
 # Reset fb color mode
@@ -23,8 +23,12 @@ if [ -x "/sbin/plymouthd" -a -n "$SPLASH" ]; then
   fi
 fi
 
+# send clients hwinfo
+[ -s /tmp/hwinfo.gz ] && sendlog /tmp/hwinfo.gz
+
 # update & extract linbo_gui, disabled since there is no compatible version for 22.04
-linbo_update_gui
+linbo_update_gui | tee -a /tmp/linbo.log
+sendlog
 
 # DEBUG mode
 if [ -n "$DEBUG" ]; then
@@ -48,18 +52,19 @@ if [ -s /usr/bin/linbo_gui ]; then
   plymouth quit &> /dev/null
   export XKB_DEFAULT_LAYOUT=de
   /usr/bin/linbo_gui -platform linuxfb
+  sendlog
 
 else # handle missing gui problem
 
   plymouth quit
   if [ -n "$DEBUG" ]; then
-    echo "Starting DEBUG shell."
+    echo "Starting DEBUG shell." | tee -a /tmp/linbo.log
     ash >/dev/tty1 2>&1 < /dev/tty1
   else
     export myname="| Name: $HOSTNAME"
     source /.profile
-    echo "Console boot menue of group $HOSTGROUP"
-    echo "----------------------------------------"
+    echo "Console boot menue of group $HOSTGROUP" | tee -a /tmp/linbo.log
+    echo "----------------------------------------" | tee -a /tmp/linbo.log
     count=0
     for item in /conf/os.*; do
       [ -s "$item" ] || continue
@@ -67,14 +72,15 @@ else # handle missing gui problem
       source "$item"
       [ -z "$name" ] && continue
       count=$(( count + 1 ))
-      echo "[$count] Start $name"
+      echo "[$count] Start $name" | tee -a /tmp/linbo.log
       count=$(( count + 1 ))
-      echo "[$count] Sync & start $name"
+      echo "[$count] Sync & start $name" | tee -a /tmp/linbo.log
     done
-    echo "----------------------------------------"
-    echo "[R] Reboot"
-    echo "[S] Shutdown"
+    echo "----------------------------------------" | tee -a /tmp/linbo.log
+    echo "[R] Reboot" | tee -a /tmp/linbo.log
+    echo "[S] Shutdown" | tee -a /tmp/linbo.log
     echo
+    sendlog
     while true; do
       answer=$(stty -icanon -echo; dd ibs=1 count=1 2>/dev/null)
       case "$answer" in
