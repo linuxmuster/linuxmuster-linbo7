@@ -2,7 +2,7 @@
 #
 # linbo_auth
 # thomas@linuxmuster.net
-# 20230210
+# 20240727
 #
 
 usage(){
@@ -40,6 +40,6 @@ else
   msg="No password file available!"; RC=2
 fi
 
-echo "$msg"
+echo "$msg" | tee -a /tmp/linbo.log
 
 exit "$RC"
