@@ -530,7 +530,7 @@ network(){
 # HW Detection
 hwsetup(){
   rm -f /tmp/linbo-cache.done
-  echo "## Hardware setup - begin ##" >> /tmp/linbo.log
+  #echo "## Hardware setup - begin ##" >> /tmp/linbo.log
 
   #
   # Udev starten
@@ -550,10 +550,11 @@ hwsetup(){
 
   export TERM_TYPE=pts
 
-  dmesg >> /tmp/linbo.log
-  echo "## Hardware setup - end ##" >> /tmp/linbo.log
+  #dmesg >> /tmp/linbo.log
+  #echo "## Hardware setup - end ##" >> /tmp/linbo.log
+  hwinfo | gzip -c > /tmp/hwinfo.gz
 
-  sleep 2
+  #sleep 2
   touch /tmp/linbo-cache.done
 }
 
@@ -569,11 +570,11 @@ echo
 echo "Initializing hardware ..."
 echo
 if [ -n "$quiet" ]; then
-  init_setup &> /dev/null
-  hwsetup &> /dev/null
+  init_setup 2>&1 >> /tmp/linbo.log
+  hwsetup 2>&1 >> /tmp/linbo.log
 else
-  init_setup
-  hwsetup
+  init_setup | tee -a /tmp/linbo.log
+  hwsetup | tee -a /tmp/linbo.log
 fi
 
 # start plymouth boot splash daemon
@@ -584,7 +585,7 @@ if grep -qiw splash /proc/cmdline; then
 fi
 
 # do network setup
-network
+network | tee -a /tmp/linbo.log
 
 # execute linbo commands given on commandline
 if [ -n "$linbocmd" ]; then
@@ -598,6 +599,7 @@ if [ -n "$linbocmd" ]; then
       msg="linbo_wrapper $cmd"
     fi
     print_status "$msg"
+    echo "$msg" >> /tmp/linbo.log
     /usr/bin/linbo_wrapper "$cmd" | while read line; do
       line="${line/---/}"
       print_status "$line"
