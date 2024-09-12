@@ -2,7 +2,7 @@
 #
 # Pre-Download script for rsync/LINBO
 # thomas@linuxmuster.net
-# 20230209
+# 20240720
 #
 
 # read in linuxmuster specific environment
@@ -79,38 +79,20 @@ case $EXT in
   ;;
 
   # fetch logfiles from client
-  log)
-    host_logfile="$(basename "$FILE")"
-    echo "Upload request for $host_logfile."
-    src_logfile="$(echo "$FILE" | sed -e "s|$LINBODIR/tmp/${compname}_|/tmp/|I")"
-    tgt_logfile="$LINBOLOGDIR/$host_logfile"
-    linbo-scp -v "${RSYNC_HOST_ADDR}:$src_logfile" "$FILE" || RC="1"
+  log|status|gz)
+    targetfile="$LINBOLOGDIR/${RSYNC_HOST_NAME%%.*}_$(basename "$FILE")"
+    sourcefile="$(echo "$FILE" | sed -e "s|$LINBODIR||")"
+    echo "Upload request for $FILE."
+    linbo-scp -v "${RSYNC_HOST_ADDR}:$sourcefile" "$FILE" || RC="1"
     if [ -s "$FILE" ]; then
-      echo "## Log session begin: $(date) ##" >> "$tgt_logfile"
-      cat "$FILE" >> "$tgt_logfile"
-      echo "## Log session end: $(date) ##" >> "$tgt_logfile"
-    fi
-    rm -f "$FILE"
-    touch "$FILE"
-  ;;
-
-  # fetch image status from client
-  status)
-    host_logfile="$(basename "$FILE")"
-    echo "Upload request for $host_logfile."
-    src_logfile="$(echo "$FILE" | sed -e "s|$LINBODIR/tmp/${compname}_|/tmp/|I")"
-    tgt_logfile="$LINBOLOGDIR/$host_logfile"
-    linbo-scp -v "${RSYNC_HOST_ADDR}:$src_logfile" "$FILE" || RC="1"
-    if [ -s "$FILE" ]; then
-      if [ -s "$tgt_logfile" ]; then
-        # remove older entry for image
-        image="$(cat "$FILE" | awk '{ print $3 }')"
-        [ -n "$image" ] && sed -i "/$image/d" "$tgt_logfile"
+      if [ "$EXT" = "log" ]; then
+        cat "$FILE" >> "$targetfile"
+      else
+        cp "$FILE" "$targetfile"
       fi
-      cat "$FILE" >> "$tgt_logfile"
+      rm -f "$FILE"
+      touch "$FILE"
     fi
-    rm -f "$FILE"
-    touch "$FILE"
   ;;
 
   # patch image registry files with sambadomain if necessary
