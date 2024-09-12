@@ -2,7 +2,7 @@
 #
 # linbo_download
 # thomas@linuxmuster.net
-# 20230124
+# 20240727
 #
 
 usage(){
@@ -41,7 +41,7 @@ IMPORTANT="$2"
 
 # downloads files from server into current directory
 RC=1
-[ -n "$IMPORTANT" ] && echo "RSYNC Download $LINBOSERVER -> $FILE..."
+[ -n "$IMPORTANT" ] && echo "RSYNC Download $LINBOSERVER -> $FILE..." | tee -a /tmp/linbo.log
 rm -f "$TMP"
 TARGET="$(basename $FILE)"
 # ensure target dir exists
@@ -52,8 +52,8 @@ if [ "$RC" != "0" ]; then
   rm -f "$FILE" 2>/dev/null
   if [ -n "$IMPORTANT" ]; then
     # Verbose error message if file was important
-    cat "$TMP" >&2
-    echo "File $FILE could not be downloaded." >&2
+    cat "$TMP" | tee -a /tmp/linbo.log
+    echo "File $FILE could not be downloaded." | tee -a /tmp/linbo.log
   fi
 fi
 rm -f "$TMP"
