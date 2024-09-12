@@ -1,7 +1,7 @@
 # common linbo shell functions
 #
 # thomas@linuxmuster.net
-# 20231201
+# 20240716
 #
 
 set -o pipefail
@@ -218,37 +218,51 @@ killalltorrents(){
 # usage example (logfile parameter is optional): sendlog <name_of_logfile_in_tmp>
 sendlog(){
   local RC="1"
-  local logfiles="$1"
-  local logfile
-  [ -z "$logfiles" ] && logfiles="patch.log linbo.log image.log"
-  local item
-  linbo_mountcache
-  for item in $logfiles; do
-    if [ -s "/tmp/$item" ]; then
-      if localmode; then
-        echo "Saving $item to cache."
-        cat "/tmp/$item" >> "/cache/$item"
-      else
-        [ -e /tmp/linbo-network.done ] || return 0
-        echo "Uploading $item ..."
-        logfile="/tmp/$(hostname)_$item"
-        rsync $LINBOSERVER::linbo"$logfile" "/tmp/$item" 2>&1 || true
-      fi
-    fi
-  done
+  local logfile="$1"
+  local logbase
+  local logtmp
+  if [ -z "$logfile" ]; then
+    logfile="/tmp/linbo.log"
+    logtmp="/tmp/tmp.log"
+    echo "### $(date)" > "$logtmp"
+    local item
+    for item in /tmp/*.log; do
+      logbase="$(basename "$item")"
+      echo "### $logbase" >> "$logtmp"
+      cat "$item" >> "$logtmp"
+      rm -f "$item"
+    done
+    mv "$logtmp" "$logfile"
+  else
+    logbase="$(basename "$logfile")"
+  fi
+  [ -s "$logfile" -o -z "$logfile" ] || return
+  if localmode; then
+    linbo_mountcache || return
+    echo "Saving $logfile to cache."
+    mv "$logfile" >> "/cache/$logbase)"
+  else
+    #[ -e /tmp/linbo-network.done ] || return 0
+    echo "Uploading $logbase ..."
+    rsync "$LINBOSERVER::linbo/$logfile" /tmp/dummy 2>&1 || true
+    rm -f "$logfile"
+  fi
 }
 
 
-# write hosts image status to logfile
+# write hosts image status to logfile and send it to server
 # usage (flag can be "applied" or empty): log_image_status image timestamp flag
 log_image_status(){
+  local status
+  local logfile
   if [ "$3" = "applied" ]; then
     status="$(date +%Y%m%d%H%M) $3: $1 $2"
   else
     status="$2 created: $1 $2"
   fi
-  echo "$status" | tee /tmp/image.status
-  sendlog image.status
+  logfile="/tmp/image.status"
+  echo "$status" | tee "$logfile"
+  sendlog "$logfile"
 }
 
 
