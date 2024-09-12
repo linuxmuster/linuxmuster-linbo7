@@ -3,7 +3,7 @@
 # linbo_bitmask [help]
 # prints netmask
 # thomas@linuxmuster.net
-# 20220610
+# 20240727
 #
 
 usage(){
@@ -17,6 +17,6 @@ usage(){
 
 [ "$1" = "help" ] && usage
 
-linbo_netmask -b
+linbo_netmask -b | tee -a /tmp/linbo.log
 
 exit $?
