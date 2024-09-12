@@ -2,7 +2,7 @@
 #
 # linbo_create_image
 # thomas@linuxmuster.net
-# 20230215
+# 20240912
 #
 
 
@@ -159,6 +159,7 @@ mk_diffimage(){
     echo "$baseimage is not connectable!"
     return 1
   fi
+  sleep 5
   if ! mount /dev/nbd0 /image; then
     echo "$baseimage is not mountable!"
     qemu-nbd --disconnect /dev/nbd0
