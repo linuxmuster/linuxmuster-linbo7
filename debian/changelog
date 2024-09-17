@@ -1,11 +1,20 @@
-linuxmuster-linbo7 (4.3.0-0) lmn72; urgency=low
+linuxmuster-linbo7 (4.3.0-0) lmn72-testing; urgency=low
 
   * change release name to "Psycho Killer" (b317edd).
   * add a framebuffer vncserver to the linbo client (#104).
-  * longterm kernel update to 6.1.99 (edc26b5).
+  * update legacy kernel to 5.15.167 (d4428cb).
+  * update longterm kernel to 6.1.110 (8d9cfd4).
+  * update stable kernel to 6.10.10 (d606c1c).
   * add nopw option to linbo_vnc (10a40ef, #104).
+  * add hwinfo to linbo client (#117).
+  * fix scraping kernel versions (d773bb8).
+  * add rfkill to linbofs (5513eb3).
+  * update github package upload (d31ae19).
+  * improve linbo client logging (3b468fa...aab2b33, 1ef6c08, f5a9d1b).
+  * fix differential image creation (#119).
+  * linbo_size commands for disk and cache partition (#121).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 15 Jul 2024 14:23:54 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 17 Sep 2024 13:09:58 +0200
 
 linuxmuster-linbo7 (4.2.14-0) lmn72; urgency=low
 
