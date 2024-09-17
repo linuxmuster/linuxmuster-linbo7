@@ -1,7 +1,7 @@
 # common linbo shell functions
 #
 # thomas@linuxmuster.net
-# 20240716
+# 20240916
 #
 
 set -o pipefail
@@ -227,6 +227,7 @@ sendlog(){
     echo "### $(date)" > "$logtmp"
     local item
     for item in /tmp/*.log; do
+      [ "$item" = "$logtmp" ] && continue 
       logbase="$(basename "$item")"
       echo "### $logbase" >> "$logtmp"
       cat "$item" >> "$logtmp"
@@ -236,7 +237,8 @@ sendlog(){
   else
     logbase="$(basename "$logfile")"
   fi
-  [ -s "$logfile" -o -z "$logfile" ] || return
+  [ -s "$logfile" ] || return
+  [ -z "$logbase" -o -z "$logfile" ] && return
   if localmode; then
     linbo_mountcache || return
     echo "Saving $logfile to cache."
