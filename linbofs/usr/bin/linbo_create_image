@@ -2,7 +2,7 @@
 #
 # linbo_create_image
 # thomas@linuxmuster.net
-# 20240912
+# 20240917
 #
 
 
@@ -159,7 +159,7 @@ mk_diffimage(){
     echo "$baseimage is not connectable!"
     return 1
   fi
-  sleep 5
+  sleep 3
   if ! mount /dev/nbd0 /image; then
     echo "$baseimage is not mountable!"
     qemu-nbd --disconnect /dev/nbd0
@@ -169,6 +169,7 @@ mk_diffimage(){
   qemu-nbd --disconnect /dev/nbd0
   # create new diffimage
   if [ ! -e "$imagefile" ]; then
+    local new="yes"
     if ! qemu-img create -f qcow2 -b "$baseimage" -F qcow2 "$imagefile"; then
       echo "Creation of $imagefile failed!"
       return 1
@@ -177,12 +178,15 @@ mk_diffimage(){
   # connect imagefile to nbd device
   if ! qemu-nbd --connect /dev/nbd0 "$imagefile"; then
     echo "$imagefile is not connectable!"
+    [ -n "$new" ] && rm -f "$imagefile"
     return 1
   fi
+  sleep 3
   # mount image filesystem
   if ! mount /dev/nbd0 /image; then
     qemu-nbd --disconnect /dev/nbd0
     echo "Fatal! $imagefile is not mountable"
+    [ -n "$new" ] && rm -f "$imagefile"
     return 1
   fi
   echo "Start syncing differences of $rootdev -> $imagefile."
