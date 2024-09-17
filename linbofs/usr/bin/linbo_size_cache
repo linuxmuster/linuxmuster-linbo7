@@ -1,0 +1,11 @@
+#!/bin/sh
+#
+# linbo_size_cache
+# thomas@linuxmuster.net
+# 20240917
+#
+
+# read common shell functions
+source /usr/share/linbo/shell_functions
+
+linbo_size "$cache" || exit 1
