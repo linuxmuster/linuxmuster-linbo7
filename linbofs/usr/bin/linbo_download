@@ -2,7 +2,7 @@
 #
 # linbo_download
 # thomas@linuxmuster.net
-# 20240727
+# 20240916
 #
 
 usage(){
@@ -13,7 +13,7 @@ usage(){
   echo "Usage: linbo_download [server ip] <file|dir> [important] | [help]"
   echo
   echo "Note:"
-  echo "* \"server ip\" is deprecated and can be ommitted."
+  echo "* \"server ip\" is depreMcated and can be ommitted."
   echo "* \"important\" increases verbosity."
   echo "* Use a trailing slash with \"dir\" to download a directory recursively."
   echo
@@ -42,19 +42,16 @@ IMPORTANT="$2"
 # downloads files from server into current directory
 RC=1
 [ -n "$IMPORTANT" ] && echo "RSYNC Download $LINBOSERVER -> $FILE..." | tee -a /tmp/linbo.log
-rm -f "$TMP"
 TARGET="$(basename $FILE)"
 # ensure target dir exists
 [ "${TARGET: -1}" = "/" ] && mkdir -p "$TARGET"
-interruptible rsync --skip-compress="$RSYNC_SKIP_COMPRESS" -HaLz --partial --progress "$LINBOSERVER::linbo/$FILE" "$TARGET" 2>"$TMP"; RC="$?"
+interruptible rsync --skip-compress="$RSYNC_SKIP_COMPRESS" -HaLz --partial --progress "$LINBOSERVER::linbo/$FILE" "$TARGET" 2>&1 | tee -a /tmp/linbo.log; RC="$?"
 if [ "$RC" != "0" ]; then
   # Delete incomplete/defective/non-existent file (maybe we should check for returncode=23 first?)
   rm -f "$FILE" 2>/dev/null
   if [ -n "$IMPORTANT" ]; then
     # Verbose error message if file was important
-    cat "$TMP" | tee -a /tmp/linbo.log
     echo "File $FILE could not be downloaded." | tee -a /tmp/linbo.log
   fi
 fi
-rm -f "$TMP"
 exit "$RC"
