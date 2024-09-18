@@ -154,9 +154,11 @@ initcache:<dltype>       : Updates local cache. <dltype> is one of
                            If dltype is not specified it is read from
                            start.conf.
 sync:<#>                 : Syncs the operating system on position nr <#>.
+postsync:<#>             : Invokes postsync script of the os on position nr <#>.
 new:<#>                  : Clean sync of the operating system on position nr <#>
                            (formats the according partition before).
 start:<#>                : Starts the operating system on pos. nr <#>.
+prestart:<#>             : Invokes prestart script of the os on position nr <#>.
 create_image:<#>:<"msg"> : Creates a full image from operating system nr <#>.
 upload_image:<#>         : Uploads a full image from operating system nr <#>.
 create_qdiff:<#>:<"msg"> : Creates a differential image from operating system nr <#>.
