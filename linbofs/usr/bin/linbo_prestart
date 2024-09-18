@@ -1,0 +1,65 @@
+#!/bin/sh
+#
+# linbo_prestart <#> | <root> <prestart filename> | [help]
+# thomas@linuxmuster.net
+# 20240918
+#
+
+# read common shell functions
+source /usr/share/linbo/shell_functions
+
+
+# usage info
+usage(){
+  local RC="$1"
+  [ -z "$RC" ] && RC="0"
+  echo
+  echo "Applies a prestart script to an operating system."
+  echo
+  echo "Usage: linbo_prestart <#> | <root> <prestart filename> | [help]"
+  echo
+  echo "Examples:"
+  echo "  ~ # linbo_prestart 1"
+  echo "  ~ # linbo_prestart /dev/sda3 ubuntu2204.prestart"
+  echo
+  echo "The target operating system is either defined by start.conf position number"
+  echo "or by root partition devicename and prestart filename."
+  echo
+  exit "$RC"
+}
+
+
+# help
+[ "$1" = "help" ] && usage
+
+# os number is given
+if isinteger "$1"; then
+    osconf="/conf/os.$1"
+    [ -s "$osconf" ] || usage 1
+    source "$osconf"
+    [ -z "$baseimage" ] && usage 1
+    prestart="/cache/${baseimage%%.*}.prestart"
+
+# root partition and prestart file are given
+else
+    [ "${2##*.}" = "prestart" ] || usage 1
+    root="$1"
+    prestart="/cache/$2"
+fi
+
+
+# test options
+[ -b "$root" ] || usage 1
+linbo_mountcache
+[ -s "$prestart" ] || usage 1
+linbo_mount "$root" /mnt || usage 1
+
+
+RC="0"
+
+# apply prestart
+source "$prestart" || RC="1"
+
+umount /mnt || RC="1"
+
+exit "$RC"
