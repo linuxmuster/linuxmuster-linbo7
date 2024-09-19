@@ -26,6 +26,9 @@ fi
 # send clients hwinfo
 [ -s /tmp/hwinfo.gz ] && sendlog /tmp/hwinfo.gz
 
+# collect firmware infos
+dmesg | grep firmware > /tmp/firmware.log
+
 # update & extract linbo_gui, disabled since there is no compatible version for 22.04
 linbo_update_gui | tee -a /tmp/linbo.log
 sendlog
