@@ -1,3 +1,13 @@
+linuxmuster-linbo7 (4.3.2-0) lmn72-testing; urgency=low
+
+  * add r8125 driver for Realtek 2.5G Ethernet adapter (ae4187e).
+  * fix module path for r8168 (72f3a8b).
+  * update longterm kernel to 6.1.111 (8c14f8f).
+  * update stable kernel to 6.10.11 (89f9eea).
+  * additionally log client's firmware info (d7e53c0).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 19 Sep 2024 19:17:26 +0200
+
 linuxmuster-linbo7 (4.3.1-0) lmn72-testing; urgency=low
 
   *  add linbo-remote parameters for postsync and prestart scripts (#108).
