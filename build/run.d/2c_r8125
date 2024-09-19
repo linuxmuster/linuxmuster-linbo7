@@ -1,0 +1,58 @@
+#!/bin/bash
+#
+# thomas@linuxmuster.net
+# 20240919
+#
+
+# read build environment
+for item in build/conf.d/*; do source "$item" || exit 1; done
+
+# iterate over kernels
+for kvers in ${KVERSARRAY[@]}; do
+
+    # get kernel name & version
+    cd "$BUILDROOT"
+    source "$KNAMES"
+    echo "Processing $R8125NAME module for kernel $kvers ..."
+
+    r8125dir="$kextmod/$R8125NAME"
+    r8125src="$r8125dir/src"
+    r8125mod="$r8125src/$R8125NAME.ko"
+
+    # compile r8125 only if it is not already there
+    if [ -s "$r8125mod" ]; then
+
+        echo " * Skipping r8125 build."
+
+    else
+
+        # get r8125
+        echo "Cloning $R8125NAME source ..."
+        rm -rf "$r8125dir"
+        cd "$kextmod"
+        git clone "$R8125GITURL" || exit 1
+        cd "$r8125dir"
+        # apply patches
+        if [ -d "$R8125PATCHDIR/$kname" ]; then
+            for item in $R8125PATCHDIR/$kname/*.patch; do
+                echo " * Applying $(basename $item) ..."
+                patch -p1 < "$item" || exit 1
+            done
+        fi
+
+        # compile r8125
+        echo " * Compiling $R8125NAME ..."
+        cd "$r8125src" || exit 1
+        make $J_OPT -C "$ksrc" M="$(pwd)" modules
+        [ -s "$r8125mod" ] || exit 1
+
+    fi
+
+    [ "$1" = "noinstall" ] && continue
+
+    # install r8125
+    r8125target="$kmoddir/kernel/drivers/net/ethernet/realtek/$(basename "$r8125mod")"
+    echo " * Installing $R8125NAME ..."
+    cp "$r8125mod" "$r8125target" || exit 1
+
+done

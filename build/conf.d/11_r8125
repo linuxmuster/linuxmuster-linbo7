@@ -1,0 +1,14 @@
+# r8125 build environment
+#
+# thomas@linuxmuster.net
+# 20240919
+#
+
+# read build environment
+source build/conf.d/0_general
+
+# module source
+R8125NAME="r8125"
+R8125URL="https://github.com/aravance/$R8125NAME"
+R8125GITURL="$R8125URL.git"
+R8125PATCHDIR="$BUILDPATCHES/$R8125NAME"
