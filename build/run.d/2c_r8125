@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # thomas@linuxmuster.net
-# 20240919
+# 20240920
 #
 
 # read build environment
@@ -20,7 +20,7 @@ for kvers in ${KVERSARRAY[@]}; do
     r8125mod="$r8125src/$R8125NAME.ko"
 
     # compile r8125 only if it is not already there
-    if [ -s "$r8125mod" ]; then
+    if [ -s "$r8125mod" -o -s "$kmodarc" ]; then
 
         echo " * Skipping r8125 build."
 
