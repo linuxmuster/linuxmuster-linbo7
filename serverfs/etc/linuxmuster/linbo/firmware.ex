@@ -18,3 +18,6 @@ rtlwifi/rtl8821aefw.bin
 
 # Intel Wi-Fi 6 AX200 firmware (single file only)
 iwlwifi-cc-a0-77.ucode
+
+# use custom firmware (requires absolute path)
+/root/linux-firmware/rtw88/rtw88/rtw8822c_fw.bin
