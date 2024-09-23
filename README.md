@@ -223,9 +223,12 @@ Note:
  * Recreates the Linbo filesystem and integrates various system specific customizations:
    * the linbo password hash (password taken from `/etc/rsyncd.secrets`),
    * the ssh public key of the server's root user,
-   * the kernel defined in `/etc/linuxmuster/linbo/custom_kernel` (see [Integrate your own kernel](https://github.com/linuxmuster/linuxmuster-linbo7/blob/main/README.md#integrate-your-own-kernel),
-   * firmware defined in `/etc/linuxmuster/linbo/firmware` (see [Adding firmware](https://github.com/linuxmuster/linuxmuster-linbo7/blob/main/README.md#adding-firmware)).
- * creates an ISO file under `/srv/linbo/linbo.iso` that allows you to create a bootable Linbo USB stick.
+   * the kernel defined in `/etc/linuxmuster/linbo/custom_kernel` (see [Integrate your own kernel](https://github.com/linuxmuster/linuxmuster-linbo7/blob/main/README.md#integrate-your-own-kernel)),
+   * firmware defined in `/etc/linuxmuster/linbo/firmware` (see [Adding firmware](https://github.com/linuxmuster/linuxmuster-linbo7/blob/main/README.md#adding-firmware)),
+   * your own Linbo boot scripts (see [Execute your own boot scripts](https://github.com/linuxmuster/linuxmuster-linbo7#execute-your-own-boot-scripts)),
+   * your own linbofs modifications (see [Customize the Linbo filesystem](https://github.com/linuxmuster/linuxmuster-linbo7#customize-the-linbo-filesystem)).
+ * Creates an ISO file under `/srv/linbo/linbo.iso` that allows you to create a bootable Linbo USB stick.
+ * Allows to trigger custom actions on the server after `update-linbofs` has done it's job. Therefore you place a corresponding script in the directory `/var/lib/linuxmuster/hooks/update-linbofs.post.d`. Don't forget to make the script executable.
 
 ## Improved LINBO client shell
 
@@ -390,6 +393,18 @@ Perform the following 4 steps to execute your own boot script during the linbo-c
     ```
     The content of this file will be appended to the inittab in the linbo filesystem by `update-linbofs`. In the example the init process will wait until the script has been completed. For more information about inittab see https://manpages.debian.org/unstable/sysvinit-core/inittab.5.en.html.  
 4. Apply your changes to the linbo filesystem by executing `update-linbofs`.
+
+## Customize the Linbo filesystem
+In reference to the section before you are able to customize the Linbo filesystem according to your needs by placing a corresponding script in the directory `/var/lib/linuxmuster/hooks/update-linbofs.pre.d`. For example you want to place a file `r8125.conf` in the directory `/etc/modprobe.d` on the Linbo filesystem. Therefore your customize script should contain something like:
+```
+#!/bin/sh
+
+# path relative to linbofs root directory
+mkdir -p etc/modprobe.d
+
+# copy your file
+cp /root/r8125.conf etc/modprobe.d
+```
 
 ## Integrate your own kernel
 From Linbo version 4.2.4 you can integrate an alternative kernel into the Linbo file system. Simply create a file under `/etc/linuxmuster/linbo/custom_kernel` and define the paths to the kernel image and the modules directory:
