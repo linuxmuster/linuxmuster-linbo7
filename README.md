@@ -219,6 +219,14 @@ Note:
 * To watch the output of a multicast tmux session you have to follow its logfile:  
   `tail -f /var/log/linuxmuster/linbo/ubuntu2004_qdiff_mcast.log`
 
+### update-linbofs
+ * Recreates the Linbo filesystem and integrates various system specific customizations:
+   * the linbo password hash (password taken from `/etc/rsyncd.secrets`),
+   * the ssh public key of the server's root user,
+   * the kernel defined in `/etc/linuxmuster/linbo/custom_kernel` (see (https://github.com/linuxmuster/linuxmuster-linbo7/blob/main/README.md#integrate-your-own-kernel),
+   * firmware defined in `/etc/linuxmuster/linbo/firmware` (see (https://github.com/linuxmuster/linuxmuster-linbo7/blob/main/README.md#adding-firmware)).
+ * creates an ISO file under `/srv/linbo/linbo.iso` that allows you to create a bootable Linbo USB stick.
+
 ## Improved LINBO client shell
 
 The improved LINBO client shell not only presents a new login prompt
