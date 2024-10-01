@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20231207
+# 20241001
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -272,7 +272,7 @@ save_winact(){
   # if no activation return
   [ -z "$win_activated" -a -z "$office_activated" ] && return
   # get local mac address
-  local mac="$(linbo_cmd mac | tr a-z A-Z)"
+  local mac="$(linbo_mac | tr a-z A-Z)"
   # do not save if no mac address is available
   if [ -z "$mac" -o "$mac" = "OFFLINE" ]; then
     echo "Cannot determine mac address."
