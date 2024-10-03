@@ -56,7 +56,7 @@ main() {
   esac
 
   # split changed start.conf
-  linbo_split_startconf
+  [ "$2" = "nosplit" ] || linbo_split_startconf
 
   if [ -n "$gui_pid" ]; then
     kill "$gui_pid" || exit 1
