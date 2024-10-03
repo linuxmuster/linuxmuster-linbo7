@@ -2,14 +2,14 @@
 #
 # control linbo_gui: gui_ctl <disable|enable|restore>
 # thomas@linuxmuster.net
-# 20240727
+# 20241003
 #
 
 # test start.conf
 [ -s /start.conf ] || exit 1
 
 # test gui
-gui_ps="$(ps w | grep linbo_gui | grep -v grep | awk '{print $1, $5}')"
+gui_ps="$(ps w | grep "$(which linbo_gui)" | grep -v grep | awk '{print $1, $5}')"
 gui_pid="$(echo "$gui_ps" | awk '{print $1}')"
 
 backup_start_conf() {
@@ -63,4 +63,4 @@ main() {
   fi
 }
 
-main | tee -a /tmp/linbo.log
+main "$1" "$2" | tee -a /tmp/linbo.log
