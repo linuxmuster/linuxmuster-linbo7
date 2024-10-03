@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20241001
+# 20241003
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -157,6 +157,7 @@ init_setup(){
   echo 0 >/proc/sys/kernel/printk
   mount -t sysfs /sys /sys
   mount -t devtmpfs devtmpfs /dev
+  ln -s /proc/self/fd /dev/fd
   if [ -e /etc/udev/links.conf ]; then
     udev_extra_nodes
   fi
