@@ -1,65 +1,53 @@
 #!/bin/sh
 #
-# linbo_cmd - collects all linbo commands for compatibility with legacy linbo_cmd
+# linbo_cmd: legacy command wrapper for the linbo_gui
 #
 # thomas@linuxmuster.net
-# 20231109
+# 20241015
 # GPL v3
 #
+
+prefix="/usr/bin/linbo_"
 
 usage(){
   echo
   echo "Usage: linbo_cmd <command> <options>"
   echo
   echo "Commands are:"
-  grep ') ' "$0" | grep -v usage | awk -F\) '{print $1}'
+  ls -1 ${prefix}* | sed "s|^${prefix}| |g"
   echo
-  echo "For detailed command help invoke: linbo_cmd <command> help"
+  echo "This is only a legacy wrapper for the linbo_gui."
+  echo "Please run the real commands directly:"
   echo
+  echo "linbo_<command> help"
+  echo
+  exit 0
 }
 
-# log linbo_cmd invokations
-echo "$@" >> /tmp/linbo_cmd.log
+[ -z "$1" ] && usage
 
+# get command, substitute outdated commands for legacy reasons
 case "$1" in
-  auth) shift; linbo_auth "$@";;
-  battery) shift; linbo_bat "$@" ;;
-  cpu) shift; linbo_cpu "$@" ;;
-  create) shift; linbo_create_image "$@" ;;
-  ip) shift; linbo_ip "$@";;
-  netmask) shift; linbo_netmask "$@";;
-  bitmask) shift; linbo_bitmask "$@";;
-  hostname) shift; linbo_hostname "$@";;
-  memory) shift; linbo_mem "$@" ;;
-  mac) shift; linbo_mac "$@" ;;
-  size) shift; linbo_size "$@" ;;
-  listimages) shift; linbo_listimages "$@" ;;
-  authenticate) shift; linbo_auth "$@" ;;
-  start) shift; linbo_start "$@" ;;
-  fakestart) shift; linbo_fakestart "$@" ;;
-  label) shift; linbo_label "all" ;;
-  partition_noformat) shift; linbo_partition "$@" ;;
-  partition) shift; linbo_partition_format "$@" ;;
-  preregister) shift; linbo_preregister "$@" ;;
-  download) shift; linbo_download "$@" ;;
-  initcache) shift; linbo_initcache ;;
-  initcache_format) shift; linbo_initcache_format ;;
-  mountcache) shift; linbo_mountcache ;;
-  mount) shift; linbo_mount "$@" ;;
-  fstype) shift; linbo_fstype "$@" ;;
-  readfile) shift; linbo_readfile "$@" ;;
-  ready) shift; linbo_ready "$@" ;;
-  register) shift; linbo_register "$@" ;;
-  sync) shift; linbo_syncstart "$@" ;;
-  syncstart) shift; linbo_syncstart "$@" ;;
-  syncr) shift; linbo_syncstart "$@" ;;
-  synconly) shift; linbo_sync "$@" ;;
-  update) shift; linbo_update "$@" ;;
-  upload) shift; linbo_upload "$@" ;;
-  version) shift; linbo_version "$@" ;;
-  writefile) shift; linbo_writefile "$@" ;;
-  *) usage ;;
+  authenticate) cmd="auth" ;;
+  create) cmd="create_image" ;;
+  label) cmd="$1" ; options="all" ;;
+  memory) cmd="mem" ;;
+  partition) cmd="partition_format" ;;
+  partition_noformat) cmd="partition" ;;
+  sync|syncr) cmd="syncstart" ;;
+  synconly) cmd="sync" ;;
+  *) cmd="$1" ;;
 esac
+shift
 
-# Return returncode
+# test real command
+realcmd="$prefix${cmd}"
+[ -x "$realcmd" ] || usage
+
+# get options
+[ -z "$options" ] && options="$@"
+
+# run real command
+$realcmd $options
+
 exit "$?"
