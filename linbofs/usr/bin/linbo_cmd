@@ -3,7 +3,7 @@
 # linbo_cmd: legacy command wrapper for the linbo_gui
 #
 # thomas@linuxmuster.net
-# 20241015
+# 20241016
 # GPL v3
 #
 
@@ -14,7 +14,7 @@ usage(){
   echo "Usage: linbo_cmd <command> <options>"
   echo
   echo "Commands are:"
-  ls -1 ${prefix}* | sed "s|^${prefix}| |g"
+  ls -1 ${prefix}* | sed "s|^${prefix}| |g" | grep -v cmd | grep -v wrapper
   echo
   echo "This is only a legacy wrapper for the linbo_gui."
   echo "Please run the real commands directly:"
@@ -36,6 +36,7 @@ case "$1" in
   partition_noformat) cmd="partition" ;;
   sync|syncr) cmd="syncstart" ;;
   synconly) cmd="sync" ;;
+  cmd|wrapper) usage ;;
   *) cmd="$1" ;;
 esac
 shift
