@@ -18,7 +18,7 @@ Architecture: all
 Breaks: linuxmuster-linbo-common7
 Conflicts: atftpd, bittorrent, linuxmuster-linbo, linuxmuster-linbo-common,
   linuxmuster-linbo-common7
-Depends: argon2, coreutils, ctorrent, dosfstools, dropbear-bin, grub-common,
+Depends: argon2, coreutils, cpio, ctorrent, dosfstools, dropbear-bin, grub-common,
   grub-efi-amd64-bin, grub-ipxe, grub-pc-bin, isolinux, libowfat0,
   linux-firmware, linuxmuster-base7, linuxmuster-linbo-gui7, mbr, python3,
   qemu-utils, rsync, sed, ssh, syslinux-common, syslinux-utils,
