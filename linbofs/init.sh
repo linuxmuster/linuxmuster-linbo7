@@ -5,14 +5,14 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20241003
+# 20241013
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
 # /bin/busybox --install
 
 # Ignore signals
-trap "" 1 2 11 15
+#trap "" 1 2 11 15
 
 # set terminal
 export TERM=xterm
@@ -22,7 +22,7 @@ RESET="]R"
 # ANSI COLORS
 # Erase to end of line
 CRE="
-[K"
+[K"s
 # Clear and reset Screen
 CLEAR="c"
 # Normal color
@@ -91,7 +91,7 @@ clean_env(){
   local line
   grep -v "^#\|^$\|^export [A-Z0-9_-]*=[\"\'].*[\"\']" /.env | while read line; do
     [ -z "$line" ] && continue
-    echo "Removing bad line ** $line ** from /.env ..." | tee -a /tmp/clean_env.log
+    echo "Removing bad line ** $line ** from /.env ..."
     sed -i "/$line/d" /.env
   done
 }
@@ -148,7 +148,6 @@ do_env(){
   export MACADDR="`ifconfig | grep -B1 "$IP" | grep HWaddr | awk '{ print $5 }' | tr A-Z a-z`"
   echo "export MACADDR='"$MACADDR"'" >> /.env
   clean_env
-  [ -s /tmp/clean_env.log ] && cat /tmp/clean_env.log >> /tmp/linbo.log
 }
 
 # initial setup
@@ -295,7 +294,7 @@ save_winact(){
   [ -n "$win_tokens" ] && tarcmd="$tarcmd $win_tokens"
   [ -n "$office_tokens" ] && tarcmd="$tarcmd $office_tokens"
   # create temporary archive
-  if ! $tarcmd &> /dev/null; then
+  if ! $tarcmd; then
     echo "Sorry. Error on creating $tmparchive."
     return 1
   else
@@ -314,7 +313,7 @@ save_winact(){
     rm -f "$archive"
     rm -f "$tmparchive"
     cd "$tmpdir"
-    tar czf "$archive" * &> /dev/null || RC="1"
+    tar czf "$archive" * || RC="1"
     cd "$curdir"
     rm -rf "$tmpdir"
   else # use temporary archive if it does not exist already
@@ -333,7 +332,7 @@ save_winact(){
   [ -z "$LINBOSERVER" ] && return
   # trigger upload
   echo "Starting upload of windows activation tokens."
-  rsync "$LINBOSERVER::linbo/winact/$(basename $archive).upload" /cache &> /dev/null || true
+  rsync "$LINBOSERVER::linbo/winact/$(basename $archive).upload" /cache || true
 }
 
 # save windows activation tokens
@@ -348,7 +347,7 @@ do_housekeeping(){
     [ -b "$dev" ] || continue
     if linbo_mount "$dev" /mnt 2> /dev/null; then
       # save windows activation files
-      ls /mnt/linuxmuster-win/*activation_status &> /dev/null && save_winact
+      ls /mnt/linuxmuster-win/*activation_status && save_winact
       umount /mnt
     fi
   done
@@ -359,12 +358,9 @@ do_housekeeping(){
 do_linbo_update(){
   local rebootflag="/tmp/.linbo.reboot"
   linbo_mountcache
-  linbo_update 2>&1 | tee /cache/update.log
+  linbo_update
   # initiate warm start
-  if [ -e "$rebootflag" ]; then
-    echo "LINBO/GRUB configuration has been successfully updated."
-    linbo_warmstart
-  fi
+  [ -e "$rebootflag" ] && linbo_warmstart
 }
 
 # disable auto functions from cmdline
@@ -418,28 +414,22 @@ network(){
   [ -z "$dhcpretry" ] && dhcpretry=3
   print_status "Requesting ip address per dhcp (retry=$dhcpretry) ..."
   for dev in `grep ':' /proc/net/dev | awk -F\: '{ print $1 }' | awk '{ print $1}' | grep -v ^lo | sort`; do
-    #ifconfig "$dev" up &> /dev/null
     ip link set dev "$dev" up
-    # skip linkless ethernet interfaces
-    #if [ "${dev:0:1}" = "e" -a "$(cat /sys/class/net/$dev/carrier)" = "0" ]; then
-    #  print_status "Interface $dev: no link detected."
-    #  continue
-    #fi
     # activate wol
-    ethtool -s "$dev" wol g &> /dev/null
+    ethtool -s "$dev" wol g
     # check if using vlan
     if [ -n "$vlanid" ]; then
       print_status "Using vlan id $vlanid."
-      vconfig add "$dev" "$vlanid" &> /dev/null
+      vconfig add "$dev" "$vlanid"
       dev="$dev.$vlanid"
       ip link set dev "$dev" up
     fi
     # wifi support
     [ "$dev" = "wlan0" -a -s /etc/wpa_supplicant.conf ] && wpa_supplicant -B -c/etc/wpa_supplicant.conf -iwlan0
-    udhcpc -O nisdomain -n -i "$dev" -t $dhcpretry &> /tmp/linbo.log ; RC="$?"
+    udhcpc -O nisdomain -n -i "$dev" -t $dhcpretry ; RC="$?"
     if [ "$RC" = "0" ]; then
       # set mtu
-      [ -n "$mtu" ] && ifconfig "$dev" mtu $mtu &> /dev/null
+      [ -n "$mtu" ] && ifconfig "$dev" mtu $mtu
       ipaddr="$(grep ^ip= /tmp/dhcp.log | awk -F\' '{print $2}')"
       print_status "Interface $dev: got $ipaddr."
       break
@@ -453,7 +443,7 @@ network(){
   mv /start.conf /start.conf.dist
   if [ -n "$LINBOSERVER" -a -n "$HOSTGROUP" ]; then
     print_status "Downloading start.conf from $LINBOSERVER ..."
-    rsync -vL "$LINBOSERVER::linbo/start.conf.$HOSTGROUP" "/start.conf" | tee /tmp/startconf.log
+    rsync -vL "$LINBOSERVER::linbo/start.conf.$HOSTGROUP" "/start.conf" 2>&1
   fi
   # set flag for working network connection and do additional stuff which needs
   # connection to linbo server
@@ -469,19 +459,18 @@ network(){
     # get onboot linbo-remote commands, if there are any
     local item
     for item in $HOSTNAME $IP; do
-      rsync -L "$LINBOSERVER::linbo/linbocmd/$item.cmd" "/linbocmd" &> /dev/null
+      rsync -L "$LINBOSERVER::linbo/linbocmd/$item.cmd" "/linbocmd"
       [ -s /linbocmd ] && break
     done
     # save linbo-remote noauto and disablegui cmds to variables
     if [ -s /linbocmd ]; then
-      for i in noauto disablegui; do
-        if grep -q $i /linbocmd; then
-          eval $i=yes
-          sed -i "s|$i||" /linbocmd
+      echo "Linbo remote commands downloaded successfully."
+      for item in noauto disablegui; do
+        if grep -q $item /linbocmd; then
+          eval $item=yes
+          echo "$item=yes"
         fi
       done
-      # strip leading and trailing spaces and escapes and save remaining cmds to variable
-      export linbocmd="$(awk '{$1=$1}1' /linbocmd | sed -e 's|\\||g')"
     fi
     # save start.conf and hostname to cache
     copytocache
@@ -493,26 +482,21 @@ network(){
     copyfromcache start.conf
     # Still nothing new, revert to old version.
     [ -s /start.conf ] || mv -f /start.conf.dist /start.conf
-    # set flag to split start.conf
-    do_split="yes"
   fi
   # disable auto functions if noauto is given
   if [ -n "$noauto" ]; then
     echo "Disabling auto functions."
     autostart=0
     disable_auto
-    # set flag to split start.conf
-    do_split="yes"
+  fi
+  # disable gui
+  if [ -n "$disablegui" ]; then
+    gui_ctl disable onboot
   fi
   # start.conf: set autostart if given on cmdline
   isinteger "$autostart" && set_autostart
-  # disable gui (splits start.conf)
-  if [ -n "$disablegui" ]; then
-    echo "Disabling linbo_gui."
-    gui_ctl disable
-  fi
-  # split start.conf finally, if it has been changed in the meantime
-  [ -n "$do_split" -a -z "$disablegui" ] && QUIET=yes linbo_split_startconf
+  # split start.conf finally
+  linbo_split_startconf
   # get hostgroup from start.conf in offline mode
   if [ -z "$HOSTGROUP" ]; then
     [ -s /conf/linbo ] && source /conf/linbo
@@ -520,7 +504,7 @@ network(){
   fi
   # start dropbear
   print_status "Starting ssh service."
-  /sbin/dropbear -r /etc/dropbear/dropbear_dss_host_key -r /etc/dropbear/dropbear_rsa_host_key -s -g -E -p 2222 &> /tmp/linbo.log
+  /sbin/dropbear -r /etc/dropbear/dropbear_dss_host_key -r /etc/dropbear/dropbear_rsa_host_key -s -g -E -p 2222
   # remove reboot flag, save windows activation
   do_housekeeping
   # done
@@ -531,10 +515,8 @@ network(){
 # HW Detection
 hwsetup(){
   rm -f /tmp/linbo-cache.done
-  #echo "## Hardware setup - begin ##" >> /tmp/linbo.log
 
-  #
-  # Udev starten
+  # udev starten
   echo > /sys/kernel/uevent_helper
   mkdir -p /run/udev
   udevd --daemon
@@ -551,8 +533,7 @@ hwsetup(){
 
   export TERM_TYPE=pts
 
-  #dmesg >> /tmp/linbo.log
-  #echo "## Hardware setup - end ##" >> /tmp/linbo.log
+  # save hosts hardware info
   hwinfo | gzip -c > /tmp/hwinfo.gz
 
   #sleep 2
@@ -561,22 +542,22 @@ hwsetup(){
 
 
 # Main
+clear
+
+timestamp="$(date +%Y%m%d%H%M%S)"
+echo
+echo "### $timestamp init ###"
 
 # print welcome message
-clear
 source /.profile
 
 # initial setup
 echo
 echo "Initializing hardware ..."
 echo
-if [ -n "$quiet" ]; then
-  init_setup 2>&1 >> /tmp/linbo.log
-  hwsetup 2>&1 >> /tmp/linbo.log
-else
-  init_setup | tee -a /tmp/linbo.log
-  hwsetup | tee -a /tmp/linbo.log
-fi
+
+init_setup
+hwsetup
 
 # start plymouth boot splash daemon
 if grep -qiw splash /proc/cmdline; then
@@ -586,13 +567,14 @@ if grep -qiw splash /proc/cmdline; then
 fi
 
 # do network setup
-network | tee -a /tmp/linbo.log
+network
 
 # execute linbo commands given on commandline
-if [ -n "$linbocmd" ]; then
+if [ -s /linbocmd ]; then
   OIFS="$IFS"
   IFS=","
-  for cmd in $linbocmd; do
+  for cmd in $(cat /linbocmd); do
+    [ "$cmd" = "noauto" -o "$cmd" = "disablegui" ] && continue
     # filter password
     if echo "$cmd" | grep -q ^linbo:; then
       msg="linbo_wrapper linbo:*****"
@@ -600,7 +582,7 @@ if [ -n "$linbocmd" ]; then
       msg="linbo_wrapper $cmd"
     fi
     print_status "$msg"
-    echo "$msg" >> /tmp/linbo.log
+    echo "$msg" 2>&1
     /usr/bin/linbo_wrapper "$cmd" | while read line; do
       line="${line/---/}"
       print_status "$line"
@@ -608,5 +590,28 @@ if [ -n "$linbocmd" ]; then
   done
   IFS="$OIFS"
 fi
+
+# read shell environment
+source /usr/share/linbo/shell_functions
+
+# send client's hwinfo
+[ -s /tmp/hwinfo.gz ] && sendlog /tmp/hwinfo.gz
+
+# save init.log
+if [ -s "/init.log" ]; then
+  cat /init.log >> /tmp/linbo.log
+  rm -f /init.log
+fi
+
+# collect firmware infos and send it
+fwinfo="$(dmesg | grep firmware)"
+[ -n "$fwinfo" ] && echo -e "### $timestamp firmware info ###\n$fwinfo" >> /tmp/linbo.log
+
+# upload logfile
+sendlog
+
+# kill logging process
+pid="$(ps w | grep /init.log | grep -v /init.sh | grep -v grep | awk '{print $1}')"
+[ -n "$pid" ] && kill "$pid"
 
 exit 0

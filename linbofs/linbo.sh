@@ -4,7 +4,7 @@
 # (C) Klaus Knopper 2007
 # License: GPL V2
 # thomas@linuxmuster.net
-# 20240720
+# 20241012
 #
 
 # Reset fb color mode
@@ -23,15 +23,14 @@ if [ -x "/sbin/plymouthd" -a -n "$SPLASH" ]; then
   fi
 fi
 
-# send clients hwinfo
-[ -s /tmp/hwinfo.gz ] && sendlog /tmp/hwinfo.gz
+# logging
+exec > >(tee -a "/tmp/linbo.log") 2>&1
 
-# collect firmware infos
-dmesg | grep firmware > /tmp/firmware.log
+echo
+echo "### $timestamp linbo_gui ###"
 
-# update & extract linbo_gui, disabled since there is no compatible version for 22.04
-linbo_update_gui | tee -a /tmp/linbo.log
-sendlog
+# update & extract linbo_gui
+linbo_update_gui
 
 # DEBUG mode
 if [ -n "$DEBUG" ]; then
@@ -46,6 +45,7 @@ if [ -n "$DEBUG" ]; then
     fi
   done
   echo "Starting DEBUG shell, leave with 'exit'."
+  sendlog
   ash >/dev/tty1 2>&1 < /dev/tty1
 fi
 
@@ -53,21 +53,22 @@ fi
 if [ -s /usr/bin/linbo_gui ]; then
 
   plymouth quit &> /dev/null
+  sendlog
   export XKB_DEFAULT_LAYOUT=de
   /usr/bin/linbo_gui -platform linuxfb
-  sendlog
 
 else # handle missing gui problem
 
   plymouth quit
   if [ -n "$DEBUG" ]; then
-    echo "Starting DEBUG shell." | tee -a /tmp/linbo.log
+    echo "Starting DEBUG shell."
+    sendlog
     ash >/dev/tty1 2>&1 < /dev/tty1
   else
     export myname="| Name: $HOSTNAME"
     source /.profile
-    echo "Console boot menue of group $HOSTGROUP" | tee -a /tmp/linbo.log
-    echo "----------------------------------------" | tee -a /tmp/linbo.log
+    echo "Console boot menue of group $HOSTGROUP"
+    echo "----------------------------------------"
     count=0
     for item in /conf/os.*; do
       [ -s "$item" ] || continue
@@ -75,13 +76,13 @@ else # handle missing gui problem
       source "$item"
       [ -z "$name" ] && continue
       count=$(( count + 1 ))
-      echo "[$count] Start $name" | tee -a /tmp/linbo.log
+      echo "[$count] Start $name"
       count=$(( count + 1 ))
-      echo "[$count] Sync & start $name" | tee -a /tmp/linbo.log
+      echo "[$count] Sync & start $name"
     done
-    echo "----------------------------------------" | tee -a /tmp/linbo.log
-    echo "[R] Reboot" | tee -a /tmp/linbo.log
-    echo "[S] Shutdown" | tee -a /tmp/linbo.log
+    echo "----------------------------------------"
+    echo "[R] Reboot"
+    echo "[S] Shutdown"
     echo
     sendlog
     while true; do
