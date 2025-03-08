@@ -2,8 +2,11 @@
 #
 # linbo_auth
 # thomas@linuxmuster.net
-# 20240727
+# 20241004
 #
+
+# get environment
+source /usr/share/linbo/shell_functions
 
 usage(){
   echo
@@ -40,6 +43,6 @@ else
   msg="No password file available!"; RC=2
 fi
 
-echo "$msg" | tee -a /tmp/linbo.log
+echo "$msg"
 
 exit "$RC"

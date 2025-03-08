@@ -3,8 +3,11 @@
 # linbo_bitmask [help]
 # prints netmask
 # thomas@linuxmuster.net
-# 20240727
+# 20241004
 #
+
+# get environment
+source /usr/share/linbo/shell_functions
 
 usage(){
   echo
@@ -17,6 +20,6 @@ usage(){
 
 [ "$1" = "help" ] && usage
 
-linbo_netmask -b | tee -a /tmp/linbo.log
+linbo_netmask -b
 
 exit $?

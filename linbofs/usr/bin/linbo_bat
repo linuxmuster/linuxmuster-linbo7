@@ -2,8 +2,11 @@
 #
 # linbo_bat
 # thomas@linuxmuster.net
-# 20240727
+# 20241004
 #
+
+# get environment
+source /usr/share/linbo/shell_functions
 
 usage(){
   echo
@@ -16,7 +19,7 @@ usage(){
 
 case "$1" in
   help) usage ;;
-  *) find /sys/class/power_supply/ -name 'BAT*' -exec cat {}/capacity \; | head -n 1 | tee -a /tmp/linbo/log ;;
+  *) find /sys/class/power_supply/ -name 'BAT*' -exec cat {}/capacity \; | head -n 1 ;;
 esac
 
 exit $?
