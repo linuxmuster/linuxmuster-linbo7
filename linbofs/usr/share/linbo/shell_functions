@@ -1,7 +1,7 @@
 # common linbo shell functions
 #
 # thomas@linuxmuster.net
-# 20240916
+# 20241012
 #
 
 set -o pipefail
@@ -11,6 +11,7 @@ trap bailout 1 2 3 10 12 13 15
 umask 002
 
 PID="$$"
+timestamp="$(date +%Y%m%d%H%M%S)"
 
 if [ "$0" = "-sh" ]; then
   MYNAME="shell"
@@ -217,36 +218,17 @@ killalltorrents(){
 # upload logfile to linbo server or store it local in cache
 # usage example (logfile parameter is optional): sendlog <name_of_logfile_in_tmp>
 sendlog(){
-  local RC="1"
   local logfile="$1"
-  local logbase
-  local logtmp
-  if [ -z "$logfile" ]; then
-    logfile="/tmp/linbo.log"
-    logtmp="/tmp/tmp.log"
-    echo "### $(date)" > "$logtmp"
-    local item
-    for item in /tmp/*.log; do
-      [ "$item" = "$logtmp" ] && continue 
-      logbase="$(basename "$item")"
-      echo "### $logbase" >> "$logtmp"
-      cat "$item" >> "$logtmp"
-      rm -f "$item"
-    done
-    mv "$logtmp" "$logfile"
-  else
-    logbase="$(basename "$logfile")"
-  fi
+  [ -z "$logfile" ] && logfile="/tmp/linbo.log"
   [ -s "$logfile" ] || return
-  [ -z "$logbase" -o -z "$logfile" ] && return
+  linbo_mountcache || return
+  logbase="$(basename "$logfile")"
   if localmode; then
-    linbo_mountcache || return
     echo "Saving $logfile to cache."
-    mv "$logfile" >> "/cache/$logbase)"
+    mv "$logfile" >> "/cache/$logbase"
   else
-    #[ -e /tmp/linbo-network.done ] || return 0
     echo "Uploading $logbase ..."
-    rsync "$LINBOSERVER::linbo/$logfile" /tmp/dummy 2>&1 || true
+    rsync "$LINBOSERVER::linbo/$logfile" /tmp/dummy || true
     rm -f "$logfile"
   fi
 }
