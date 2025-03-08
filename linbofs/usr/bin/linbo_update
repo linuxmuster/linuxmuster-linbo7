@@ -2,7 +2,7 @@
 #
 # linbo_update
 # thomas@linuxmuster.net
-# 20230403
+# 20241003
 #
 
 usage(){
@@ -39,6 +39,7 @@ doneflag="/tmp/.update.done"
 
 if [ -e "$doneflag" -a -z "$FORCE" ]; then
   echo "linbo_update has been already done."
+  sendlog
   exit 0
 else
   rm -f "$doneflag"
@@ -49,7 +50,10 @@ rebootflag="/tmp/.linbo.reboot"
 RC=0
 
 grubdir="/cache/boot/grub"
-linbo_mountcache || exit 1
+if ! linbo_mountcache; then
+  sendlog
+  exit 1
+fi
 mkdir -p "$grubdir"
 
 cd /cache
@@ -66,8 +70,9 @@ echo "Looking for LINBO updates."
 linbo_download linbofs64.md5
 md5_after="$(cat linbofs64.md5 2> /dev/null)"
 if [ -z "$md5_after" ]; then
-  echo "Failed to download linbofs64.md5!" >&2
+  echo "Failed to download linbofs64.md5!"
   [ -e linbofs64.md5.bak ] && mv linbofs64.md5.bak linbofs64.md5
+  sendlog
   exit 1
 fi
 rm -f linbofs64.md5.bak
@@ -78,7 +83,8 @@ if [ "$md5_before" != "$md5_after" ]; then
   # verify download
   md5_current="$(md5sum linbofs64 | awk '{ print $1 }')"
   if [ "$md5_current" != "$md5_after" ]; then
-    echo "Checksums differ, failed to download linbofs64!" >&2
+    echo "Checksums differ, failed to download linbofs64!"
+    sendlog
     exit 1
   fi
   # second linbo
@@ -89,7 +95,8 @@ if [ "$md5_before" != "$md5_after" ]; then
   # verify download
   md5_after="$(cat linbo64.md5 2> /dev/null)"
   if [ "$md5_current" != "$md5_after" ]; then
-    echo "Checksums differ, failed to download linbo64!" >&2
+    echo "Checksums differ, failed to download linbo64!"
+    sendlog
     exit 1
   fi
   # flag a reboot if linbo was not booted over network
@@ -153,7 +160,8 @@ themesdir="/boot/grub/themes"
 mkdir -p "/cache$themesdir"
  rsync --skip-compress="$RSYNC_SKIP_COMPRESS" -a --delete "${LINBOSERVER}::linbo${themesdir}/" "/cache${themesdir}/" || RC=1
 if [ "$RC" = "1" ]; then
-  echo "Failed!" >&2
+  echo "Failed!"
+  sendlog
   exit 1
 else
   echo "OK!"
@@ -164,7 +172,8 @@ echo -n "Updating linuxmuster-win ... "
 [ -d /cache/linuxmuster-win ] || mkdir -p /cache/linuxmuster-win
  rsync --skip-compress="$RSYNC_SKIP_COMPRESS" -a --exclude=*.ex --delete --delete-excluded "$LINBOSERVER::linbo/linuxmuster-win/" /cache/linuxmuster-win/ || RC=1
 if [ "$RC" = "1" ]; then
-  echo "Failed!" >&2
+  echo "Failed!"
+  sendlog
   exit 1
 else
   echo "OK!"
@@ -196,7 +205,7 @@ if [ "$RC" = "0" ]; then
   # initiate warmstart|reboot only if linbo has been booted locally from cache
   [ -n "$reboot" -a -n "$LOCALBOOT" ] && touch "$rebootflag"
 else
-  echo "Linbo & grub update failed!" >&2
+  echo "Linbo & grub update failed!"
 fi
 
 sendlog
