@@ -1,3 +1,14 @@
+linuxmuster-linbo7 (4.3.3-0) lmn72-testing; urgency=low
+
+  * do not build r8125 module if modules archive already exists (e172416).
+  * gui_ctl fixes (c211e63).
+  * add nosplit option to gui_ctl (547ee62).
+  * kernel updates (708324b).
+  * fix missing dependency on cpio (#124).
+  * improve linbo client logging (#123).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 09 Dec 2024 10:34:00 +0200
+
 linuxmuster-linbo7 (4.3.2-0) lmn72-testing; urgency=low
 
   * add r8125 driver for Realtek 2.5G Ethernet adapter (ae4187e).
