@@ -941,7 +941,7 @@ mk_boot(){
   # install grub in mbr/efi
   if [ ! -e "$doneflag" -a -n "$localcache" ]; then
     echo -n "Installing GRUB in MBR/EFI of $grubdisk ... "
-    grub-install --root-directory=/cache -s $grubdisk 2>> /tmp/linbo.log || RC="1"
+    grub-install --root-directory=/cache --no-nvram -s $grubdisk 2>> /tmp/linbo.log || RC="1"
     if [ "$RC" = "0" ]; then
       touch "$doneflag"
       echo "OK!"
