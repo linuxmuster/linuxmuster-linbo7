@@ -1,14 +1,11 @@
 # build.conf
 # general environment variables
 # thomas@linuxmuster.net
-# 20231202
+# 20250321
 #
 
 # must be buildroot
 BUILDROOT="$(pwd)"
-
-# download address of remote cache
-REMOTE_CACHE="https://download.linuxmuster.net/dev/linbo-build-cache"
 
 # dirs relative to buildroot
 BUILDDIR="$BUILDROOT/build"
