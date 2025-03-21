@@ -1,7 +1,14 @@
 # opentracker build environment
 
 OTNAME="opentracker"
-OTURL="https://erdgeist.org/gitweb/$OTNAME"
 OTSRCDIR="$SRC/$OTNAME"
 OTBIN="$OTSRCDIR/$OTNAME"
 OTINSTDIR="$PKGBUILDROOT/usr/sbin"
+
+#FEATURES+=-DWANT_SYSLOGS
+
+#export FEATURES
+#export PREFIX=/usr
+#export STRIP=true
+export LIBOWFAT_LIBRARY=/usr/lib
+export LIBOWFAT_HEADERS=/usr/include/libowfat
