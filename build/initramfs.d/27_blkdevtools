@@ -1,0 +1,7 @@
+# block device tools
+
+file /lib/libmount.so.1 /lib/x86_64-linux-gnu/libmount.so.1 755 0 0
+file /usr/sbin/blkid /usr/sbin/blkid 755 0 0
+
+file /lib/libsmartcols.so.1 /lib/x86_64-linux-gnu/libsmartcols.so.1 755 0 0
+file /usr/bin/lsblk /usr/bin/lsblk 755 0 0

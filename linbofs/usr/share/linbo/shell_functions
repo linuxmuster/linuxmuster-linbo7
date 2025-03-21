@@ -1,7 +1,7 @@
 # common linbo shell functions
 #
 # thomas@linuxmuster.net
-# 20241012
+# 20250321
 #
 
 set -o pipefail
@@ -420,24 +420,14 @@ get_disk_from_partition(){
 get_disks(){
   local i
   local disks
-  if [ -d /dev/disk/by-path ]; then
-    for i in $(ls -l /dev/disk/by-path | grep -v '\-part' | awk -F\> '{ print $2 }' | awk -F\/ '{ print $3 }'); do
-      if [ -z "$disks" ]; then
-        disks="/dev/$i"
-      else
-        disks="$disks /dev/$i"
-      fi
-    done
-  # Fallback if disk by-path does not exist. This is caused by missing udev rules for excample in nvme files
-  else
-     for i in $(ls -l /dev/disk/by-id | grep -v '\-part' | awk -F\> '{ print $2 }' | awk -F\/ '{ print $3 }'); do
-       if [ -z "$disks" ]; then
-        disks="/dev/$i"
-       else
-        disks="$disks /dev/$i"
-       fi
-     done
-  fi
+  for i in $(lsblk -A | grep disk | awk '{print $1}'); do
+    [ -b "/dev/$i" ] || continue
+    if [ -z "$disks" ]; then
+      disks="/dev/$i"
+    else
+      disks="$disks /dev/$i"
+    fi
+  done
   echo "$disks"
   return 0
 }
