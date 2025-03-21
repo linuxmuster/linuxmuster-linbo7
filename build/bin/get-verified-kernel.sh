@@ -4,7 +4,7 @@
 # based on https://git.kernel.org/pub/scm/linux/kernel/git/mricon/korg-helpers.git/plain/get-verified-tarball
 # modified for linuxmuster-linbo7
 # thomas@linuxmuster.net
-# 20210511
+# 20250313
 # --------------------
 # Get Linux kernel tarball and cryptographically verify it,
 # retrieving the PGP keys using the Web Key Directory (WKD)
@@ -48,8 +48,8 @@ USEKEYRING=
 
 # Point this at your GnuPG binary version 2.1.11 or above.
 # If you are using USEKEYRING, GnuPG-1 will work, too.
-GPGBIN="/usr/bin/gpg2"
-GPGVBIN="/usr/bin/gpgv2"
+GPGBIN="/usr/bin/gpg"
+GPGVBIN="/usr/bin/gpgv"
 # We need a compatible version of sha256sum, too
 SHA256SUMBIN="/usr/bin/sha256sum"
 # And curl
