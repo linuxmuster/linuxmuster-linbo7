@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20241013
+# 20250320
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -516,14 +516,12 @@ network(){
 hwsetup(){
   rm -f /tmp/linbo-cache.done
 
-  # udev starten
+  # start hw recognition
   echo > /sys/kernel/uevent_helper
   mkdir -p /run/udev
   udevd --daemon
   mkdir -p /dev/.udev/db/ /dev/.udev/queue/
-  udevadm trigger --type=subsystems --action=add
-  udevadm trigger --type=devices --action=add
-  udevadm trigger
+  udevadm trigger --type=all --action=add --prioritized-subsystem=module,block,tpmrm,net,tty,input
   mkdir -p /dev/pts
   mount /dev/pts
   udevadm settle || true
@@ -561,7 +559,7 @@ hwsetup
 
 # start plymouth boot splash daemon
 if grep -qiw splash /proc/cmdline; then
-  plymouthd --mode=boot --tty="/dev/tty2" --attach-to-session
+  plymouthd --mode=boot --attach-to-session  # --pid-file=/run/plymouth/pid
   plymouth --show-splash
   SPLASH="yes"
 fi
