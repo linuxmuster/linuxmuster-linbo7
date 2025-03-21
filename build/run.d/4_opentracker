@@ -10,24 +10,17 @@ if [ -s "$OTBIN" -a -x "$OTBIN" ]; then
   echo "Opentracker binary exists, skipping build."
 
 else
-  # download dependency libowfat
-  echo "Download libowfat source..."
-  [ -d "$SRC/libowfat" ] && rm -rf "$SRC/libowfat"
-  cd "$SRC"
-  cvs -d :pserver:cvs@cvs.fefe.de:/cvs -z9 co libowfat || exit 1
   # download opentracker
   echo "Cloning $OTNAME source ..."
-  [ -d "$OTSRCDIR" ] && rm -rf "$OTSRCDIR"
+  rm -rf "$OTSRCDIR"*
   cd "$SRC"
-  git clone "$OTURL" || exit 1
-  # compile dependency libowfat
-  cd $SRC/libowfat || exit 1
-  make || exit 1
-  cd "$SRC"
-  # compile opentracker
+  sudo apt-get update
+  apt-get source opentracker || exit 1
+  rm -rf opentracker_*
+  ln -sf "$(ls -d "$SRC/opentracker-"*)" "$OTSRCDIR"
   echo "Compiling $OTNAME ..."
   cd "$OTSRCDIR" || exit 1
-  make || exit 1
+  PREFIX=/usr STRIP=true make || exit 1
   [ -s "$OTBIN" -a -x "$OTBIN" ] || exit 1
 fi
 
