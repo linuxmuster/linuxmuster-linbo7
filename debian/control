@@ -5,24 +5,25 @@ Maintainer: Thomas Schmitt <thomas@linuxmuster.net>
 Build-Depends: acl, argon2, bc, binutils, bison, build-essential, ctorrent,
   curl, cvs, debianutils, debhelper, dosfstools, dpkg-dev, dropbear-bin,
   gcc-multilib, e2fsprogs, efibootmgr, ethtool, fakeroot, flex, fonts-ubuntu,
-  g++, gcc, gdisk, gettext, git, gnupg2, gpgv2, grep, grub-common, grub-ipxe,
-  grub-efi-amd64-bin, grub2-common, grub-pc-bin, gzip, hdparm, hwinfo, kmod,
-  libacl1-dev, libattr1-dev, libelf-dev, libfuse-dev, libncurses5-dev,
-  libnih-dbus1, libowfat-dev, libssl-dev, libz-dev, linux-libc-dev, nasm, ncurses-base,
-  netpbm, ntfs-3g, parted, patchutils, perl, plymouth-label, qemu-utils,
-  rsync, systemd, sysvinit-utils, tar, udev, udpcast, unzip, util-linux,
+  g++, gcc, gdisk, gettext, git, gnupg, gpgv, grep, grub-common, grub-ipxe,
+  grub-efi-amd64-bin, grub2-common, grub-pc-bin, gzip, hdparm, hwinfo,
+  kmod, libacl1-dev, libattr1-dev, libelf-dev, libfuse-dev, libncurses5-dev,
+  libowfat-dev, libssl-dev, libz-dev, linux-libc-dev, nasm, ncurses-base,
+  netpbm, ntfs-3g, parted, patchutils, perl, plymouth-label, plymouth-label-ft,
+  qemu-utils, rsync, systemd, sysvinit-utils, tar, udev, udpcast, unzip, util-linux,
   uuid-dev, uuid-runtime, wget, wpasupplicant, zlib1g-dev, x11vnc, xz-utils
 
 Package: linuxmuster-linbo7
 Architecture: all
 Breaks: linuxmuster-linbo-common7
 Conflicts: atftpd, bittorrent, linuxmuster-linbo, linuxmuster-linbo-common,
-  linuxmuster-linbo-common7
-Depends: argon2, coreutils, cpio, ctorrent, dosfstools, dropbear-bin, grub-common,
-  grub-efi-amd64-bin, grub-ipxe, grub-pc-bin, isolinux, libowfat0,
-  linux-firmware, linuxmuster-base7, linuxmuster-linbo-gui7, mbr, python3,
-  qemu-utils, rsync, sed, ssh, syslinux-common, syslinux-utils,
-  tftpd-hpa, tmux, udpcast, wakeonlan, xorriso, xz-utils, zip
+  linuxmuster-linbo-common7, opentracker
+Recommends: linuxmuster-base7
+Depends: argon2, coreutils, cpio, ctorrent, dosfstools, dropbear-bin,
+  grub-common, grub-efi-amd64-bin, grub-ipxe, grub-pc-bin, isolinux,
+  libowfat0t64, linux-firmware, linuxmuster-linbo-gui7, mbr, python3,
+  qemu-utils, rsync, sed, ssh, syslinux-common, syslinux-utils, tftpd-hpa,
+  tmux, udpcast, wakeonlan, xorriso, xz-utils, zip, zlib1g
 Suggests: isc-dhcp-server | dhcp3-server
 Description: linuxmuster-linbo7
   This package contains kernel, initrd, scripts and pxe boot configuration for
