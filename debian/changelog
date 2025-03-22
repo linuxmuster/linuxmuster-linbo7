@@ -12,7 +12,7 @@ linuxmuster-linbo7 (4.3.3-0) lmn72-testing; urgency=low
   * remove obsolete linbo remote cache definition from build config (7f70cfd).
   * update busybox to 1.37.0 (6109c37).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 21 Mar 2025 21:54:36 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 22 Mar 2025 11:23:37 +0100
 
 linuxmuster-linbo7 (4.3.2-0) lmn72-testing; urgency=low
 
