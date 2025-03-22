@@ -1,3 +1,9 @@
+linuxmuster-linbo7 (4.3.3-1) lmn73; urgency=low
+
+  * rebuild for lmn73.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 22 Mar 2025 11:42:53 +0100
+
 linuxmuster-linbo7 (4.3.3-0) lmn72-testing; urgency=low
 
   * do not build r8125 module if modules archive already exists (e172416).
