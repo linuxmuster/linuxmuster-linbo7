@@ -6,12 +6,12 @@
 # and installs a new version.
 #
 # thomas@linuxmuster.net
-# 20220908
+# 20250326
 # GPL v3
 #
 
 # read in linuxmuster specific environment
-source /usr/share/linuxmuster/linbo/helperfunctions.sh || exit 1
+source /usr/share/linuxmuster/helperfunctions.sh || exit 1
 
 # Debug
 LOGFILE="$RSYNC_MODULE_PATH/log/rsync-pre-upload.log"

@@ -6,11 +6,11 @@
 #
 # thomas@linuxmuster.net
 # GPL V3
-# 20231121
+# 20250326
 #
 
 # read linuxmuster environment
-source /usr/share/linuxmuster/linbo/helperfunctions.sh || exit 1
+source /usr/share/linuxmuster/helperfunctions.sh || exit 1
 
 if [ ! -s "$SETUPINI" ]; then
 	echo "linuxmuster.net is not yet set up, aborting!"

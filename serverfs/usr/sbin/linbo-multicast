@@ -1,13 +1,13 @@
 #! /bin/bash
 #
 # thomas@linuxmuster.net
-# 20221029
+# 20250326
 #
 
 DESC="tmux multicast session"
 
 # lmn7 specific paths
-source /usr/share/linuxmuster/linbo/helperfunctions.sh || exit 1
+source /usr/share/linuxmuster/helperfunctions.sh || exit 1
 INTERFACE="$(LANG=C ip route show | grep ^default | awk '{ print $5 }')"
 SERVERIP="$serverip"
 DAEMON=$LINBOSHAREDIR/linbo-mcasthelper.sh

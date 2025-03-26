@@ -2,13 +2,12 @@
 #
 # starts tmux sessions for each valid torrent in LINBODIR
 # thomas@linuxmuster.net
-# 20230918
+# 20250326
 #
 
 # read environment
-. /usr/share/linuxmuster/defaults.sh || exit 1
+. /usr/share/linuxmuster/helperfunctions.sh || exit 1
 THELPER=$LINBOSHAREDIR/linbo-torrenthelper.sh
-. $LINBOSHAREDIR/helperfunctions.sh || exit 1
 LINBOIMGEXT="qcow2 qdiff"
 
 # get ctorrent options from file

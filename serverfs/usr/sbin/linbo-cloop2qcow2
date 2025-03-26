@@ -2,11 +2,11 @@
 #
 # convert cloop image to qcow2 format
 # thomas@linuxmuster.net
-# 20220410
+# 20250326
 #
 
 # read environment
-source /usr/share/linuxmuster/linbo/helperfunctions.sh || exit 1
+source /usr/share/linuxmuster/helperfunctions.sh || exit 1
 
 usage(){
   echo

@@ -3,11 +3,11 @@
 # harvest an app from server os for use in linbofs
 #
 # thomas@linuxmuster.net
-# 20231207
+# 20250326
 #
 
 # get linbo env
-source /usr/share/linuxmuster/linbo/helperfunctions.sh
+source /usr/share/linuxmuster/helperfunctions.sh
 
 # give full path to app
 APP="$1"
