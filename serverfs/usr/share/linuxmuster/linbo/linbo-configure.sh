@@ -5,8 +5,8 @@
 # 20231124
 #
 
-# read constants & setup values
-. /usr/share/linuxmuster/defaults.sh
+# read environment & setup values
+. /usr/share/linuxmuster/environment.sh
 
 # config file backup dir
 mkdir -p "$LINBODIR/backup"

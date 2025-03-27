@@ -7,7 +7,7 @@
 #
 
 # read linuxmuster environment
-. /usr/share/linuxmuster/defaults.sh || exit 1
+. /usr/share/linuxmuster/environment.sh || exit 1
 
 # architectures
 I386="i386-pc"

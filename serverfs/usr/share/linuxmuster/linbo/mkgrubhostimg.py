@@ -9,7 +9,7 @@
 #
 
 import configparser
-import constants
+import environment
 import getopt
 import os
 import re
@@ -45,7 +45,7 @@ except getopt.GetoptError as err:
 
 # default values
 setfilename = False
-wsfile = constants.WIMPORTDATA
+wsfile = environment.WIMPORTDATA
 hostname = None
 
 # evaluate options
@@ -72,8 +72,8 @@ if hostname == None:
     sys.exit(1)
 
 # grub image filename
-img = constants.LINBOGRUBDIR + '/hostcfg/' + hostname + '.img'
-imgrel = img.replace(constants.LINBOGRUBDIR, 'boot/grub')
+img = environment.LINBOGRUBDIR + '/hostcfg/' + hostname + '.img'
+imgrel = img.replace(environment.LINBOGRUBDIR, 'boot/grub')
 
 # path to host specific cfg
 hostcfg = img.replace('.img', '.cfg')
@@ -94,30 +94,30 @@ field10 = hostrow[9]
 field11 = hostrow[10]
 
 # path to group specific cfg
-groupcfg = constants.LINBOGRUBDIR + '/' + group + '.cfg'
+groupcfg = environment.LINBOGRUBDIR + '/' + group + '.cfg'
 
 # get systemtype specific parameters
-startconf = constants.LINBODIR + '/start.conf.' + group
+startconf = environment.LINBODIR + '/start.conf.' + group
 systemtype = getStartconfOption(startconf, 'LINBO', 'SYSTEMTYPE').lower()
 normal = '\n'
 if systemtype == 'bios' or systemtype == 'bios64':
     platform = 'i386-pc'
     imgtype = platform + '-pxe'
     iface = 'pxe'
-    modules = constants.GRUBI386MODS
+    modules = environment.GRUBI386MODS
     normal = 'normal'
 elif systemtype == 'efi64':
     platform = 'x86_64-efi'
     imgtype = platform
     iface = 'efinet0'
-    modules = constants.GRUBEFIMODS
+    modules = environment.GRUBEFIMODS
 else:
     print('Cannot get SystemType of ' + hostname + ' from start.conf.' + group + '!')
     sys.exit(1)
 
 # get domainname from setup.ini
 setup = configparser.ConfigParser(inline_comment_prefixes=('#', ';'))
-setup.read(constants.SETUPINI)
+setup.read(environment.SETUPINI)
 domainname = setup.get('setup', 'domainname')
 
 # get serverip from start.conf
@@ -125,7 +125,7 @@ serverip = getStartconfOption(startconf, 'LINBO', 'SERVER')
 
 # create grub config for host
 # necessary variables
-cfgtemplate = constants.LINBOTPLDIR + '/host.cfg.pxe'
+cfgtemplate = environment.LINBOTPLDIR + '/host.cfg.pxe'
 cfgout = '/var/tmp/' + hostname + '.cfg'
 if os.path.isfile(hostcfg):
     appendcfg = hostcfg
@@ -170,8 +170,8 @@ rc, content = readTextfile(wsfile)
 rc = writeTextfile(wsfile, content.replace(row_old, row_new), 'w')
 # modify dhcp device entry
 # read included conf files
-rc, includes = readTextfile(constants.DHCPDEVCONF)
-prefix = os.path.dirname(constants.DHCPDEVCONF)
+rc, includes = readTextfile(environment.DHCPDEVCONF)
+prefix = os.path.dirname(environment.DHCPDEVCONF)
 # iterate over included files
 for item in includes.split('"'):
     # skip not relevant items

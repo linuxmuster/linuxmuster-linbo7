@@ -8,7 +8,7 @@
 #
 
 # read linuxmuster environment
-source /usr/share/linuxmuster/defaults.sh || exit 1
+source /usr/share/linuxmuster/environment.sh || exit 1
 
 SSH_CONFIG="$LINBOSYSDIR/ssh_config"
 

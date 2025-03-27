@@ -8,7 +8,7 @@
 #
 
 # read linuxmuster environment
-source /usr/share/linuxmuster/defaults.sh || exit 1
+source /usr/share/linuxmuster/environment.sh || exit 1
 
 curdir="$(pwd)"
 LINBOISO="$LINBODIR/linbo.iso"
