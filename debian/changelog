@@ -1,8 +1,16 @@
+linuxmuster-linbo7 (4.3.4-0) lmn73; urgency=low
+
+  * kernel updates: stable to 6.13.8, longterm to 6.6.84 (569a948).
+  * move helperfunctions.sh to linuxmuster-common package (#156).
+  * fix all references to moved common files (#156).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 27 Mar 2025 15:22:05 +0100
+
 linuxmuster-linbo7 (4.3.3-1) lmn73; urgency=low
 
   * rebuild for lmn73.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 22 Mar 2025 12:23:55 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 26 Mar 2025 20:40:08 +0100
 
 linuxmuster-linbo7 (4.3.3-0) lmn72-testing; urgency=low
 
