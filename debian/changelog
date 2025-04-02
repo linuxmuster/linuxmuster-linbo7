@@ -1,10 +1,18 @@
+linuxmuster-linbo7 (4.3.5-0) lmn73; urgency=low
+
+  * kernel updates: longterm 6.6.85, stable 6.13.9 (b238242).
+  * create symlinks from real blockdevices to /dev/disk[#]p[#] to get
+    persistent device independent blockdevice names (#126).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 02 Apr 2025 14:33:40 +0200
+
 linuxmuster-linbo7 (4.3.4-0) lmn73; urgency=low
 
   * kernel updates: stable to 6.13.8, longterm to 6.6.84 (569a948).
   * move helperfunctions.sh to linuxmuster-common package (#156).
   * fix all references to moved common files (#156).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 27 Mar 2025 15:22:05 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 02 Apr 2025 10:38:47 +0200
 
 linuxmuster-linbo7 (4.3.3-1) lmn73; urgency=low
 
