@@ -1,7 +1,7 @@
 # common linbo shell functions
 #
 # thomas@linuxmuster.net
-# 20250321
+# 20250402
 #
 
 set -o pipefail
@@ -418,17 +418,21 @@ get_disk_from_partition(){
 
 # get disks from kernel
 get_disks(){
-  local i
   local disks
-  for i in $(lsblk -A | grep disk | awk '{print $1}'); do
-    [ -b "/dev/$i" ] || continue
-    if [ -z "$disks" ]; then
-      disks="/dev/$i"
-    else
-      disks="$disks /dev/$i"
-    fi
-  done
-  echo "$disks"
+  # first nvme disks
+  disks="$(lsblk -A -p -l -o NAME,TYPE,TRAN | grep ' disk ' | grep nvme | sort -k 3 | awk '{print $1}')"
+  # second other internal disks
+  disks="$disks $(lsblk -A -p -l -o NAME,TYPE,TRAN | grep ' disk ' | grep -v usb | grep -v nvme | sort -k 3 | awk '{print $1}')"
+  # finally usb disks
+  disks="$disks $(lsblk -A -p -l -o NAME,TYPE,TRAN | grep ' disk ' | grep usb | sort -k 3 | awk '{print $1}')"
+  echo "$disks" | xargs
+  return 0
+}
+
+
+# get partitions from kernel
+get_parts(){
+  lsblk -A -p -l -o NAME,TYPE | grep ' part' | awk '{print $1}' | xargs
   return 0
 }
 

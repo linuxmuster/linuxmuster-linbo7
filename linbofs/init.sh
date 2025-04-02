@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20250320
+# 20250402
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -533,6 +533,9 @@ hwsetup(){
 
   # save hosts hardware info
   hwinfo | gzip -c > /tmp/hwinfo.gz
+
+  # link blockdevices
+  linbo_link_blkdev
 
   #sleep 2
   touch /tmp/linbo-cache.done

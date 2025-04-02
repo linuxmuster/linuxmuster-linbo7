@@ -1,0 +1,41 @@
+#!/bin/sh
+#
+# linbo_link_blkdev: creates symlinks to blockdevices
+# thomas@linuxmuster.net
+# 20250402
+#
+
+# get environment
+source /usr/share/linbo/shell_functions || exit 1
+
+# create missing links only
+[ "$1" = "-m" -o "$1" = "--missing" ] && MISSING="yes"
+
+# delete existing /dev/disk* blockdevice links
+[ -z "$MISSING" ] && find /dev/ -name disk\* -maxdepth 1 -type l -delete
+
+parts="$(get_parts)"
+
+# link disks
+disk_nr=0
+for disk in $(get_disks); do
+    disk_link="/dev/disk$disk_nr"
+    if [ ! -e "$disk_link" ]; then
+        echo "$disk -> $disk_link"
+        ln -sf "$disk" "$disk_link"
+    fi
+    disk_nr=$(( $disk_nr + 1 ))
+    # link partitions
+    if stringinstring "$disk" "$parts"; then
+        part_nr=1
+        for part in $parts; do
+            stringinstring "$disk" "$part" || continue
+            part_link="${disk_link}p${part_nr}"
+            if [ ! -e "$part_link" ]; then
+                echo "$part -> $part_link"
+                ln -sf "$part" "$part_link"
+            fi
+            part_nr=$(( $part_nr + 1 ))
+        done
+    fi
+done

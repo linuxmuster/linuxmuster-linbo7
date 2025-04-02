@@ -2,7 +2,7 @@
 #
 # linbo_partition [-h|help|--help]
 # thomas@linuxmuster.net
-# 20230126
+# 20250402
 #
 
 
@@ -177,6 +177,7 @@ mk_parted(){
 
     # format partition
     if [ -n "$FORMAT" -a -n "$fstype" ]; then
+      [ -e "$dev" ] || linbo_link_blkdev --missing
       linbo_format "$dev" || RC="1"
     fi
 
@@ -238,5 +239,8 @@ for disk in $disks; do
   grep ^"$disk" "$table" | sort > "/tmp/$diskname"
   mk_parted "/tmp/$diskname" || RC="1"
 done
+
+# link blockdevices
+linbo_link_blkdev
 
 exit "$RC"
