@@ -537,6 +537,9 @@ hwsetup(){
   # link blockdevices
   linbo_link_blkdev
 
+  # start qemu guest
+  dmidecode -s system-manufacturer | grep -q QEMU && qemu-ga -d
+
   #sleep 2
   touch /tmp/linbo-cache.done
 }
