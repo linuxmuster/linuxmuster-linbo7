@@ -28,6 +28,7 @@ file /lib/libnss_compat.so.2 /lib/x86_64-linux-gnu/libnss_compat.so.2 755 0 0
 file /lib/libnss_files.so.2 /lib/x86_64-linux-gnu/libnss_files.so.2 755 0 0
 file /lib/libpcre2-8.so.0 /lib/x86_64-linux-gnu/libpcre2-8.so.0 755 0 0
 #file /lib/libpcre2-posix.so.3 /lib/x86_64-linux-gnu/libpcre2-posix.so.3 755 0 0
+file /lib/libstdc++.so.6 /lib/x86_64-linux-gnu/libstdc++.so.6 755 0 0
 file /lib/libuuid.so.1 /lib/x86_64-linux-gnu/libuuid.so.1 755 0 0
 file /lib/libc.so.6 /lib/x86_64-linux-gnu/libc.so.6 755 0 0
 file /lib/libm.so.6 /lib/x86_64-linux-gnu/libm.so.6 755 0 0
@@ -41,7 +42,6 @@ file /lib/libzstd.so.1 /lib/x86_64-linux-gnu/libzstd.so.1 755 0 0
 #file /lib/terminfo/x/xterm /lib/terminfo/x/xterm 755 0 0
 #file /usr/lib/libnih.so.1 /usr/lib/libnih.so.1 755 0 0
 #file /usr/lib/libnih-dbus.so.1 /usr/lib/libnih-dbus.so.1 755 0 0
-file /usr/lib/libstdc++.so.6 /usr/lib/x86_64-linux-gnu/libstdc++.so.6 755 0 0
 
 # default start.conf
 file /start.conf @@SERVERFS@@/etc/linuxmuster/linbo/start.conf.default 644 0 0
