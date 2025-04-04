@@ -3,15 +3,16 @@ Section: admin
 Priority: extra
 Maintainer: Thomas Schmitt <thomas@linuxmuster.net>
 Build-Depends: acl, argon2, bc, binutils, bison, build-essential, ctorrent,
-  curl, cvs, debianutils, debhelper, dosfstools, dpkg-dev, dropbear-bin,
-  gcc-multilib, e2fsprogs, efibootmgr, ethtool, fakeroot, flex, fonts-ubuntu,
-  g++, gcc, gdisk, gettext, git, gnupg, gpgv, grep, grub-common, grub-ipxe,
-  grub-efi-amd64-bin, grub2-common, grub-pc-bin, gzip, hdparm, hwinfo,
-  kmod, libacl1-dev, libattr1-dev, libelf-dev, libfuse-dev, libncurses5-dev,
-  libowfat-dev, libssl-dev, libz-dev, linux-libc-dev, nasm, ncurses-base,
-  netpbm, ntfs-3g, parted, patchutils, perl, plymouth-label, plymouth-label-ft,
-  qemu-utils, rsync, systemd, sysvinit-utils, tar, udev, udpcast, unzip, util-linux,
-  uuid-dev, uuid-runtime, wget, wpasupplicant, zlib1g-dev, x11vnc, xz-utils
+  curl, cvs, debianutils, debhelper, dosfstools, dpkg-dev, dmidecode,
+  dropbear-bin, gcc-multilib, e2fsprogs, efibootmgr, ethtool, fakeroot, fdisk,
+  flex, fonts-ubuntu, g++, gcc, gettext, git, gnupg, gpgv, grep, grub-common,
+  grub-ipxe, grub-efi-amd64-bin, grub2-common, grub-pc-bin, gzip, hdparm,
+  hwinfo, kmod, libacl1-dev, libattr1-dev, libelf-dev, libfuse-dev,
+  libncurses5-dev, libowfat-dev, libssl-dev, libz-dev, linux-libc-dev, nasm,
+  ncurses-base, netpbm, ntfs-3g, parted, patchutils, perl, plymouth-label,
+  plymouth-label-ft, qemu-guest-agent, qemu-utils, rsync, systemd,
+  sysvinit-utils, tar, udev, udpcast, unzip, util-linux, uuid-dev, uuid-runtime,
+  wget, wpasupplicant, zlib1g-dev, x11vnc, xz-utils
 
 Package: linuxmuster-linbo7
 Architecture: all
