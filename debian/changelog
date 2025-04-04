@@ -1,8 +1,15 @@
+linuxmuster-linbo7 (4.3.6-0) lmn73; urgency=low
+
+  * fix linbofs path for libstdc++.so.6 (bc74f24).
+  * improve linbo client's performance in kvm/qemu virtual environments (#130).
+  * replace broken gdisk with ubuntu's fdisk (c4edbde, 94783f6).
+  * Uniform block device names (#126).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 04 Apr 2025 17:58:42 +0200
+
 linuxmuster-linbo7 (4.3.5-0) lmn73; urgency=low
 
   * kernel updates: longterm 6.6.85, stable 6.13.9 (b238242).
-  * create symlinks from real blockdevices to /dev/disk[#]p[#] to get
-    persistent device independent blockdevice names (#126).
 
  -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 02 Apr 2025 14:33:40 +0200
 
