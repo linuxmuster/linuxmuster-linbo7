@@ -2,7 +2,7 @@
 #
 # linbo_partition [-h|help|--help]
 # thomas@linuxmuster.net
-# 20250402
+# 20250410
 #
 
 
@@ -64,7 +64,7 @@ mk_parted(){
   local CMD="parted -s -a opt $disk mkpart"
 
   # efi system -> gpt label
-  stringinstring "efi" "$systemtype" && disklabel="gpt"
+  [ -d /sys/firmware/efi/efivars ] && disklabel="gpt"
   echo "Creating new $disklabel partition table on $disk."
 
   # first overwrite mbr
