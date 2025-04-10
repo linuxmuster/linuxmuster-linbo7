@@ -333,13 +333,6 @@ dltype_startconf(){
 }
 
 
-# get systemtype from start.conf
-systemtype_startconf(){
-  source /conf/linbo 2> /dev/null || return
-  echo "$systemtype"
-}
-
-
 # get fstype from start.conf
 # fstype_startconf device
 fstype_startconf(){
