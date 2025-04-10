@@ -2,7 +2,7 @@
 #
 # linbo_sync
 # thomas@linuxmuster.net
-# 20240123
+# 20240410
 #
 
 
@@ -221,66 +221,25 @@ set_guid(){
 }
 
 
-# patch fstab with root partition and root fstype: patch_fstab rootdev
+# patch fstab with root partition: patch_fstab rootdev
 patch_fstab(){
   echo -n "patch_fstab " ;  printargs "$@"
-  local rootdev="$1"
-  local line=""
-  local found=""
-  local fstype_mount=""
-  local fstype_fstab=""
-  local mntpnt=""
-  local changed=""
-  local rootdev_fstab=""
-  local options=""
-  local dump=""
-  local pass=""
-  local rootlabel=""
-  [ -z "$rootdev" ] && return 1
-  [ -e "$rootdev" ] || return 1
-  [ -e /tmp/fstab ] && rm -f /tmp/fstab
-  while read line; do
-    if [ -n "$line" -a "${line:0:1}" != "#" ]; then
-      mntpnt="$(echo "$line" | awk '{ print $2 }')"
-      if [ "$mntpnt" = "/" -a -z "$found" ]; then
-        found=yes
-        rootdev_fstab="$(echo "$line" | awk '{ print $1 }')"
-        [ -z "$rootdev_fstab" ] && return 1
-        fstype_fstab="$(echo "$line" | awk '{ print $3 }')"
-        [ -z "$fstype_fstab" ] && return 1
-        options="$(echo "$line" | awk '{ print $4 }')"
-        [ -z "$options" ] && return 1
-        dump="$(echo "$line" | awk '{ print $5 }')"
-        [ -z "$dump" ] && return 1
-        pass="$(echo "$line" | awk '{ print $6 }')"
-        [ -z "$pass" ] && return 1
-        # change root partition if necessary
-        echo "Patching root partition: $rootdev."
-        rootlabel="$(get_label "$rootdev")"
-        if [ -n "$rootlabel" ]; then
-          rootdev_fstab="LABEL=$rootlabel"
-        else
-          rootdev_fstab="$rootdev"
-        fi
-        line="$rootdev_fstab $mntpnt $fstype_fstab $options $dump $pass"
-        changed=yes
-        # check for changed filesytem type if partition was formatted
-        fstype_mount="$(cat /proc/mounts | grep "^$rootdev" | awk '{ print $3 }')"
-        [ -z "$fstype_mount" ] && return 1
-        if [ "$fstype_fstab" != "$fstype_mount" ]; then
-          # change filesystem
-          echo "Patching filesystem: $fstype_mount."
-          fstype_fstab="$fstype_mount"
-          line="$rootdev_fstab $mntpnt $fstype_fstab $options $dump $pass"
-          changed=yes
-        fi # fstype
-      fi # mntpnt
-    fi # line
-    echo "$line" >> /tmp/fstab
-  done </mnt/etc/fstab # reading fstab
-  if [ -n "$changed" ]; then
-    mv -f /mnt/etc/fstab /mnt/etc/fstab.bak
-    mv -f /tmp/fstab /mnt/etc
+  local fstab="/mnt/etc/fstab"
+  # get real devicename of root partition
+  local realroot
+  if [ -L "$1" ]; then
+    realroot="$(get_realdev "$1")"
+  else
+    realroot="$1"
+  fi
+  [ -b "$realroot" ] || return 1
+  # get fstab's root partition
+  local fstabroot="$(grep -v ^# /mnt/etc/fstab | awk '{print $1, $2}' | grep -w / | awk '{print $1}' | tail -1)"
+  [ -z "$fstabroot" ] && return 1
+  # patch fstab with real root partition
+  if [ "$realroot" != "$fstabroot" ]; then
+    echo " $fstabroot -> $realroot"
+    sed -i "s|^$fstabroot|$realroot|g" "$fstab" || return 1
   fi
 }
 
@@ -291,7 +250,6 @@ restore_winact(){
   [ -s  /mnt/.linbo ] && local imagename="$(cat /mnt/.linbo)"
   # if an image is not yet created do nothing
   if [ -z "$imagename" ]; then
-    echo "Skipping reactivation, system is not synchronized."
     return
   fi
 
