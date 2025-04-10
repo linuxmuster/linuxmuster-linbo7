@@ -1,7 +1,7 @@
 # common linbo shell functions
 #
 # thomas@linuxmuster.net
-# 20250402
+# 20250410
 #
 
 set -o pipefail
@@ -160,6 +160,11 @@ get_label(){
 # get real devicename by label
 # ex.: get_realdev /dev/sda4
 get_realdev(){
+  [ -b "$1" ] || return
+  if [ -L "$1" ]; then
+    ls -l "$1" | awk -F\> '{print $2}' | xargs
+    return
+  fi
   local label="$(get_label $1)"
   [ -z "$label" ] && return
   local dev="/dev/$(ls -l /dev/disk/by-label/$label | awk -F\> '{print $2}' | awk -F\/ '{print $3}')"
