@@ -2,7 +2,7 @@
 #
 # linbo_start
 # thomas@linuxmuster.net
-# 20230126
+# 20250410
 #
 
 
@@ -70,6 +70,8 @@ mntpnt="/mnt"
 startflag="/tmp/.start"
 touch "$startflag"
 
+# use real root device
+[ -L "$root" ] && root="$(get_realdev "$root")"
 if linbo_mount "$root" "$mntpnt" 2>> /tmp/linbo.log; then
   if [ -e "$mntpnt/$kernel" ]; then
     echo "Found kernel $kernel on partition $root."
