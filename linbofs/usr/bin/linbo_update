@@ -2,7 +2,7 @@
 #
 # linbo_update
 # thomas@linuxmuster.net
-# 20241003
+# 20250410
 #
 
 usage(){
@@ -120,10 +120,12 @@ echo "Downloading linbo wallpaper."
 
 # get ipxe files from server
 echo "Updating ipxe file."
-case "$systemtype" in
-  efi*) linbo_download boot/grub/ipxe.efi ;;
-  *) linbo_download boot/grub/ipxe.lkrn ;;
-esac
+# efi or bios?
+if [ -d /sys/firmware/efi/efivars ]; then
+  linbo_download boot/grub/ipxe.efi
+else
+  linbo_download boot/grub/ipxe.lkrn
+fi
 
 # get grub configs from server
 echo "Updating common grub configuration."
