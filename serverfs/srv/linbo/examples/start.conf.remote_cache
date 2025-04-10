@@ -17,7 +17,6 @@ DownloadType = torrent              # image download method (torrent|multicast|r
 GuiDisabled = no                    # disable gui <yes|no>
 UseMinimalLayout = no               # gui layout style <yes|no>
 Locale = de-de                      # gui locale <de-de|en-gb|fr-fr|es-es>
-SystemType = bios64                 # possible values: bios|bios64|efi32|efi64 (default: bios)
 KernelOptions = quiet splash        # linbo kernel options, space separated
 
 [Partition]          # partition section (operating system)

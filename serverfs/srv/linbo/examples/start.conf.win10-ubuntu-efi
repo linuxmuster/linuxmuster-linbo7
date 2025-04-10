@@ -21,7 +21,6 @@ DownloadType = torrent              # image download method (torrent|multicast|r
 GuiDisabled = no                    # disable gui <yes|no>
 UseMinimalLayout = no               # gui layout style <yes|no>
 Locale = de-de                      # gui locale <de-de|en-gb|fr-fr|es-es>
-SystemType = efi64                  # possible values: bios|bios64|efi32|efi64 (default: bios)
 KernelOptions = quiet splash        # linbo kernel options, space separated
 #KernelOptions = acpi=noirq irqpoll # linbo kernel options example for use with acpi problems
 #KernelOptions = server=10.0.0.5    # different pxe server ip, (needs device import to be activated)
