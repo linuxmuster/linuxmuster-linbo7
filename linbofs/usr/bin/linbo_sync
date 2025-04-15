@@ -2,7 +2,7 @@
 #
 # linbo_sync
 # thomas@linuxmuster.net
-# 20240410
+# 20250415
 #
 
 
@@ -43,7 +43,7 @@ check_status(){
 update_status(){
   local partition="$1"
   local imagefile="$2"
-  local imagebase="${imagefile%%.*}"
+  local imagebase="${imagefile%.*}"
   echo "## $(date) : Update status of $partition using $imagefile." | tee -a /tmp/linbo.log
   linbo_mount "$1" /mnt 2>> /tmp/linbo.log || return $?
   echo "$imagebase" > /mnt/.linbo

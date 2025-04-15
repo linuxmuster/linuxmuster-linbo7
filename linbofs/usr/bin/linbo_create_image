@@ -2,7 +2,7 @@
 #
 # linbo_create_image
 # thomas@linuxmuster.net
-# 20240917
+# 20250415
 #
 
 
@@ -246,7 +246,7 @@ mk_qcow2(){
     return "$RC"
   fi
   # save imagename on partition
-  echo "${imagefile/.*}" > /mnt/.linbo
+  echo "${imagefile%.*}" > /mnt/.linbo
   umount /mnt || umount -l /mnt
   # create info file
   local imgsize="$(get_filesize $imagefile)"
