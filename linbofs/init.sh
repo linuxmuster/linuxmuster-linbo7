@@ -413,7 +413,7 @@ network(){
   local ipaddr
   [ -z "$dhcpretry" ] && dhcpretry=3
   print_status "Requesting ip address per dhcp (retry=$dhcpretry) ..."
-  for dev in $(grep ':' /proc/net/dev | awk -F\: '{ print $1 }' | awk '{ print $1}' | grep -v ^lo | sort`); do
+  for dev in $(grep ':' /proc/net/dev | awk -F\: '{ print $1 }' | awk '{ print $1}' | grep -v ^lo | sort); do
     ip link set dev "$dev" up
     # activate wol
     ethtool -s "$dev" wol g
