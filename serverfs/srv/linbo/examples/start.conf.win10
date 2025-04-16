@@ -25,6 +25,7 @@ Label = windows      # partition label
 Size = 50G           # partition size 50G, will use kiB if no unit (M, G or T) is set
 Id = 7               # partition id (7 = ntfs)
 FSType = ntfs        # filesystem ntfs
+Bootable = yes       # set bootable flag yes
 
 [Partition]          # partition section (cache)
 Dev = /dev/sda2      # device name of the partition
@@ -32,6 +33,7 @@ Label = cache        # partition label
 Size = 50G           # partition size 50G
 Id = 83              # partition id (83 = linux)
 FSType = ext4        # filesystem ext4
+Bootable = yes       # set bootable flag yes
 
 [Partition]          # partition section (data)
 Label = data         # partition label
@@ -39,6 +41,7 @@ Dev = /dev/sda3      # device name of the partition
 Size =               # partition size (no value = remaining space of the disk)
 Id = 7               # partition id (7 = ntfs)
 FSType = ntfs        # filesystem ntfs
+Bootable = no        # set bootable flag no
 
 [OS]                          # os section
 Name = Windows 10             # os name
