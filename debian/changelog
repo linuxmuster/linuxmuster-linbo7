@@ -1,3 +1,9 @@
+linuxmuster-linbo7 (4.3.8-0) lmn73; urgency=low
+
+  * removal of the unecessary server option (#132).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 16 Apr 2025 18:18:24 +0200
+
 linuxmuster-linbo7 (4.3.7-0) lmn73; urgency=low
 
   * patch_fstab fix (#126, f3f7127).
