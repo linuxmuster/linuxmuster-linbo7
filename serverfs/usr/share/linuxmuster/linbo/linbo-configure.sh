@@ -2,7 +2,7 @@
 #
 # configure script for linuxmuster-linbo7 package
 # thomas@linuxmuster.net
-# 20231124
+# 20250416
 #
 
 # read environment & setup values
@@ -78,14 +78,6 @@ systemctl daemon-reload
 
 # do the rest only on configured systems
 [ -e "$SETUPINI" ] || exit 0
-
-# update serverip in start.conf
-echo "Setting serverip in start.conf examples."
-for i in $LINBODIR/start.conf $LINBODIR/examples/start.conf.*; do
-  if ! grep -qi ^"Server = $serverip" "$i"; then
-    sed -i "s/^[Ss][Ee][Rr][Vv][Ee][Rr] = \([0-9]\{1,3\}[.]\)\{3\}[0-9]\{1,3\}/Server = $serverip/" "$i"
-  fi
-done
 
 # activate linbo-multicast service if it was running before migration
 if [ -n "$RUNMCAST" ]; then

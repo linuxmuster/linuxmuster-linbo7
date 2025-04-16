@@ -145,7 +145,7 @@ do_env(){
   echo "$HOSTNAME" > /etc/hostname
   hostname "$HOSTNAME"
   # save mac address in enviroment
-  export MACADDR="`ifconfig | grep -B1 "$IP" | grep HWaddr | awk '{ print $5 }' | tr A-Z a-z`"
+  export MACADDR="$(ifconfig | grep -B1 "$IP" | grep HWaddr | awk '{ print $5 }' | tr A-Z a-z)"
   echo "export MACADDR='"$MACADDR"'" >> /.env
   clean_env
 }
@@ -413,7 +413,7 @@ network(){
   local ipaddr
   [ -z "$dhcpretry" ] && dhcpretry=3
   print_status "Requesting ip address per dhcp (retry=$dhcpretry) ..."
-  for dev in `grep ':' /proc/net/dev | awk -F\: '{ print $1 }' | awk '{ print $1}' | grep -v ^lo | sort`; do
+  for dev in $(grep ':' /proc/net/dev | awk -F\: '{ print $1 }' | awk '{ print $1}' | grep -v ^lo | sort`); do
     ip link set dev "$dev" up
     # activate wol
     ethtool -s "$dev" wol g
