@@ -6,9 +6,7 @@
 # data on partition 4
 
 [LINBO]                             # global section
-Server = 10.0.0.1                   # linbo server ip address
 Group = group                       # name of the hardware group
-# IMPORTANT: server and group will be automatically set during device import!
 Cache = /dev/sda2                   # cache partition
 RootTimeout = 600                   # logout from admin console after 600 secs
 AutoPartition = no                  # no partition repair during LINBO startup

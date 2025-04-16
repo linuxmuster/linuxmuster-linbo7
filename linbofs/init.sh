@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20250402
+# 20250416
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -102,7 +102,7 @@ do_env(){
   local varname
   local upvarname
   # parse kernel cmdline
-  for item in `cat /proc/cmdline` `grep ^[a-zB] /tmp/dhcp.log | sort -u`; do
+  for item in $(cat /proc/cmdline) $(grep ^[a-zB] /tmp/dhcp.log | sort -u); do
     echo "$item" | grep -q "=" || item="${item}='yes'"
     varname="$(echo "$item" | awk -F\= '{print $1}')"
     # skip non alphanumeric strings
