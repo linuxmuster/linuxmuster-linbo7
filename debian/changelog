@@ -1,3 +1,18 @@
+linuxmuster-linbo7 (4.3.7-0) lmn73; urgency=low
+
+  * patch_fstab fix (#126, f3f7127).
+  * get_realdev fix (#126, 1c22919).
+  * warmstart fix (#126, 35b024e).
+  * remove systemtype (#131) from
+    - start.conf examples (f3b678b),
+    - linbofs shell_functions (4a6d87e),
+    - linbofs linbo_update (5ed2f6c),
+    - linbofs linbo_partition (1b1860e).
+  * kernel updates (b2c383c).
+  * fix period in image's basename (f92a666).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 15 Apr 2025 10:45:22 +0200
+
 linuxmuster-linbo7 (4.3.6-0) lmn73; urgency=low
 
   * fix linbofs path for libstdc++.so.6 (bc74f24).
@@ -5,7 +20,7 @@ linuxmuster-linbo7 (4.3.6-0) lmn73; urgency=low
   * replace broken gdisk with ubuntu's fdisk (c4edbde, 94783f6).
   * Uniform block device names (#126).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 04 Apr 2025 17:58:42 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sun, 06 Apr 2025 20:09:53 +0200
 
 linuxmuster-linbo7 (4.3.5-0) lmn73; urgency=low
 
