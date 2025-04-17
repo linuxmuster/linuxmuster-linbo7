@@ -3,7 +3,7 @@
 # linbo_cmd: legacy command wrapper for the linbo_gui
 #
 # thomas@linuxmuster.net
-# 20241016
+# 20250417
 # GPL v3
 #
 
@@ -37,6 +37,15 @@ case "$1" in
   sync|syncr) cmd="syncstart" ;;
   synconly) cmd="sync" ;;
   cmd|wrapper) usage ;;
+  size)
+    # workaround for linbo_gui's wrong invokation of linbo_cmd size
+    case "$2" in
+      /dev/nvmenp) options="/dev/nvme0n1" ;;
+      /dev/diskp) options="/dev/disk0" ;;
+      *) ;;
+    esac
+    cmd="$1"
+  ;;
   *) cmd="$1" ;;
 esac
 shift
