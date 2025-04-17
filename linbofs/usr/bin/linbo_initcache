@@ -2,7 +2,7 @@
 #
 # linbo_initcache [serverip] [cachedev] [downloadtype] | [-h|help|--help]
 # thomas@linuxmuster.net
-# 20230126
+# 20250417
 #
 
 usage(){
@@ -49,7 +49,7 @@ cd /cache
 
 # clean up obsolete image files
 images="$(images_startconf)"
-for img in *.qcow2 *.cloop; do
+for img in *.qcow2; do
   [ -e "$img" ] || continue
   found=0
   for uimg in $images; do
@@ -68,6 +68,7 @@ done
 for img in $images; do
   if [ -n "$img" ]; then
     linbo_download_image "$img" "$downloadtype" || exit 1
+    linbo_download_image "${img/.qcow2/.qdiff}" "$downloadtype"
   fi
 done
 
