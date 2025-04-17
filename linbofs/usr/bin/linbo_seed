@@ -16,6 +16,7 @@ cd /cache
 
 RC=0
 for torrent in *.torrent; do
+    ps w | grep -v grep | grep -q "$torrent" && continue
     ctorrent -e $SEEDHOURS $CTOPTS -f -d "$torrent" || RC=1
     ps w | grep -v grep | grep -q "$torrent" && echo "Started linbo seeder for $torrent."
 done
