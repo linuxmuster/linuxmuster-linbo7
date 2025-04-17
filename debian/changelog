@@ -1,8 +1,11 @@
 linuxmuster-linbo7 (4.3.8-0) lmn73; urgency=low
 
   * removal of the unecessary server option (#132).
+  * automatic image seeding (#127).
+  * fix initcache does not download qdiff (124f375).
+  * workaround for linbo_gui's wrong invokation of linbo_cmd size (9aeb4f5).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 16 Apr 2025 18:18:24 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 17 Apr 2025 20:37:36 +0200
 
 linuxmuster-linbo7 (4.3.7-0) lmn73; urgency=low
 
