@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20250416
+# 20250417
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -597,6 +597,9 @@ fi
 
 # read shell environment
 source /usr/share/linbo/shell_functions
+
+# seed cached torrents
+linbo_seed | tee -a /tmp/linbo.log
 
 # send client's hwinfo
 [ -s /tmp/hwinfo.gz ] && sendlog /tmp/hwinfo.gz

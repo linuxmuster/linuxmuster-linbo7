@@ -1,0 +1,25 @@
+#!/bin/sh
+#
+# linbo_seed
+# thomas@linuxmuster.net
+# 20250417
+#
+
+# no cache, do nothing
+[ -e /tmp/linbo-cache.done ] || exit 0
+
+linbo_mountcache || exit 1
+
+source /torrent-client.conf || exit 1
+
+cd /cache
+
+RC=0
+for torrent in *.torrent; do
+    ctorrent -e $SEEDHOURS $CTOPTS -f -d "$torrent" || RC=1
+    ps w | grep -v grep | grep -q "$torrent" && echo "Started linbo seeder for $torrent."
+done
+
+cd
+
+exit $RC
