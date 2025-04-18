@@ -4,8 +4,11 @@ linuxmuster-linbo7 (4.3.8-0) lmn73; urgency=low
   * automatic image seeding (#127).
   * fix initcache does not download qdiff (124f375).
   * workaround for linbo_gui's wrong invokation of linbo_cmd size (9aeb4f5).
+  * fetch linbo client's hardware info only once (a1636e0).
+  * rsync download scripts code clean up (0743a63).
+  * linbofs shell functions code clean up (26397bb).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 17 Apr 2025 20:37:36 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 18 Apr 2025 16:06:17 +0200
 
 linuxmuster-linbo7 (4.3.7-0) lmn73; urgency=low
 
