@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20250417
+# 20250418
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -335,10 +335,25 @@ save_winact(){
   rsync "$LINBOSERVER::linbo/winact/$(basename $archive).upload" /cache || true
 }
 
+# get and upload client's hardware info
+do_hwinfo(){
+  local hwinfo_gz="/cache/hwinfo.gz"
+  local hwinfo_tmp="/tmp/hwinfo.gz"
+  [ -s "$hwinfo_gz" ] && return 0
+  hwinfo | gzip > "$hwinfo_gz" || rm -f "$hwinfo_gz"
+  if [ -s "$hwinfo_gz" ]; then
+    cp "$hwinfo_gz" /tmp
+    rsync "$LINBOSERVER::linbo${hwinfo_tmp}" /tmp/dummy || true
+    rm -f "$hwinfo_tmp"
+  fi
+}
+
 # save windows activation tokens
 do_housekeeping(){
   local dev
-  if ! linbo_mountcache; then
+  if linbo_mountcache; then
+    do_hwinfo
+  else
     echo "Housekeeping: Cannot mount cache partition."
     return 1
   fi
@@ -531,9 +546,6 @@ hwsetup(){
 
   export TERM_TYPE=pts
 
-  # save hosts hardware info
-  hwinfo | gzip -c > /tmp/hwinfo.gz
-
   # link blockdevices
   linbo_link_blkdev
 
@@ -600,9 +612,6 @@ source /usr/share/linbo/shell_functions
 
 # seed cached torrents
 linbo_seed | tee -a /tmp/linbo.log
-
-# send client's hwinfo
-[ -s /tmp/hwinfo.gz ] && sendlog /tmp/hwinfo.gz
 
 # save init.log
 if [ -s "/init.log" ]; then
