@@ -2,7 +2,7 @@
 #
 # Pre-Download script for rsync/LINBO
 # thomas@linuxmuster.net
-# 20250326
+# 20250418
 #
 
 # read in linuxmuster specific environment
@@ -81,8 +81,8 @@ case $EXT in
   # fetch logfiles from client
   log|status|gz)
     targetfile="$LINBOLOGDIR/${RSYNC_HOST_NAME%%.*}_$(basename "$FILE")"
-    sourcefile="$(echo "$FILE" | sed -e "s|$LINBODIR||")"
-    echo "Upload request for $FILE."
+    sourcefile="$(echo "$FILE" | sed -e "s|$LINBODIR||" | sed -e "s|//|/|")"
+    echo "Upload request for $FILE: $sourcefile -> $targetfile."
     linbo-scp -v "${RSYNC_HOST_ADDR}:$sourcefile" "$FILE" || RC="1"
     if [ -s "$FILE" ]; then
       if [ "$EXT" = "log" ]; then
@@ -91,7 +91,7 @@ case $EXT in
         cp "$FILE" "$targetfile"
       fi
       rm -f "$FILE"
-      touch "$FILE"
+      #touch "$FILE"
     fi
   ;;
 
@@ -163,18 +163,6 @@ case $EXT in
     linbo_kopts="$(grep -iw ^kerneloptions "$startconf" | awk -F\= '{print $2}' | awk -F\# '{print $1}' | head -$nr | tail -1 | awk '{$1=$1};1')"
     append="$linbo_kopts localboot"
     sed -e "s|linux \$linbo_kernel .*|linux \$linbo_kernel $append|g" "$grubcfg_tpl" > "$FILE"
-  ;;
-
-  # handle lmn71 start.conf request
-  conf_*)
-    mkdir -p "$LINBODIR/tmp"
-    group="$(get_hostgroup "$compname")"
-    startconf="$LINBODIR/start.conf.$group"
-    if [ -n "$group" -a -s "$startconf" ]; then
-      cp "$startconf" "$FILE"
-    else
-      cp -L "$LINBODIR/start.conf" "$FILE"
-    fi
   ;;
 
 esac
