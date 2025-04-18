@@ -1,7 +1,7 @@
 # common linbo shell functions
 #
 # thomas@linuxmuster.net
-# 20250410
+# 20250418
 #
 
 set -o pipefail
@@ -211,11 +211,11 @@ remote_cache(){
 killalltorrents(){
   local WAIT=5
   # check for running torrents and kill them if any
-  if [ -n "`ps w | grep ctorrent | grep -v grep`" ]; then
+  if ps w | grep -v grep | grep -q ctorrent; then
     echo "Stopping torrents ..."
     killall -9 ctorrent 2>/dev/null
     sleep "$WAIT"
-    [ -n "`ps w | grep ctorrent | grep -v grep`" ] && sleep "$WAIT"
+    ps w | grep -v grep | grep -q ctorrent && sleep "$WAIT"
   fi
 }
 
@@ -230,10 +230,10 @@ sendlog(){
   logbase="$(basename "$logfile")"
   if localmode; then
     echo "Saving $logfile to cache."
-    mv "$logfile" >> "/cache/$logbase"
+    mv "$logfile" "/cache/$logbase"
   else
     echo "Uploading $logbase ..."
-    rsync "$LINBOSERVER::linbo/$logfile" /tmp/dummy || true
+    rsync "$LINBOSERVER::linbo${logfile}" /tmp/dummy || true
     rm -f "$logfile"
   fi
 }
