@@ -2,7 +2,7 @@
 #
 # linbo_size <partition>
 # thomas@linuxmuster.net
-# 20240917
+# 20250421
 #
 
 usage(){
@@ -21,29 +21,44 @@ usage(){
 # read common shell functions
 source /usr/share/linbo/shell_functions
 
-# workaround for wrong linbo_gui invokation
-device="$1"
-if [ ! -b "$device" ] && echo "$device" | grep -q "/dev/nvme"; then
-  device="$(get_disk_from_partition "$cache")"
-fi
-
 # test if device is valid
+device="$(get_realdev "$1")"
 if [ ! -b "$device" ]; then
   echo " -- "
   exit 1
 fi
 
-
-mkdir -p /tmp/mnt
-if linbo_mount "$device" /tmp/mnt -r 2>> /tmp/linbo.log; then
-  df -k /tmp/mnt 2>/dev/null | tail -1 | \
-    awk '{printf "%.1f/%.1fGB\n", $4 / 1048576, $2 / 1048576}' 2>/dev/null
-  umount /tmp/mnt
-else
+# test if device is disk
+type="$(lsblk -A -p -l -o NAME,TYPE | grep -w ^"$device" | awk '{print $2}')"
+if [ "$type" = "disk" ]; then
   size=$(get_partition_size "$device")
   if [ "$?" = "0" -a "$size" -ge 0 ] 2>/dev/null; then
     echo "$size" | awk '{printf "%.1fGB\n",$1 / 1048576}' 2>/dev/null
+    exit 0
   else
     echo " -- "
+    exit 1
   fi
+fi
+
+# test if partition is mounted
+mntpnt="$(grep -w ^"$device" /proc/mounts | awk '{print $2}')"
+
+# if not mounted, mount on an temporary mountpoint
+if [ -z "$mntpnt" ]; then
+  mntpnt="/tmp/mnt"
+  mkdir -p "$mntpnt"
+  if ! linbo_mount "$device" "$mntpnt" -r &>/dev/null; then
+    echo " -- "
+    exit 1
+  fi
+fi
+
+# get size
+df -k "$mntpnt" 2>/dev/null | tail -1 | \
+  awk '{printf "%.1f/%.1fGB\n", $4 / 1048576, $2 / 1048576}' 2>/dev/null
+
+# unmount
+if [ "$mntpnt" = "/tmp/mnt" ]; then
+  umount "$mntpnt"
 fi
