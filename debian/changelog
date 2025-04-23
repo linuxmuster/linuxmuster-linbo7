@@ -1,3 +1,9 @@
+linuxmuster-linbo7 (4.2.15-0) lmn72; urgency=low
+
+  * kernel updates (4617009).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 23 Apr 2025 09:45:30 +0000
+
 linuxmuster-linbo7 (4.2.14-0) lmn72; urgency=low
 
   * Merge pull request #115 from hermanntoast/fix-kernel-build.
