@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/x86 6.6.87 Kernel Configuration
+# Linux/x86 6.6.88 Kernel Configuration
 #
 CONFIG_CC_VERSION_TEXT="gcc (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0"
 CONFIG_CC_IS_GCC=y
@@ -3816,6 +3816,7 @@ CONFIG_HID_MULTITOUCH=m
 # CONFIG_HID_THINGM is not set
 # CONFIG_HID_THRUSTMASTER is not set
 # CONFIG_HID_UDRAW_PS3 is not set
+# CONFIG_HID_UNIVERSAL_PIDFF is not set
 CONFIG_HID_WACOM=m
 # CONFIG_HID_WIIMOTE is not set
 # CONFIG_HID_XINMO is not set
