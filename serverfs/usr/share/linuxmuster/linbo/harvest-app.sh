@@ -3,7 +3,7 @@
 # harvest an app from server os for use in linbofs
 #
 # thomas@linuxmuster.net
-# 20250326
+# 20250424
 #
 
 # get linbo env
@@ -11,12 +11,11 @@ source /usr/share/linuxmuster/helperfunctions.sh
 
 # give full path to app
 APP="$1"
+shift
 
 [ -s "$APP" ] || exit 1
 
 # linbofs paths
-LINBOFSROOT="$LINBOCACHEDIR/linbofs64"
-LINBOFSLIBDIR="$LINBOFSROOT/lib"
 LINBOAPPDIR="$LINBOCACHEDIR/apps"
 
 # app paths
@@ -44,6 +43,12 @@ mkdir -p "$APPDIR/lib"
 
 # copy app binary
 cp -L $APP "$APPDIR/$APP"
+if [ -n "$@" ]; then
+    for i in $@; do
+        mkdir -p "$APPDIR/$(dirname $i)"
+        cp -L $i "$APPDIR/$i"
+    done
+fi
 
 # get dependend libraries and copy them
 ldd "$APP" | while read line; do
