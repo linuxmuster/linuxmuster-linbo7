@@ -6,7 +6,7 @@
 #
 # thomas@linuxmuster.net
 # GPL V3
-# 20250326
+# 20250425
 #
 
 # read linuxmuster environment
@@ -178,6 +178,14 @@ create_linbofs() {
 	# copy default start.conf
 	cp -f $LINBODIR/start.conf .
 
+	# locale
+	lng="${LANG%.*}"
+	lngdir="/usr/share/locale/$lng"
+	if [ -n "$lng" ] && [ -d "$lngdir" ]; then
+		mkdir -p ".${lngdir}"
+		rsync -a "$lngdir/" ".${lngdir}/"
+	fi
+
 	# timezone
 	# copy timezone info file
 	[ -e /etc/localtime ] && cp -L "/etc/localtime" etc/localtime
@@ -189,8 +197,12 @@ create_linbofs() {
 		grep -v ^# "$conf" | while read line; do
 			[ -z "$line" ] && continue
 			fw_source="$fw_base/$line"
-			[ -e "$fw_source" ] || continue
-			echo "  $line"
+			if [ ! -e "$fw_source" ]; then
+				# compressed firmware?
+				fw_source="${fw_source}.zst"
+				[ -e "$fw_source" ] || continue
+			fi
+			echo "  $(basename "$fw_source")"
 			fw_target="${fw_source/\/}"
 			fw_dir="$(dirname "$fw_target")"
 			mkdir -p "$fw_dir"
