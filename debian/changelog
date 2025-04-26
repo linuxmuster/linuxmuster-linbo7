@@ -1,11 +1,15 @@
 linuxmuster-linbo7 (4.3.9-0) lmn73; urgency=low
 
-  * removal of the unecessary server option (#132, fb133af).
   * fetch linbo client's hardware info only once (a1636e0).
   * rsync download scripts code clean up (0743a63).
   * linbofs shell functions code clean up (26397bb).
+  * linbo_size improvements (e85c2e3).
+  * kernel updates (#134).
+  * update-linbofs: add current locale and support for zst compressed firmware (8766c64).
+  * harvest-app.sh: add ability to process supplemental files (79ebf12).
+  * improve linbo client logging (#123).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 18 Apr 2025 17:06:19 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 26 Apr 2025 20:11:53 +0200
 
 linuxmuster-linbo7 (4.3.8-0) lmn73; urgency=low
 
