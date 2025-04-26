@@ -2,13 +2,17 @@
 #
 # linbo_seed
 # thomas@linuxmuster.net
-# 20250417
+# 20250425
 #
 
 # no cache, do nothing
 [ -e /tmp/linbo-cache.done ] || exit 0
 
-linbo_mountcache || exit 1
+# get environment
+source /usr/share/linbo/shell_functions
+echo "### $timestamp $(basename "$0") ###"
+
+linbo_mountcache &> /dev/null || exit 1
 
 source /torrent-client.conf || exit 1
 

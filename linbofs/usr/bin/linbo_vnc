@@ -7,6 +7,7 @@
 
 # get environment
 source /usr/share/linbo/shell_functions
+echo "### $timestamp $(basename "$0") ###"
 
 daemon="/usr/bin/x11vnc"
 pidfile="/run/x11vnc.pid"

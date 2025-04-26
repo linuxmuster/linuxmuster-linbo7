@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20250418
+# 20250426
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -165,7 +165,6 @@ init_setup(){
   ifconfig lo 127.0.0.1 up
   hostname linbo
   klogd >/dev/null 2>&1
-  syslogd -C 64k >/dev/null 2>&1
 
   # Enable CPU frequency scaling
   for i in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do
@@ -195,7 +194,6 @@ copyfromcache(){
       RC="1"
     fi
   done
-  umount /cache
   return "$RC"
 }
 
@@ -220,7 +218,6 @@ copytocache(){
       RC="1"
     fi
   fi
-  umount /cache
   return "$RC"
 }
 
@@ -340,10 +337,11 @@ do_hwinfo(){
   local hwinfo_gz="/cache/hwinfo.gz"
   local hwinfo_tmp="/tmp/hwinfo.gz"
   [ -s "$hwinfo_gz" ] && return 0
+  echo "Collecting hardware info."
   hwinfo | gzip > "$hwinfo_gz" || rm -f "$hwinfo_gz"
   if [ -s "$hwinfo_gz" ]; then
     cp "$hwinfo_gz" /tmp
-    rsync "$LINBOSERVER::linbo${hwinfo_tmp}" /tmp/dummy || true
+    rsync "$LINBOSERVER::linbo${hwinfo_tmp}" /tmp/dummy &> /dev/null || true
     rm -f "$hwinfo_tmp"
   fi
 }
@@ -366,7 +364,6 @@ do_housekeeping(){
       umount /mnt
     fi
   done
-  grep -qw /cache /proc/mounts && umount /cache
 }
 
 # update linbo and install it locally
@@ -465,7 +462,9 @@ network(){
   if [ -s /start.conf ]; then
     print_status "Network connection to $LINBOSERVER established successfully."
     print_status "IP: $IP * Hostname: $HOSTNAME * MAC: $MACADDR * Server: $LINBOSERVER"
-    # first do linbo update (splits start.conf)
+    # split downloaded start.conf
+    linbo_split_startconf
+    # first do linbo update
     do_linbo_update
     # time sync
     print_status "Starting time sync ..."
@@ -474,12 +473,14 @@ network(){
     # get onboot linbo-remote commands, if there are any
     local item
     for item in $HOSTNAME $IP; do
-      rsync -L "$LINBOSERVER::linbo/linbocmd/$item.cmd" "/linbocmd"
-      [ -s /linbocmd ] && break
+      rsync -L "$LINBOSERVER::linbo/linbocmd/$item.cmd" "/linbocmd" &> /dev/null
+      if [ -s /linbocmd ]; then
+        echo "$item.cmd successfully downloaded."
+        break
+      fi
     done
     # save linbo-remote noauto and disablegui cmds to variables
     if [ -s /linbocmd ]; then
-      echo "Linbo remote commands downloaded successfully."
       for item in noauto disablegui; do
         if grep -q $item /linbocmd; then
           eval $item=yes
@@ -510,8 +511,6 @@ network(){
   fi
   # start.conf: set autostart if given on cmdline
   isinteger "$autostart" && set_autostart
-  # split start.conf finally
-  linbo_split_startconf
   # get hostgroup from start.conf in offline mode
   if [ -z "$HOSTGROUP" ]; then
     [ -s /conf/linbo ] && source /conf/linbo
@@ -560,9 +559,13 @@ hwsetup(){
 # Main
 clear
 
-timestamp="$(date +%Y%m%d%H%M%S)"
+init_setup
+
+timestamp="$(date +%Y%m%d-%H%M%S)"
+exec > >(tee /tmp/init.log) 2>&1
+
 echo
-echo "### $timestamp init ###"
+echo "### $timestamp init begin ###"
 
 # print welcome message
 source /.profile
@@ -572,7 +575,6 @@ echo
 echo "Initializing hardware ..."
 echo
 
-init_setup
 hwsetup
 
 # start plymouth boot splash daemon
@@ -607,27 +609,19 @@ if [ -s /linbocmd ]; then
   IFS="$OIFS"
 fi
 
-# read shell environment
-source /usr/share/linbo/shell_functions
-
 # seed cached torrents
-linbo_seed | tee -a /tmp/linbo.log
-
-# save init.log
-if [ -s "/init.log" ]; then
-  cat /init.log >> /tmp/linbo.log
-  rm -f /init.log
-fi
+linbo_seed
 
 # collect firmware infos and send it
 fwinfo="$(dmesg | grep firmware)"
-[ -n "$fwinfo" ] && echo -e "### $timestamp firmware info ###\n$fwinfo" >> /tmp/linbo.log
+[ -n "$fwinfo" ] && echo -e "### firmware info ###\n$fwinfo" >> /tmp/init.log
 
-# upload logfile
-sendlog
-
-# kill logging process
-pid="$(ps w | grep /init.log | grep -v /init.sh | grep -v grep | awk '{print $1}')"
-[ -n "$pid" ] && kill "$pid"
+# merge logfiles
+[ -s /tmp/linbo.log ] && cat /tmp/linbo.log >> /tmp/init.log
+timestamp="$(date +%Y%m%d-%H%M%S)"
+echo
+echo "### $timestamp init end ###"
+echo
+mv /tmp/init.log /tmp/linbo.log
 
 exit 0

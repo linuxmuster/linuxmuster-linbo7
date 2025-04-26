@@ -2,7 +2,7 @@
 #
 # linbo_upload
 # thomas@linuxmuster.net
-# 20220609
+# 20250423
 #
 
 usage(){
@@ -39,13 +39,9 @@ export RSYNC_PASSWORD="$1" ; shift
 [ -z "$1" -o -b "$1" ] && shift
 FILE="$1"
 
-if remote_cache "$cache"; then
-  echo "Cache $cache is not local, no upload for $FILE." | tee -a /tmp/linbo.log
-  sendlog
-  exit 1
-fi
+echo "### $timestamp $(basename "$0") $FILE ###"
 
-linbo_mountcache || exit 1
+linbo_mountcache &> /dev/null || exit 1
 cd /cache
 
 RC="0"
@@ -61,7 +57,7 @@ if [ -e "$FILE" ]; then
       [ -s "${FILE}.${item}" ] && filelist="$filelist ${FILE}.${item}"
     done
   fi
-  echo "Uploading $filelist to $LINBOSERVER ..." | tee -a /tmp/linbo.log
+  echo "Uploading $filelist to $LINBOSERVER ..."
   for item in $filelist; do
     interruptible rsync --skip-compress="$RSYNC_SKIP_COMPRESS" --log-file=/tmp/rsync.log --progress -Ha $RSYNC_PERMISSIONS --partial "$item" "$LINBOUSER@$LINBOSERVER::linbo-upload/${subdir}${item}"
     # because return code is always 0 this is necessary
@@ -72,13 +68,13 @@ if [ -e "$FILE" ]; then
   done
 else
   RC=1
-  echo "File $FILE does not exist." | tee -a /tmp/linbo.log
+  echo "File $FILE does not exist."
 fi
 
 if [ "$RC" = "0" ]; then
-  echo "Successfully uploaded $filelist to $LINBOSERVER." | tee -a /tmp/linbo.log
+  echo "Successfully uploaded $filelist to $LINBOSERVER."
 else
-  echo "Failed to upload $filelist to $LINBOSERVER." | tee -a /tmp/linbo.log
+  echo "Failed to upload $filelist to $LINBOSERVER."
 fi
 
 cd /

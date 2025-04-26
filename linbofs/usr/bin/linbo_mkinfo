@@ -2,7 +2,7 @@
 #
 # linbo_mkinfo
 # thomas@linuxmuster.net
-# 20220610
+# 20250423
 #
 
 usage(){
@@ -20,10 +20,9 @@ usage(){
 
 # get environment
 source /usr/share/linbo/shell_functions
+echo "### $timestamp $(basename "$0") $@ ###"
 
-echo "### linbo_mkinfo $1 $2"
-
-linbo_mountcache || exit 1
+linbo_mountcache &> /dev/null || exit 1
 
 curdir="$(pwd)"
 cd /cache

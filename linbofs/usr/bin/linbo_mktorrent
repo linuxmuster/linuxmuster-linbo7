@@ -2,7 +2,7 @@
 #
 # linbo_mktorrent
 # thomas@linuxmuster.net
-# 20230918
+# 20250423
 #
 
 usage(){
@@ -20,11 +20,13 @@ usage(){
 
 # get environment
 source /usr/share/linbo/shell_functions
+echo "### $timestamp $(basename "$0") $@ ###"
+
 isinteger "$PIECELEN" && plopt="-l $PIECELEN"
 
 echo "### linbo_mktorrent $1"
 
-linbo_mountcache || exit 1
+linbo_mountcache &> /dev/null || exit 1
 
 curdir="$(pwd)"
 cd /cache
@@ -32,9 +34,9 @@ cd /cache
 [ -s "$1" ] || usage 1
 
 RC="0"
-echo "Creating $1.torrent ..." | tee -a /tmp/image.log
+echo "Creating $1.torrent ..."
 rm -f "$1".torrent
-ctorrent -t -u http://"$LINBOSERVER":6969/announce $plopt -s "$1".torrent "$1" | tee -a /tmp/image.log || RC="1"
+ctorrent -t -u http://"$LINBOSERVER":6969/announce $plopt -s "$1".torrent "$1" || RC="1"
 
 cd "$curdir"
 

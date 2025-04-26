@@ -2,7 +2,7 @@
 #
 # linbo_partition [-h|help|--help]
 # thomas@linuxmuster.net
-# 20250410
+# 20250423
 #
 
 
@@ -129,7 +129,7 @@ mk_parted(){
         $CMD $parttype $partstart $extpartend || RC=1
         if [ "$RC" = "0" ]; then
           # correct parted's idea of the extended partition id
-          echo -e "t\n$n\n5\nw\n" | fdisk "$disk" 2>> /tmp/linbo.log 1>> /tmp/linbo.log || RC=1
+          echo -e "t\n$n\n5\nw\n" | fdisk "$disk" || RC=1
         fi
         ;;
       6|06|e|0e) $CMD $partname fat16 $partstart $partend || RC=1 ;;
@@ -150,7 +150,7 @@ mk_parted(){
           $CMD $partname fat32 $partstart $partend || RC=1
           if [ "$RC" = "0" ]; then
             # correct parted's idea of the efi partition id on msdos disklabel
-            echo -e "t\n$n\nef\nw\n" | fdisk "$disk" 2>> /tmp/linbo.log 1>> /tmp/linbo.log || RC=1
+            echo -e "t\n$n\nef\nw\n" | fdisk "$disk" || RC=1
           fi
         fi
         ;;
@@ -162,7 +162,7 @@ mk_parted(){
     # set bootable flag
     if [ "$bootable" = "yes" ]; then
       if [ "$disklabel" = "msdos" ]; then
-        echo -e "a\n$n\nw\n" | fdisk "$disk" 2>> /tmp/linbo.log 1>> /tmp/linbo.log || RC=1
+        echo -e "a\n$n\nw\n" | fdisk "$disk" || RC=1
       else
         # note: with gpt disklabel only one partition can own the bootable
         # flag, so the last one wins if multiple boot flags were set
@@ -199,6 +199,7 @@ mk_parted(){
 
 # get environment
 source /usr/share/linbo/shell_functions
+echo "### $timestamp $(basename "$0") ###"
 
 # process all partitions defined in start.conf
 # if FORMAT is set, partitions will be formatted

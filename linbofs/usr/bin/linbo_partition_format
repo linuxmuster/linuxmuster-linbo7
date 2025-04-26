@@ -2,7 +2,7 @@
 #
 # linbo_partition_format
 # thomas@linuxmuster.net
-# 20220609
+# 20250423
 #
 
 usage(){
@@ -16,6 +16,10 @@ usage(){
 
 # print help
 [ "$1" = "help" ] && usage
+
+# get environment
+source /usr/share/linbo/shell_functions
+echo "### $timestamp $(basename "$0") ###"
 
 export FORMAT="yes"
 linbo_partition $@

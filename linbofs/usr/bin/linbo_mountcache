@@ -2,7 +2,7 @@
 #
 # linbo_mountcache [-r] | [help]
 # thomas@linuxmuster.net
-# 20231102
+# 20250425
 #
 
 
@@ -10,6 +10,7 @@
 
 # read common shell functions
 source /usr/share/linbo/shell_functions
+echo "### $timestamp $(basename "$0") ###"
 
 
 usage(){
@@ -47,8 +48,6 @@ findcache(){
 # print help
 [ "$1" = "help" ] && usage 0
 
-#echo "linbo_mountcache $@"
-
 # get cache partition, otherwise use environment variable
 if [ -b "$1" ]; then
   cache="$1"
@@ -71,8 +70,8 @@ if [ -n "$mount_opts" ]; then
   RW=""
   echo "$mount_opts" | grep -q ".*rw.*" && RW="true"
   case "$ro" in
-    -r) [ -n "$RW" ] && mount -o remount,ro /cache 2>> /tmp/linbo.log ; RC="$?" ;;
-    *) [ -n "$RW" ] || mount -o remount,rw /cache 2>> /tmp/linbo.log ; RC="$?" ;;
+    -r) [ -n "$RW" ] && mount -o remount,ro /cache ; RC="$?" ;;
+    *) [ -n "$RW" ] || mount -o remount,rw /cache ; RC="$?" ;;
   esac
   exit "$RC"
 fi
@@ -82,7 +81,7 @@ case "$cache" in
     dir="${cache##*:}"
     echo "Mounting cache partition per nfs from $cache ..."
     # -o nolock is EXTREMELY important here, otherwise mount.nfs will timeout waiting for portmap
-    mount $ro -t nfs4 -o nolock,relatime,rsize=1048576,wsize=1048576,hard,intr "$cache" /cache 2>> /tmp/linbo.log
+    mount $ro -t nfs4 -o nolock,relatime,rsize=1048576,wsize=1048576,hard,intr "$cache" /cache
     RC="$?"
     ;;
   \\\\*\\*|//*/*) # CIFS/SAMBA
@@ -97,11 +96,11 @@ case "$cache" in
     # temporary workaround for password
     [ -s /tmp/linbo.passwd ] && PASSWD="$(cat /tmp/linbo.passwd 2>/dev/null)"
     [ -z "$PASSWD" -a -s /tmp/rsyncd.secrets ] && PASSWD="$(grep ^linbo /tmp/rsyncd.secrets | awk -F\: '{ print $2 }' 2>/dev/null)"
-    mount $ro -t cifs -o username=linbo,password="$PASSWD",nolock "$cache" /cache 2>> /tmp/linbo.log
+    mount $ro -t cifs -o username=linbo,password="$PASSWD",nolock "$cache" /cache
     RC="$?"
     if [ "$RC" != "0" ]; then
       echo "Authentication failure."
-      mount $ro -t cifs -o nolock,guest,sec=none "$cache" /cache 2>> /tmp/linbo.log
+      mount $ro -t cifs -o nolock,guest,sec=none "$cache" /cache
       RC="$?"
       if [ "$RC" != "0" ]; then
         echo "Guest access does not work also."
@@ -110,7 +109,7 @@ case "$cache" in
     ;;
   /dev/*) # cache
     echo "Mounting cache partition $cache ..."
-    linbo_mount "$cache" /cache $ro 2>> /tmp/linbo.log ; RC="$?"
+    linbo_mount "$cache" /cache $ro ; RC="$?"
     ;;
   *) # Yet unknown
     echo "Unknown source for cache partition: $cache." >&2

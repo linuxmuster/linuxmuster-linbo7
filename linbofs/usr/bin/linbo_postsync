@@ -2,11 +2,12 @@
 #
 # linbo_postsync <#> | <root> <postsync filename> | [help]
 # thomas@linuxmuster.net
-# 20240918
+# 20250423
 #
 
 # read common shell functions
 source /usr/share/linbo/shell_functions
+echo "### $timestamp $(basename "$0") $@ ###"
 
 
 # usage info
@@ -50,7 +51,7 @@ fi
 
 # test options
 [ -b "$root" ] || usage 1
-linbo_mountcache
+linbo_mountcache &> /dev/null
 [ -s "$postsync" ] || usage 1
 linbo_mount "$root" /mnt || usage 1
 

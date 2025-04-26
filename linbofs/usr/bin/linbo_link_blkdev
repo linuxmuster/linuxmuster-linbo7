@@ -2,11 +2,12 @@
 #
 # linbo_link_blkdev: creates symlinks to blockdevices
 # thomas@linuxmuster.net
-# 20250402
+# 20250423
 #
 
 # get environment
 source /usr/share/linbo/shell_functions || exit 1
+echo "### $timestamp $(basename "$0") ###"
 
 # create missing links only
 [ "$1" = "-m" -o "$1" = "--missing" ] && MISSING="yes"

@@ -2,7 +2,7 @@
 #
 # linbo_preregister
 # thomas@linuxmuster.net
-# 20220624
+# 20250423
 #
 
 
@@ -21,10 +21,11 @@ usage(){
 
 # get environment
 source /usr/share/linbo/shell_functions
+echo "### $timestamp $(basename "$0") ###"
 
 LAST_REGISTERED="/tmp/last_registered"
 cd "$(dirname "$LAST_REGISTERED")"
-linbo_download "$(basename "$LAST_REGISTERED")"
+linbo_download "$(basename "$LAST_REGISTERED")" &> /dev/null
 cd /
 LASTWORKSTATION="$(grep ^[a-z0-9] "$LAST_REGISTERED" | tail -n 1)"
 

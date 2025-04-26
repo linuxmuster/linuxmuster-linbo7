@@ -2,7 +2,7 @@
 #
 # linbo_mount
 # thomas@linuxmuster.net
-# 20231102
+# 20250423
 #
 
 usage(){
@@ -21,6 +21,7 @@ usage(){
 
 # read common shell functions
 source /usr/share/linbo/shell_functions
+echo "### $timestamp $(basename "$0") $@ ###"
 
 # get options
 type="$(linbo_fstype $1)"

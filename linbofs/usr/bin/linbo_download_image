@@ -2,7 +2,7 @@
 #
 # linbo_download_image
 # thomas@linuxmuster.net
-# 20230918
+# 20250423
 #
 
 
@@ -38,7 +38,7 @@ torrent_watchdog(){
     line="$(tail -1 "$logfile" | awk '{ print $3 }')"
     [ -z "$line_old" ] && line_old="$line"
     if [ "$line_old" = "$line" ]; then
-      [ $c -eq 0 ] || echo -e "\nTorrent watchdog: download of $image stalls since $c seconds." >&2 | tee -a /tmp/image.log
+      [ $c -eq 0 ] || echo -e "\nTorrent watchdog: download of $image stalls since $c seconds." >&2
       c=$(($c+$int))
     else
       line_old="$line"
@@ -48,10 +48,10 @@ torrent_watchdog(){
   rm -f "$logfile"
   echo
   if [ "$RC" = "0" ]; then
-    echo "Image $image downloaded successfully." | tee -a /tmp/image.log
+    echo "Image $image downloaded successfully."
   else
     ps w | grep -v grep | grep -q ctorrent && killall -9 ctorrent
-    echo "Cancelled download of $image because of timeout." >&2 | tee -a /tmp/image.log
+    echo "Cancelled download of $image because of timeout." >&2
   fi
   return "$RC"
 }
@@ -80,8 +80,8 @@ download_torrent(){
   [ -n "$OPTIONS" ] && CTOPTS="$CTOPTS $OPTIONS"
   [ -n "$MAXUP" ] && CTOPTS="$CTOPTS -U $MAXUP"
   [ -n "$MAXDOWN" ] && CTOPTS="$CTOPTS -D $MAXDOWN"
-  echo "Torrent options: $CTOPTS" >> /tmp/image.log
-  echo "Starting torrent service for $imagefile." | tee -a /tmp/image.log
+  echo "Torrent options: $CTOPTS"
+  echo "Starting torrent service for $imagefile."
   local logfile=/tmp/"$imagefile".log
   if [ ! -e "$complete" ]; then
     rm -f "$imagefile" "$torrent".bf
@@ -115,8 +115,8 @@ get_multicast_port(){
 # download_multicast port file
 download_multicast(){
   echo "MULTICAST Download $INTERFACE($LINBOSERVER):$1 -> $2"
-  echo "udp-receiver --log /tmp/image.log --nosync --nokbd --interface $INTERFACE --rcvbuf 4194304 --portbase $1 --file $2"
-  interruptible udp-receiver --log /tmp/image.log --nosync --nokbd --interface "$INTERFACE" --rcvbuf 4194304 --portbase "$1" --file "$2" 2>&1 ; RC="$?"
+  echo "udp-receiver --log /tmp/linbo.log --nosync --nokbd --interface $INTERFACE --rcvbuf 4194304 --portbase $1 --file $2"
+  interruptible udp-receiver --log /tmp/linbo.log --nosync --nokbd --interface "$INTERFACE" --rcvbuf 4194304 --portbase "$1" --file "$2" 2>&1 ; RC="$?"
   return "$RC"
 }
 
@@ -128,6 +128,7 @@ download_multicast(){
 
 # get environment
 source /usr/share/linbo/shell_functions
+echo "### $timestamp $(basename "$0") $@ ###"
 
 # do not execute in localmode
 if localmode; then
@@ -164,14 +165,14 @@ if [ -s "$infofile" -a -s "$FILE" ]; then
   # move info file
   mv -f "$infofile" "${infofile}.bak"
   # download infofile, first try from subdir
-  if ! linbo_download "${subdir}${infofile}"; then
+  if ! linbo_download "${subdir}${infofile}" &> /dev/null; then
     # remove differential image files if download fails
     # (means there is no diff image on the server)
     if [ "$imagetype" = "qdiff" ]; then
       rm -f "/cache/${FILE}"*
       return 0
     fi
-    linbo_download "$infofile" || exit 1
+    linbo_download "$infofile" &> /dev/null || exit 1
   fi
   # compare
   if ! diff -q "$infofile" "${infofile}.bak"; then
@@ -217,7 +218,7 @@ else
   echo "$FILE has not changed, nothing to do."
   # in case of downloadtype torrent, start seeding
   if [ "$downloadtype" = "torrent" ]; then
-    [ -s "${FILE}.torrent" ] || linbo_download "${subdir}${FILE}.torrent"
+    [ -s "${FILE}.torrent" ] || linbo_download "${subdir}${FILE}.torrent" &> /dev/null
     download_torrent "$FILE"
   fi
   exit 0
@@ -231,7 +232,7 @@ case "$downloadtype" in
     # remove old image and torrents before download starts
     rm -f "$FILE" "${FILE}.torrent.bf"
     # download torrent file
-    linbo_download "${subdir}${FILE}.torrent" important || RC="1"
+    linbo_download "${subdir}${FILE}.torrent" important &> /dev/null || RC="1"
     if [ "$RC" = "0" ]; then
       download_torrent "$FILE" || RC="1"
     fi
@@ -254,7 +255,7 @@ esac
 # download per rsync also as a fallback if other download types failed
 if [ "$RC" != "0" -o "$downloadtype" = "rsync" ]; then
   RC="0"
-  linbo_download "${subdir}${FILE}" important || RC="1"
+  linbo_download "${subdir}${FILE}" important &> /dev/null || RC="1"
 fi
 
 exit "$RC"

@@ -2,7 +2,7 @@
 #
 # control linbo_gui: gui_ctl <disable|enable|restore>
 # thomas@linuxmuster.net
-# 20241011
+# 20250423
 #
 
 # test start.conf
@@ -10,6 +10,7 @@
 
 # get environment
 source /usr/share/linbo/shell_functions
+echo "### $timestamp $(basename "$0") $@ ###"
 
 # test gui
 gui_ps="$(ps w | grep "$(which linbo_gui)" | grep -v grep | awk '{print $1, $5}')"

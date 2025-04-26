@@ -25,8 +25,7 @@ usage(){
 
 # get environment
 source /usr/share/linbo/shell_functions
-
-echo "### $(basename $0 $@)"
+echo "### $timestamp $(basename "$0") $@ ###"
 
 # registryfile to process
 regfile="$1"

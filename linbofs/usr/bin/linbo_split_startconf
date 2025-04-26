@@ -2,14 +2,19 @@
 #
 # split start.conf in machine parseable chunks
 # thomas@linuxmuster.net
-# 20231016
+# 20250423
 #
+
+
+# get environment
+source /usr/share/linbo/shell_functions
+echo "### $timestamp $(basename "$0") ###"
 
 # check for complete start.conf
 if grep -qi ^'\[os\]' /start.conf; then
   [ -z "$QUIET" ] && echo "Splitting start.conf to /conf."
 else
-  [ -z "$QUIET" ] && echo "Not splitting minimal start.conf." >&2
+  [ -z "$QUIET" ] && echo "Not splitting minimal start.conf."
   exit
 fi
 

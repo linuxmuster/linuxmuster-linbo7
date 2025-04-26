@@ -2,7 +2,7 @@
 #
 # linbo_register
 # thomas@linuxmuster.net
-# 20220708
+# 20250423
 #
 
 
@@ -38,6 +38,7 @@ if [ -z "$1" ] || validip "$1"; then shift; fi
 USERNAME="linbo"
 export RSYNC_PASSWORD="$1"
 shift
+echo "### $timestamp $(basename "$0") $@ ###"
 [ "$1" = "linbo" ] && shift                                                        
 [ "$1" = "$LINBOSERVER" ] && shift                                                 
 if validhostname "$1"; then                                                        

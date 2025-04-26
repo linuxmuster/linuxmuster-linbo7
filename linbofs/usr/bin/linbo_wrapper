@@ -2,7 +2,7 @@
 #
 # linbo_wrapper: wrapper for linbo commands
 # thomas@linuxmuster.net
-# 20240918
+# 20250423
 #
 
 SECRETS=/tmp/rsyncd.secrets
@@ -61,7 +61,7 @@ get_passwd(){
 # creates image description
 create_desc(){
   local image="$1"
-  linbo_mountcache
+  linbo_mountcache &> /dev/null
   cat /proc/mounts | grep -q /cache || return 1
   if [ -n "$msg" ]; then
     msg="$(date): $msg"
@@ -79,12 +79,16 @@ create_desc(){
 # print help
 [ -z "$1" -o "$1" = "help" ] && usage
 
+# get environment
+source /usr/share/linbo/shell_functions
+echo "### $timestamp $(basename "$0") $@ ###"
+
 # process command line args
 while [ "$#" -gt "0" ]; do
 
-  cmd=`echo "$1" | awk -F\: '{ print $1 }'`
-  osnr=`echo "$1" | awk -F\: '{ print $2 }'`
-  msg=`echo "$1" | awk -F\: '{ print $3 }'`
+  cmd="$(echo "$1" | awk -F\: '{ print $1 }')"
+  osnr="$(echo "$1" | awk -F\: '{ print $2 }')"
+  msg="$(echo "$1" | awk -F\: '{ print $3 }')"
 
   # do not print linbo password
   echo "Command     : $cmd"
@@ -98,17 +102,17 @@ while [ "$#" -gt "0" ]; do
       echo "${cmd}:${password}" > "$SECRETS"
       ;;
 
-    partition) linbo_partition || exit 1 ;;
+    partition) linbo_partition &> /dev/null || exit 1 ;;
 
     format)
       if [ -n "$osnr" ]; then
-        linbo_format "$osnr" || exit 1
+        linbo_format "$osnr" &> /dev/null || exit 1
       else
-        linbo_partition_format || exit 1
+        linbo_partition_format &> /dev/null || exit 1
       fi
       ;;
 
-    initcache) linbo_initcache || exit 1 ;;
+    initcache) linbo_initcache &> /dev/null || exit 1 ;;
 
     create_image|create_qdiff)
       source /conf/os.$osnr
@@ -119,7 +123,7 @@ while [ "$#" -gt "0" ]; do
       else
         imagefile="$baseimage"
       fi
-      linbo_create_image "$osnr" "$qdiff" || exit 1
+      linbo_create_image "$osnr" "$qdiff" &> /dev/null || exit 1
       create_desc "$imagefile"
       ;;
 
@@ -130,44 +134,44 @@ while [ "$#" -gt "0" ]; do
       # differential image
       [ "$cmd" = "upload_qdiff" ] && imagefile="${imagefile/.qcow2/.qdiff}"
       echo "Uploading $imagefile to $LINBOSERVER ..."
-      linbo_upload "$password" "$imagefile" || exit 1
+      linbo_upload "$password" "$imagefile" &> /dev/null || exit 1
       ;;
 
     new)
       source /conf/os.$osnr || exit 1
       echo "Formatting and syncing $name ..."
-      linbo_sync "$osnr" "force" || exit 1
+      linbo_sync "$osnr" "force" &> /dev/null || exit 1
       ;;
 
     sync)
       source /conf/os.$osnr || exit 1
       echo "Syncing $name ..."
-      linbo_sync "$osnr" || exit 1
+      linbo_sync "$osnr" &> /dev/null || exit 1
       ;;
 
-    postsync) linbo_postsync "$osnr" || exit 1 ;;
+    postsync) linbo_postsync "$osnr" &> /dev/null || exit 1 ;;
 
     start)
       source /conf/os.$osnr || exit 1
       echo "Starting $name ..."
-      linbo_cmd start "$osnr" || exit 1
+      linbo_cmd start "$osnr" &> /dev/null || exit 1
       ;;
 
-    prestart) linbo_prestart "$osnr" || exit 1 ;;
+    prestart) linbo_prestart "$osnr"r &> /dev/null || exit 1 ;;
 
-    update) linbo_update || exit 1 ;;
+    update) linbo_update &> /dev/null || exit 1 ;;
 
-    label) linbo_label "all" || exit 1 ;;
+    label) linbo_label "all" &> /dev/null || exit 1 ;;
 
     reboot) /sbin/reboot || exit 1 ;;
 
     halt|poweroff) /sbin/poweroff || exit 1 ;;
 
-    gui_ctl_disable) gui_ctl disable || exit 1 ;;
+    gui_ctl_disable) gui_ctl disable &> /dev/null || exit 1 ;;
 
-    gui_ctl_enable) gui_ctl enable || exit 1 ;;
+    gui_ctl_enable) gui_ctl enable &> /dev/null || exit 1 ;;
 
-    gui_ctl_restore) gui_ctl restore || exit 1 ;;
+    gui_ctl_restore) gui_ctl restore &> /dev/null || exit 1 ;;
 
   esac
 

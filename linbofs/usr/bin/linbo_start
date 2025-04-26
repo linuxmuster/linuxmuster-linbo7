@@ -2,7 +2,7 @@
 #
 # linbo_start
 # thomas@linuxmuster.net
-# 20250410
+# 20250423
 #
 
 
@@ -33,7 +33,7 @@ invoke_macct(){
     if [ -s "/cache/${imagebase}.${item}" ]; then
       imagemacct="${imagebase}.${item}.macct"
       echo "Initiating machine password update on server $LINBOSERVER ..."
-      linbo_download "$imagemacct"
+      linbo_download "$imagemacct" &> /dev/null
       return 0
     fi
   done
@@ -48,6 +48,7 @@ invoke_macct(){
 
 # get environment
 source /usr/share/linbo/shell_functions
+echo "### $timestamp $(basename "$0") $@ ###"
 
 # check os number
 if isinteger "$1"; then
@@ -72,7 +73,7 @@ touch "$startflag"
 
 # use real root device
 [ -L "$root" ] && root="$(get_realdev "$root")"
-if linbo_mount "$root" "$mntpnt" 2>> /tmp/linbo.log; then
+if linbo_mount "$root" "$mntpnt"; then
   if [ -e "$mntpnt/$kernel" ]; then
     echo "Found kernel $kernel on partition $root."
     # add root to append string
@@ -91,14 +92,14 @@ if linbo_mount "$root" "$mntpnt" 2>> /tmp/linbo.log; then
     export NOWARMSTART='yes'
   fi
   # install/update grub/efi stuff if cache is mounted
-  if linbo_mountcache; then
+  if linbo_mountcache &> /dev/null; then
     # prepare reboot if no warmstart
     if ! warmstart; then
-      mk_boot "$root" "$kernel" "$initrd" "$append" | tee -a /tmp/linbo.log ; RC="$?"
+      mk_boot "$root" "$kernel" "$initrd" "$append" ; RC="$?"
       [ "$RC" = "0" ] || exit 1
     fi
     # update linuxmuster-win scripts and install start tasks
-    [ "$(linbo_fstype "$root")" = "ntfs" -a -d /cache/linuxmuster-win ] && update_win "$root" | tee -a /tmp/linbo.log
+    [ "$(linbo_fstype "$root")" = "ntfs" -a -d /cache/linuxmuster-win ] && update_win "$root"
   else
     echo "Unable to mount /cache."
     exit 1
@@ -109,8 +110,8 @@ if linbo_mount "$root" "$mntpnt" 2>> /tmp/linbo.log; then
     imagebase="$(cat /mnt/.linbo)"
     prestart="${imagebase}.prestart"
     if ! localmode; then
-      linbo_download "images/$imagebase/$prestart"
-      [ -e "$prestart" ] || linbo_download "$prestart"
+      linbo_download "images/$imagebase/$prestart" &> /dev/null
+      [ -e "$prestart" ] || linbo_download "$prestart" &> /dev/null
       if [ -e "$prestart" ]; then
         mv "$prestart" /cache
       else
@@ -121,7 +122,7 @@ if linbo_mount "$root" "$mntpnt" 2>> /tmp/linbo.log; then
   fi
 else
   echo "Unable to mount operating system partition $root." >&2
-  umount /mnt 2>> /tmp/linbo.log
+  umount /mnt
   exit 1
 fi
 
@@ -129,7 +130,7 @@ fi
 invoke_macct "$imagebase"
 
 sync
-umount /mnt 2>> /tmp/linbo.log
+umount /mnt
 sendlog
 
 # skip os boot if FAKESTART is set

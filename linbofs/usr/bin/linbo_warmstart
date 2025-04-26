@@ -2,11 +2,12 @@
 #
 # linbo_warmstart
 # thomas@linuxmuster.net
-# 20231125
+# 20250419
 #
 
 # get environment
 source /usr/share/linbo/shell_functions
+echo "### $timestamp $(basename "$0") ###"
 source /conf/linbo || exit 1
 
 KEXEC="/sbin/kexec"
@@ -14,7 +15,7 @@ KERNEL="/cache/linbo64"
 INITRD="/cache/linbofs64"
 TYPE="bzImage64"
 
-linbo_mountcache || exit 1
+linbo_mountcache &> /dev/null || exit 1
 
 if [ ! -s "$KERNEL" -o ! -s "$INITRD" ]; then
   echo "Linbokernel not found in cache!"
@@ -26,17 +27,17 @@ echo "Initiating linbo warmstart ..."
 if warmstart; then
 
   # load linbo kernel
-  $KEXEC --type="$TYPE" --append="$kerneloptions" --initrd="$INITRD" --load "$KERNEL" | tee -a /tmp/linbo.log ; RC="$?"
+  $KEXEC --type="$TYPE" --append="$kerneloptions" --initrd="$INITRD" --load "$KERNEL" ; RC="$?"
   [ "$RC" = "0" ] || exit 1
   # execute linbo kernel
-  $KEXEC -e | tee -a /tmp/linbo.log ; RC="$?"
+  $KEXEC -e ; RC="$?"
   [ "$RC" = "0" ] || exit 1
 
 else
 
   # initiate reboot bypassing an existing grub menu
   FORCEGRUB="yes"
-  mk_boot "$cache" "$(basename $KERNEL)" "$(basename $INITRD)" "$kerneloptions" | tee -a /tmp/linbo.log ; RC="$?"
+  mk_boot "$cache" "$(basename $KERNEL)" "$(basename $INITRD)" "$kerneloptions" ; RC="$?"
   [ "$RC" = "0" ] || exit 1
   /sbin/reboot -f
 

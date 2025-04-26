@@ -2,7 +2,7 @@
 #
 # linbo_forcesync
 # thomas@linuxmuster.net
-# 20220614
+# 20250423
 #
 
 # usage info
@@ -20,6 +20,10 @@ usage(){
 
 # print help
 [ -z "$1" -o "$1" = "help" ] && usage
+
+# get environment
+source /usr/share/linbo/shell_functions
+echo "### $timestamp $(basename "$0") $@ ###"
 
 linbo_sync "$1" "force"
 

@@ -2,7 +2,7 @@
 #
 # linbo_fakestart
 # thomas@linuxmuster.net
-# 20220610
+# 20250423
 #
 
 usage(){
@@ -17,6 +17,10 @@ usage(){
 
 # print help
 [ -z "$1" -o "$1" = "help" ] && usage
+
+# get environment
+source /usr/share/linbo/shell_functions
+echo "### $timestamp $(basename "$0") $@ ###"
 
 export FAKESTART="yes"
 linbo_start "$@"

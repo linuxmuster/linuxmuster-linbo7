@@ -2,7 +2,7 @@
 #
 # linbo_listimages
 # thomas@linuxmuster.net
-# 20220610
+# 20250425
 #
 
 usage(){
@@ -17,11 +17,11 @@ usage(){
 # print help
 [ "$1" = "help" ] && usage
 
-mount | grep -q " /cache " && cache_mounted="yes"
-[ -z "$cache_mounted" ] && linbo_mountcache
+# get environment
+source /usr/share/linbo/shell_functions
 
-ls -1 /cache/*.[cq][lcd][oi][owf][p2f] | sed 's|/cache/||' ; RC="$?"
+linbo_mountcache &> /dev/null || exit 1
 
-[ -z "$cache_mounted" ] && umount /cache
+ls -1 /cache/*.[q][cd][oi][wf][2f] | sed 's|/cache/||' ; RC="$?"
 
 exit "$RC"

@@ -4,7 +4,7 @@
 # (C) Klaus Knopper 2007
 # License: GPL V2
 # thomas@linuxmuster.net
-# 20241012
+# 20250426
 #
 
 # Reset fb color mode
@@ -14,6 +14,7 @@ CLEAR="c"
 
 # get environment
 source /usr/share/linbo/shell_functions
+echo "### $timestamp linbo_gui ###"
 
 # plymouth
 if [ -x "/sbin/plymouthd" -a -n "$SPLASH" ]; then
@@ -23,14 +24,8 @@ if [ -x "/sbin/plymouthd" -a -n "$SPLASH" ]; then
   fi
 fi
 
-# logging
-exec > >(tee -a "/tmp/linbo.log") 2>&1
-
-echo
-echo "### $timestamp linbo_gui ###"
-
 # update & extract linbo_gui
-linbo_update_gui
+linbo_update_gui &> /dev/null
 
 # DEBUG mode
 if [ -n "$DEBUG" ]; then
@@ -93,7 +88,7 @@ else # handle missing gui problem
         *)
           isinteger $answer || continue
           osnr=$(($answer-$(($answer/2))))
-          if iseven $answer; then linbo_syncstart $osnr; else linbo_start $osnr; fi
+          if iseven $answer; then linbo_syncstart $osnr &> /dev/null; else linbo_start $osnrr &> /dev/null; fi
           ;;
       esac
     done

@@ -2,7 +2,7 @@
 #
 # linbo_fstype
 # thomas@linuxmuster.net
-# 20220610
+# 20250419
 #
 
 usage(){
@@ -19,5 +19,8 @@ usage(){
 [ -z "$1" -o "$1" = "help" ] && usage 0
 
 [ -b "$1" ] || usage 1
+
+# get environment
+source /usr/share/linbo/shell_functions
 
 blkid -o export "$1" | grep ^TYPE | awk -F\= '{print $2}'

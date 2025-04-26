@@ -2,7 +2,7 @@
 #
 # linbo_syncstart
 # thomas@linuxmuster.net
-# 20220614
+# 20250423
 #
 
 # usage info
@@ -21,6 +21,10 @@ usage(){
 
 # print help
 [ -z "$1" -o "$1" = "help" ] && usage
+
+# get environment
+source /usr/share/linbo/shell_functions
+echo "### $timestamp $(basename "$0") $@ ###"
 
 export SYNCSTART="yes"
 linbo_sync $@

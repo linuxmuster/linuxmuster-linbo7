@@ -2,11 +2,12 @@
 #
 # linbo_auth
 # thomas@linuxmuster.net
-# 20241004
+# 20250423
 #
 
 # get environment
 source /usr/share/linbo/shell_functions
+echo "### $timestamp $(basename "$0") ###"
 
 usage(){
   echo
