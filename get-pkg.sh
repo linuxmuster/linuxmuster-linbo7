@@ -2,7 +2,7 @@
 #
 # get deb from martini.schmitt.red, needs ubuntu 22.04
 # thomas@linuxmuster.net
-# 20250416
+# 20250426
 #
 
 # get dependencies
@@ -16,5 +16,5 @@ fporig="CCA1DC5BE0F38B0FFCE5FCC68D158AA6CF53F928"
 
 # download debian package files
 mkdir package
-rsync -L repo.schmitt.red::repo/linuxmuster-linbo7_${version}\* package/
+rsync -L repo.schmitt.red::repo/73/linuxmuster-linbo7_${version}\* package/
 [ -s "package/$lpkg" ] || exit 1
