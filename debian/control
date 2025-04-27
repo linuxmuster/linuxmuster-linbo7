@@ -5,7 +5,7 @@ Maintainer: Thomas Schmitt <thomas@linuxmuster.net>
 Build-Depends: acl, argon2, bc, binutils, bison, build-essential, ctorrent,
   curl, cvs, debianutils, debhelper, dosfstools, dpkg-dev, dmidecode,
   dropbear-bin, gcc-multilib, e2fsprogs, efibootmgr, ethtool, fakeroot, fdisk,
-  flex, fonts-ubuntu, g++, gcc, gettext, git, gnupg, gpgv, grep, grub-common,
+  flex, fonts-ubuntu, g++, gcc, gdisk, gettext, git, gnupg, gpgv, grep, grub-common,
   grub-ipxe, grub-efi-amd64-bin, grub2-common, grub-pc-bin, gzip, hdparm,
   hwinfo, kmod, libacl1-dev, libattr1-dev, libelf-dev, libfuse-dev,
   libncurses5-dev, libowfat-dev, libssl-dev, libz-dev, linux-libc-dev, nasm,
