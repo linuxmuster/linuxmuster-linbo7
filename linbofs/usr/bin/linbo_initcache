@@ -2,7 +2,7 @@
 #
 # linbo_initcache [serverip] [cachedev] [downloadtype] | [-h|help|--help]
 # thomas@linuxmuster.net
-# 20250423
+# 20250427
 #
 
 usage(){
@@ -68,8 +68,8 @@ done
 # update image files
 for img in $images; do
   if [ -n "$img" ]; then
-    linbo_download_image "$img" "$downloadtype" &> /dev/null || exit 1
-    linbo_download_image "${img/.qcow2/.qdiff}" "$downloadtype" &> /dev/null
+    linbo_download_image "$img" "$downloadtype" || exit 1
+    linbo_download_image "${img/.qcow2/.qdiff}" "$downloadtype"
   fi
 done
 

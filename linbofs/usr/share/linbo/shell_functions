@@ -1,7 +1,7 @@
 # common linbo shell functions
 #
 # thomas@linuxmuster.net
-# 20250426
+# 20250427
 #
 
 set -o pipefail
@@ -224,26 +224,31 @@ killalltorrents(){
 }
 
 
+# clean logfile from redundant lines
+cleanlog(){
+  local logfile="$1"
+  local tmplog="/tmp/tmp.log"
+  sed -i 's|\[StdOut\] ||g' "$logfile"
+  sed -i 's|  | |g' "$logfile"
+  awk '!seen[$0]++' "$logfile" > "$tmplog"
+  mv "$tmplog" "$logfile"
+}
+
+
 # upload logfile to linbo server or store it local in cache
-# usage example (logfile parameter is optional): sendlog <name_of_logfile_in_tmp>
+# usage example (logfile parameter is optional): sendlog <logfile>
 sendlog(){
   local logfile="$1"
   [ -z "$logfile" ] && logfile="/tmp/linbo.log"
+  [ -s "$logfile" ] || return
+  cleanlog "$logfile"
   if localmode; then
     grep -q ' /cache ' /proc/mounts || return
-    [ -s "$logfile" ] || return
     echo "Saving $logfile to cache."
     mv "$logfile" "/cache/$(basename "$logfile")"
   else
-    # merge logfiles
- #   if [ -s "$initlog" -a "$logfile" = "/tmp/linbo.log" ]; then
- #     [ -s "$logfile" ] && cat "$logfile" >> "$initlog"
- #     mv "$initlog" "$logfile"
- #   fi
-    if [ -s "$logfile" ]; then
-      echo "Requesting upload of $logfile ..."
-      rsync "$LINBOSERVER::linbo/${logfile}" /tmp/dummy &> /dev/null || true
-    fi
+    echo "Requesting upload of $logfile ..."
+    rsync "$LINBOSERVER::linbo/${logfile}" /tmp/dummy &> /dev/null || true
     rm -f "$logfile"
   fi
 }
