@@ -2,7 +2,7 @@
 #
 # linbo_sync
 # thomas@linuxmuster.net
-# 20250423
+# 20250427
 #
 
 
@@ -642,11 +642,11 @@ syncr(){
     cd /cache
 
     # try to download baseimage
-    linbo_download_image "$imagefile" &> /dev/null || return 1
+    linbo_download_image "$imagefile" || return 1
 
     # try to download corresponding diff image if there is one
     # remove local diff image if the server does not provide one
-    linbo_download_image "$imagediff" &> /dev/null || rm -f "$imagediff"*
+    linbo_download_image "$imagediff" || rm -f "$imagediff"*
 
     sendlog
     cd /
