@@ -1,3 +1,10 @@
+linuxmuster-linbo7 (4.3.10-0) lmn73; urgency=low
+
+  * improve linbo client logging (#123).
+  * fix missing gdisk in linbofs (23b2dfc).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sun, 27 Apr 2025 19:08:00 +0200
+
 linuxmuster-linbo7 (4.3.9-0) lmn73; urgency=low
 
   * fetch linbo client's hardware info only once (a1636e0).
