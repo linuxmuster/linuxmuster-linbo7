@@ -2,13 +2,13 @@
 #
 # starts tmux sessions for each valid torrent in LINBODIR
 # thomas@linuxmuster.net
-# 20250326
+# 20250510
 #
 
 # read environment
 . /usr/share/linuxmuster/helperfunctions.sh || exit 1
 THELPER=$LINBOSHAREDIR/linbo-torrenthelper.sh
-LINBOIMGEXT="qcow2 qdiff"
+LINBOIMGEXT="qcow2 qdiff iso"
 
 # get ctorrent options from file
 [ -e /etc/default/linbo-torrent ] && source /etc/default/linbo-torrent
@@ -77,6 +77,9 @@ create(){
     echo "Failed!"
     exit 1
   fi
+  # create infofile for isoimages
+  local ext="$(echo ${image##*.} | tr A-Z a-z)"
+  [ "$ext" = "iso" ] && "$LINBOSHAREDIR/linbo-mkinfo.sh" "$image"
 }
 
 # starts torrent tmux sessions
@@ -163,7 +166,7 @@ if [ -n "$2" ] ; then
   # trap torrent parameter
   image="${2/.torrent/}"
   case "$image" in
-    *.qcow2|*.qdiff)
+    *.qcow2|*.qdiff|*.iso)
       if [ -e "$image" ]; then
         IMGLIST="$image"
       else

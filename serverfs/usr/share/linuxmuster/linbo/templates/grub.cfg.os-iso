@@ -1,0 +1,13 @@
+
+# group specific grub.cfg template for linux live iso
+# thomas@linuxmuster.net
+# 20250510
+#
+
+# start "@@osname@@" from isofile
+menuentry '@@osname@@ (Start)' --class @@ostype@@_start {
+  set isofile="@@baseimage@@"
+  loopback loop @@osroot@@/$isofile
+  linux (loop)/@@kernel@@ quiet splash noprompt noeject findiso=${isofile} iso-scan/filename=/${isofile} @@append@@
+  initrd (loop)/@@initrd@@
+}

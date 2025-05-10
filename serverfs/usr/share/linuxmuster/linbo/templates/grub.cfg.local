@@ -1,7 +1,7 @@
 #
 # default grub.cfg, local boot version (placed in linbo cache)
 # thomas@linuxmuster.net
-# 20231119
+# 20250504
 #
 
 set default=0
@@ -52,11 +52,13 @@ menuentry 'OS localboot' {
    echo
   fi
 
-  if [ -n "${reboot_label}" ]; then
-   search --label "$reboot_label" --set tmproot
+  if [ -n "${reboot_iso}" ]; then
+    search --set tmproot --file "/${reboot_iso}"
+  elif [ -n "${reboot_label}" ]; then
+    search --label "$reboot_label" --set tmproot
   fi
   if [ -n "${reboot_grub}" -a -z "${tmproot}" ]; then
-   set tmproot="${reboot_grub}"
+    set tmproot="${reboot_grub}"
   fi
 
   if [ -n "${tmproot}" ]; then
@@ -71,7 +73,15 @@ menuentry 'OS localboot' {
    set root="${tmproot}"
    set win_efiloader="/EFI/Microsoft/Boot/bootmgfw.efi"
 
-   if [ -e "$reboot_kernel" -a -e "$reboot_initrd" ]; then
+   if [ -n "$reboot_iso" -a -e "/$reboot_iso" ]; then
+    set isofile="${reboot_iso}"
+    set reboot_iso=""
+    save_env reboot_iso
+    loopback loop /${isofile}
+    linux (loop)/$reboot_kernel $reboot_append
+    initrd (loop)/$reboot_initrd
+    boot
+   elif [ -e "$reboot_kernel" -a -e "$reboot_initrd" ]; then
     linux $reboot_kernel $reboot_append
     initrd $reboot_initrd
     boot
