@@ -2,7 +2,7 @@
 #
 # linbo_download_image
 # thomas@linuxmuster.net
-# 20250423
+# 20250510
 #
 
 
@@ -154,8 +154,7 @@ esac
 imagebase="$(basename "$FILE" | sed 's/\(.*\)\..*/\1/')"
 imagetype="${FILE##*.}"
 case "$imagetype" in
-  cloop) ;;
-  qcow2|qdiff) subdir="images/$imagebase/" ;;
+  qcow2|qdiff|iso) subdir="images/$imagebase/" ;;
   *) echo "Unknown image type $imagetype." ; exit 1 ;;
 esac
 infofile="${FILE}.info"

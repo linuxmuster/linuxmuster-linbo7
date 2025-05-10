@@ -2,14 +2,14 @@
 #
 # linbo_mount
 # thomas@linuxmuster.net
-# 20250423
+# 20250502
 #
 
 usage(){
   echo
-  echo "Mounts a partition."
+  echo "Mounts a sourcedev."
   echo
-  echo "Usage: linbo_mount <partition> <mountpoint> [-r] | [help]"
+  echo "Usage: linbo_mount <partition|isofile> <mountpoint> [-r] | [help]"
   echo
   exit 0
 }
@@ -23,43 +23,50 @@ usage(){
 source /usr/share/linbo/shell_functions
 echo "### $timestamp $(basename "$0") $@ ###"
 
-# get options
-type="$(linbo_fstype $1)"
-[ -z "$type" ] && exit 1
-# get real partition name by label
-partition="$(get_realdev $1)"
-[ -z "$partition" ] && partition="$1"
+# define mount options according to source device
+ext="$(tolower "${1##*.}")"
+if [ "$ext" = "iso" ]; then
+  type="iso9660"
+  sourcedev="$1"
+else
+  type="$(linbo_fstype $1)"
+  [ -z "$type" ] && exit 1
+  # get real sourcedev name by label
+  sourcedev="$(get_realdev $1)"
+  [ -z "$sourcedev" ] && sourcedev="$1"
+fi
 destdir="$2"
 [ "$3" = "-r" ] && ro=",ro"
 
-if grep -q ^"$partition $destdir" /proc/mounts; then
+if grep -q ^"$sourcedev $destdir" /proc/mounts; then
   remount="remount,"
   [ -z "$ro" ] && ro=",rw"
 fi
 
 case "$type" in
+  iso9660) options="-i -t $type -o ${remount}loop" ;;
   ntfs) options="-i -t ntfs3 -o ${remount}acl,noatime,discard${ro}" ;;
   vfat) options="-i -t $type -o ${remount}defaults${ro}" ;;
   *) options="-i -t $type -o ${remount}acl,user_xattr${ro}" ;;
 esac
 
-# mount partition
-mount $options $partition $destdir
+# mount sourcedev
+mount $options $sourcedev $destdir
 
 # check success
 RC="1"
-grep -q ^"$partition $destdir" /proc/mounts && RC="0"
+grep -q " $destdir " /proc/mounts && RC="0"
 
 # second try (do ntfsfix before in case of ntfs rw mount)
 if [ "$RC" != "0" -a "$type" = "ntfs" ]; then
-  echo "Windows partition seems in bad shape. Trying ntfsfix to solve this issue."
-  ntfsfix -bd "$partition"
-  mount $options $partition $destdir
+  echo "Windows sourcedev seems in bad shape. Trying ntfsfix to solve this issue."
+  ntfsfix -bd "$sourcedev"
+  mount $options $sourcedev $destdir
 # second try with default options for other filesystems
 elif [ "$RC" != "0" ]; then
-  mount $partition $destdir
+  mount $sourcedev $destdir
 fi
 # check success again
-grep -q ^"$partition $destdir" /proc/mounts && RC="0"
+grep -q ^"$sourcedev $destdir" /proc/mounts && RC="0"
 
 exit "$RC"

@@ -1,7 +1,7 @@
 # common linbo shell functions
 #
 # thomas@linuxmuster.net
-# 20250427
+# 20250504
 #
 
 set -o pipefail
@@ -77,6 +77,13 @@ printargs(){
   done
   echo ""
 }
+
+
+# convert a string to lower chars
+tolower(){
+  echo "$1" | tr A-Z a-z
+}
+
 
 # test if string is alpha numeric
 isalnum(){
@@ -325,9 +332,20 @@ osname_startconf(){
 # get pos # of os by root partition
 osnr_startconf(){
   local item
+  local params="${@/ $cache/}"
+  local os_root="$(echo "$params" | awk '{print $1}')"
+  local os_kernel="$(echo "$params" | awk '{print $2}')"
+  local os_initrd="$(echo "$params" | awk '{print $3}')"
+  local os_append="${params/$os_root $os_kernel $os_initrd /}"
   for item in /conf/os.*; do
     source "$item"
-    if [ "$root" = "$1" ]; then
+    if [ "$root" = "$os_root" ]; then
+      ext="$(tolower "${baseimage##*.}")"
+      if [ "$ext" = "iso" ]; then
+        [ "$os_kernel" = "$kernel" ] || continue
+        [ "$os_initrd" = "$initrd" ] || continue
+        [ "$os_append" = "$append" ] || continue
+      fi
       echo "$item" | awk -F\. '{print $2}' 2> /dev/null
       break
     fi
@@ -878,6 +896,7 @@ prepare_reboot(){
 # mk_grubboot partition grubenv kernel initrd append
 # prepare for grub boot after reboot
 mk_grubboot(){
+  local item
   local partition="$1"
   local grubenv="$2"
   local KERNEL="$3"
@@ -905,6 +924,11 @@ mk_grubboot(){
       grub-editenv "$grubenv" set reboot_append="$APPEND" || RC="1"
     fi
   fi
+  # check for isofile
+  for item in $APPEND; do
+    echo "$item" | grep -q ^findiso= && eval $item
+  done
+  [ -n "$findiso" ] && grub-editenv "$grubenv" set reboot_iso="$findiso" || RC="1"
   [ "$RC" = "0" ] && touch "$doneflag"
   return "$RC"
 }

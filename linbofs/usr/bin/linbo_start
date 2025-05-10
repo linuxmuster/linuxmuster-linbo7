@@ -2,7 +2,7 @@
 #
 # linbo_start
 # thomas@linuxmuster.net
-# 20250423
+# 20250510
 #
 
 
@@ -29,7 +29,7 @@ invoke_macct(){
   local item
   local imagemacct
   # get image filename from start.conf
-  for item in qdiff qcow2 cloop; do
+  for item in qdiff qcow2; do
     if [ -s "/cache/${imagebase}.${item}" ]; then
       imagemacct="${imagebase}.${item}.macct"
       echo "Initiating machine password update on server $LINBOSERVER ..."
@@ -57,7 +57,7 @@ if isinteger "$1"; then
 # check root partition
 else
   [ -z "$1" -o -b "$1" ] || shift
-  source /conf/os.$(osnr_startconf "$1") &> /dev/null || usage 1
+  source /conf/os.$(osnr_startconf "$@") &> /dev/null || usage 1
 
 fi
 
@@ -65,32 +65,47 @@ fi
 kernel="${kernel#/}"
 initrd="${initrd#/}"
 
-mntpnt="/mnt"
-[ "$root" = "$cache" ] && mntpnt="/cache"
+# partition or isofile
+[ -L "$root" ] && root="$(get_realdev "$root")"
+ext="$(tolower "${baseimage##*.}")"
+if [ "$ext" = "iso" ]; then
+  bootpart="/cache/$baseimage"
+  cd /cache
+  # get iso from server, if not yet present
+  linbo_download_image "$baseimage"
+  cd
+else
+  bootpart="$root"
+fi
+
 [ -d /sys/firmware/efi/efivars ] && efi="true"
 startflag="/tmp/.start"
 touch "$startflag"
 
-# use real root device
-[ -L "$root" ] && root="$(get_realdev "$root")"
-if linbo_mount "$root" "$mntpnt"; then
+# mount os partition or isofile
+mntpnt="/mnt"
+if linbo_mount "$bootpart" "$mntpnt"; then
   if [ -e "$mntpnt/$kernel" ]; then
     echo "Found kernel $kernel on partition $root."
     # add root to append string
-    if [ -n "$label" ]; then
+    if [ "$ext" = "iso" ]; then
+      append="quiet splash noeject noprompt findiso=$baseimage iso-scan/filename=/$baseimage $append"
+    elif [ -n "$label" ]; then
       append="root=LABEL=$label $append"
     else
       append="root=$root $append"
     fi
     # load kernel for later warmstart
     if warmstart; then
-      kexec --type="bzImage64" --append="$append" --initrd="/mnt/$initrd" --load "/mnt/$kernel" || export NOWARMSTART='yes'
+      kexec --type="bzImage64" --append="$append" --initrd="/mnt/$initrd" --load "/mnt/$kernel" || \
+        kexec --append="$append" --initrd="/mnt/$initrd" --load "/mnt/$kernel" || export NOWARMSTART='yes'
     fi
   else
     echo "No kernel $kernel on partition $root. Using \"auto\"."
     kernel="auto"
     export NOWARMSTART='yes'
   fi
+
   # install/update grub/efi stuff if cache is mounted
   if linbo_mountcache &> /dev/null; then
     # prepare reboot if no warmstart
@@ -121,7 +136,7 @@ if linbo_mount "$root" "$mntpnt"; then
     [ -s "/cache/$prestart" ] && source "/cache/$prestart"
   fi
 else
-  echo "Unable to mount operating system partition $root." >&2
+  echo "Unable to mount operating system partition $bootpart." >&2
   umount /mnt
   exit 1
 fi
