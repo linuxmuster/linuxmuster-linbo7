@@ -1,3 +1,10 @@
+linuxmuster-linbo7 (4.3.11-0) lmn73; urgency=low
+
+  * implement liveboot from isofile (#136).
+  * kernel updates (#134).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 10 May 2025 15:37:24 +0200
+
 linuxmuster-linbo7 (4.3.10-0) lmn73; urgency=low
 
   * improve linbo client logging (#123).
