@@ -1,3 +1,11 @@
+linuxmuster-linbo7 (4.3.12-0) lmn73; urgency=low
+
+  * fix linbofs libm.so.6 (ff0f39b).
+  * update prestart and postsync script examples (a7fee55).
+  * fix adding supplemental files in harvest-app.sh (76677d9).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 14 May 2025 13:45:11 +0200
+
 linuxmuster-linbo7 (4.3.11-0) lmn73; urgency=low
 
   * implement liveboot from isofile (#136).
