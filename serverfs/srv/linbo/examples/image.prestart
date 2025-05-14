@@ -1,16 +1,31 @@
 # prestart script example, sourced by linbo_start on the client before the os is started
-# to be placed in LINBODIR
+# to be placed in LINBODIR/images/<imagename>
 # if the image is named ubuntu.qcow2, the corresponding prestart script name is ubuntu.prestart
 #
 # thomas@linuxmuster.net
-# 20230219
+# 20250514
 #
 
+# read global linbo config
+. /conf/linbo
+
+# read config of first operating system
+. /conf/os.1
+
 echo "# prestart script example"
-echo "os partition  : $root"
 echo "os name       : $name"
 echo "os description: $description"
+echo "os partition  : $root"
 echo "cache device  : $cache"
-echo "hostname      : $HOSTNAME"
+echo "baseimage     : $baseimage"
+echo "kernel        : $kernel"
+echo "initrd        : $initrd"
+echo "append        : $append"
 echo "hostgroup     : $HOSTGROUP"
-echo "server ip     : $LINBOSERVER"
+echo "hostname      : $HOSTNAME"
+echo "domain        : $DOMAIN"
+echo "ip            : $IP"
+echo "netmask       : $SUBNET"
+echo "bitmask       : $MASK"
+echo "linboserver   : $LINBOSERVER"
+echo "servername    : $SNAME"

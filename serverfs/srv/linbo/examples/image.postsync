@@ -1,25 +1,142 @@
 # postsync script example, sourced by linbo_sync on the client after the os partition is restored
-# to be placed in LINBODIR
+# to be placed in LINBODIR/images/<imagename>
 # if the image is named ubuntu.qcow2, the corresponding postsync script name is ubuntu.postsync
-#
-# thomas@linuxmuster.net
-# 20230303
+# (see https://docs.linuxmuster.net/de/latest/clients/postsync/postsync-patchclasses.html)
 #
 
-echo "# postsync script example"
-echo "os partition  : $root"
-echo "os name       : $name"
-echo "os description: $description"
-echo "cache device  : $cache"
-echo "baseimage     : $baseimage"
-echo "kernel        : $kernel"
-echo "initrd        : $initrd"
-echo "append        : $append"
-echo "hostgroup     : $HOSTGROUP"
-echo "hostname      : $HOSTNAME"
-echo "domain        : $DOMAIN"
-echo "ip            : $IP"
-echo "netmask       : $SUBNET"
-echo "bitmask       : $MASK"
-echo "server ip     : $LINBOSERVER"
-echo "server name   : $SNAME"
+echo "##### POSTSYNC BEGIN #####"
+LOG=/mnt/var/log/postsync.log
+echo "##### POSTSYNC BEGIN #####" >  $LOG
+NOW=$(date +%Y%m%d-%H%M)
+echo $NOW | tee -a $LOG
+
+# IP-Adresse des Servers für LINBO 4.1
+SERVERIP=$LINBOSERVER
+
+# Die Hostgruppe des aktuellen Rechners  wird mit $HOSTGROUP abgerufen
+
+# Raum feststellen. Dieses Skript geht davon aus
+# dass die Rechner Namen der Form
+# raumname-hostname haben, also z.B. cr01-pc18
+RAUM=${HOSTNAME%%-*}
+
+# wenn der string leer ist, Raum auf unknown setzen
+if [ "x${RAUM}" == "x" ]; then
+    RAUM="unknown"
+fi
+
+# UVZ für die Patches auf dem Server. Mit dieser Variablen
+# kann man verschiedene Patches, z.B. für unterschiedliche
+# Linux-Versionen bereitstellen.
+# Wenn man hier $HOSTGROUP einträgt, erhält jede Rechnerklasse
+# ein eigenes Patchklassenverzeichnis auf dem Server.
+# Damit kann man verschiedene Patchklassen mit derselben cloop-Datei
+# bedienen, wenn man das benötigt.
+PATCHCLASS="focalfossa" #Name der Patchklasse anpassen
+
+# Das Verzeichnis, in dem die Serverpatches
+# im lokalen Clientcache synchronisiert werden.
+PATCHCACHE=/linuxmuster-client/serverpatches
+
+echo "" | tee -a $LOG
+echo "Hostname:      ${HOSTNAME}" | tee -a $LOG
+echo "Raum:          ${RAUM}" | tee -a $LOG
+echo "Patchcache:    ${PATCHCACHE}" | tee -a $LOG
+echo "Hostgruppe:    ${HOSTGROUP}"   | tee -a $LOG
+echo "Patchclass:    ${PATCHCLASS}" | tee -a $LOG
+echo "" | tee -a $LOG
+
+# -----------------------------------------
+# Patchdateien auf das lokale Image rsyncen
+# -----------------------------------------
+echo " - getting patchfiles" | tee -a $LOG
+
+# RAUM     -> Raumname
+# HOSTNAME -> Rechnername
+# Verzeichnis anlegen, damit es sicher existiert
+mkdir -p /cache/${PATCHCACHE}
+rsync --delete --progress -r "${SERVERIP}::linbo/linuxmuster-client/${PATCHCLASS}" "/cache/${PATCHCACHE}" | tee -a $LOG
+
+echo " - patching local files"  | tee -a $LOG
+
+# common: Bekommen alle clients der Patchklasse
+# files
+if [ -d /cache/${PATCHCACHE}/${PATCHCLASS}/common ]; then
+    echo "   - patching common to /mnt" | tee -a $LOG
+    cp -ar /cache/${PATCHCACHE}/${PATCHCLASS}/common/* /mnt/ | tee -a $LOG
+fi
+
+# tarpacks
+if [ -d /cache/${PATCHCACHE}/${PATCHCLASS}/common/tarpacks ]; then
+  echo "   - unpacking tarpacks from common/tarpacks to /mnt" | tee -a $LOG
+  for pack in /cache/${PATCHCACHE}/${PATCHCLASS}/common/tarpacks/*; do
+     echo "     - unpacking: $pack" | tee -a $LOG
+     tar xvzf $pack -C /mnt | tee -a $LOG
+  done
+fi
+
+# Raum: Nur die Clients des Raums
+# files
+if [ -d /cache/${PATCHCACHE}/${PATCHCLASS}/${RAUM} ]; then
+    echo "   - patching ${RAUM} to /mnt" | tee -a $LOG
+    cp -ar /cache/${PATCHCACHE}/${PATCHCLASS}/${RAUM}/* /mnt/ | tee -a $LOG
+fi
+
+# tarpacks
+if [ -d /cache/${PATCHCACHE}/${PATCHCLASS}/${RAUM}/tarpacks ]; then
+  echo "   - unpacking tarpacks from ${RAUM}/tarpacks to /mnt" | tee -a $LOG
+  for pack in /cache/${PATCHCACHE}/${PATCHCLASS}/${RAUM}/tarpacks/*; do
+     echo "     - unpacking: $pack" | tee -a $LOG
+     tar xvzf $pack -C /mnt | tee -a $LOG
+  done
+fi
+
+# Host: Nur der Rechner
+# files
+if [ -d /cache/${PATCHCACHE}/${PATCHCLASS}/${HOSTNAME} ]; then
+    echo "   - patching ${HOSTNAME} to /mnt"  | tee -a $LOG
+    cp -ar /cache/${PATCHCACHE}/${PATCHCLASS}/${HOSTNAME}/* /mnt/ | tee -a $LOG
+fi
+
+# tarpacks
+if [ -d /cache/${PATCHCACHE}/${PATCHCLASS}/${HOSTNAME}/tarpacks ]; then
+  echo "   - unpacking tarpacks from ${HOSTNAME}/tarpacks to /mnt" | tee -a $LOG
+ for pack in /cache/${PATCHCACHE}/${PATCHCLASS}/${HOSTNAME}/tarpacks/*; do
+     echo "     - unpacking: $pack" | tee -a $LOG
+    tar xvzf $pack -C /mnt | tee -a $LOG
+ done
+fi
+
+# Hook, um eigene Skripte auszuführen
+if [ -d /mnt/postsync.d ]; then
+     for SCRIPT in /mnt/postsync.d/*
+    do
+        chmod 755 $SCRIPT
+        echo "Executing: $SCRIPT" | tee -a $LOG
+        #$SCRIPT > /dev/null 2>&1
+        $SCRIPT | tee -a $LOG
+        echo " ...done." | tee -a $LOG
+    done
+    rm -rf /mnt/postsync.d
+fi
+
+# wenn es /mnt/tarpacks gibt - löschen
+rm -rf /mnt/tarpacks
+
+# hostname in /etc/hosts patchen
+# es muss eine Datei hosts im Verzeichnis
+# /srv/linbo/linuxmuster-client/$HOSTGROUP/common|raum|hostname/etc/
+# geben, die den HOSTNAME anpasst. Zudem muss dort die SERVERIP angepasst werden.
+# Fehlt diese Datei werden der Hostname und die SERVERIP nicht ersetzt.
+sed -i "s/HOSTNAME/$HOSTNAME/g" /mnt/etc/hosts
+sed -i "s/#SERVERIP/$SERVERIP/g" /mnt/etc/hosts
+
+# Zeitstempel letzter sync hinterlegen
+echo $NOW > /mnt/lastsync
+
+echo "##### POSTSYNC END #####" | tee -a $LOG
+
+# Folgende Zeile stellt sicher, dass bei Änderungen des Postsync-Scriptes auf dem Server
+# diese auch auf den Client übertragen werden.
+# Achtung: Imageverzeichnis und Imagename sind anzupassen
+rsync --progress -r $LINBOSERVER::linbo/images/focalfossa/focalfossa.postsync /cache/
