@@ -3,7 +3,7 @@
 # harvest an app from server os for use in linbofs
 #
 # thomas@linuxmuster.net
-# 20250424
+# 20250514
 #
 
 # get linbo env
@@ -43,12 +43,6 @@ mkdir -p "$APPDIR/lib"
 
 # copy app binary
 cp -L $APP "$APPDIR/$APP"
-if [ -n "$@" ]; then
-    for i in $@; do
-        mkdir -p "$APPDIR/$(dirname $i)"
-        cp -L $i "$APPDIR/$i"
-    done
-fi
 
 # get dependend libraries and copy them
 ldd "$APP" | while read line; do
@@ -57,6 +51,12 @@ ldd "$APP" | while read line; do
     slink="$(echo $line | awk '{print $3}')"
     [ -e "$slink" ] || continue
     cp -L "$slink" "$APPDIR/lib"
+done
+
+# add supplemental files
+for i in $@; do
+    mkdir -p "$APPDIR/$(dirname $i)"
+    cp -L $i "$APPDIR/$i"
 done
 
 # pack files into xz archive and delete temp dir
