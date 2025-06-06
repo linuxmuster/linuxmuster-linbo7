@@ -71,7 +71,7 @@ for kvers in ${KVERSARRAY[@]}; do
         cp "$ksrc/.config" "$kcfg"
     fi
 
-    [ "$1" = "noinstall" ] && continue
+    [ -n "$KERNELSONLY" ] && continue
 
     # install kernel to packcage
     mkdir -p "$kinst"

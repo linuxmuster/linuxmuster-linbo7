@@ -48,7 +48,7 @@ for kvers in ${KVERSARRAY[@]}; do
 
     fi
 
-    [ "$1" = "noinstall" ] && continue
+    [ -n "$KERNELSONLY" ] && continue
 
     # install r8125
     r8125target="$kmoddir/kernel/drivers/net/ethernet/realtek/$(basename "$r8125mod")"

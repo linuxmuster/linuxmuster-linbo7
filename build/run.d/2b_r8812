@@ -45,7 +45,7 @@ for kvers in ${KVERSARRAY[@]}; do
 
     fi
 
-    [ "$1" = "noinstall" ] && continue
+    [ -n "$KERNELSONLY" ] && continue
 
     # install 8812au
     mkdir -p "$r8812target"

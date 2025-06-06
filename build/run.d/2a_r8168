@@ -48,7 +48,7 @@ for kvers in ${KVERSARRAY[@]}; do
 
     fi
 
-    [ "$1" = "noinstall" ] && continue
+    [ -n "$KERNELSONLY" ] && continue
 
     # install r8168
     r81target="$kmoddir/kernel/drivers/net/ethernet/realtek/$(basename "$r81mod")"
