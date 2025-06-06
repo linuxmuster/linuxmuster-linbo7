@@ -23,7 +23,7 @@ for kvers in ${KVERSARRAY[@]}; do
         tar -c -I 'xz -T0' -f "$kmodarc" "lib/modules/$kvers" || exit 1
     fi
 
-    [ "$1" = "noinstall" ] && continue
+    [ -n "$KERNELSONLY" ] && continue
 
     # copy modules archive to package
     cp "$kmodarc" "$kinst"
