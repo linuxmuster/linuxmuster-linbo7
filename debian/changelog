@@ -1,3 +1,11 @@
+linuxmuster-linbo7 (4.2.16-0) lmn72; urgency=low
+
+  * fix #119: differential imaging fails.
+  * fix opentracker build (8645cce).
+  * kernel updates (#134, 0b935f5).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 10 Jun 2025 20:07:03 +0000
+
 linuxmuster-linbo7 (4.2.15-0) lmn72; urgency=low
 
   * kernel updates (#134, 87f6f1d).
