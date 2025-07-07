@@ -1,7 +1,7 @@
 # common linbo shell functions
 #
 # thomas@linuxmuster.net
-# 20250504
+# 20250707
 #
 
 set -o pipefail
@@ -678,7 +678,7 @@ repair_efi(){
   echo "repair_efi $@"
   local doneflag="/tmp/.repair_efi"
   [ -e "$doneflag" ] && return 0
-  local efipart="$1"
+  local efipart="$(realpath "$1")"
   local efiout="/tmp/efiout"
   local startflag="/tmp/.start"
   local line
