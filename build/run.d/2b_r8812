@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # thomas@linuxmuster.net
-# 20231206
+# 20250707
 #
 
 # read build environment
@@ -9,6 +9,9 @@ for item in build/conf.d/*; do source "$item" || exit 1; done
 
 # iterate over kernels
 for kvers in ${KVERSARRAY[@]}; do
+
+    # skip build for stable kernel
+    echo "$kvers" | grep -q ^"$STABLE" && continue
 
     # get kernel name & version
     cd "$BUILDROOT"
