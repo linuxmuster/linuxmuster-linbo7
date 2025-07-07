@@ -1,8 +1,12 @@
 linuxmuster-linbo7 (4.3.13-0) lmn73; urgency=low
 
   * kernel updates (#134).
+  * fix efi boot in case of uniform block device names (#126).
+  * add start.conf example for uniform block device names (#126).
+  * skip build of r8812 module for stable kernel (ea83f28).
+  * skip patching of r8125 module source for stable kernel (b43515f).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 05 Jun 2025 17:09:45 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 07 Jul 2025 21:29:01 +0200
 
 linuxmuster-linbo7 (4.3.12-0) lmn73; urgency=low
 
