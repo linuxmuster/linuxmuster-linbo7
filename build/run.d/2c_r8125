@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # thomas@linuxmuster.net
-# 20240920
+# 20250707
 #
 
 # read build environment
@@ -35,6 +35,8 @@ for kvers in ${KVERSARRAY[@]}; do
         # apply patches
         if [ -d "$R8125PATCHDIR/$kname" ]; then
             for item in $R8125PATCHDIR/$kname/*.patch; do
+                # skip patching for stable kernel
+                echo "$kvers" | grep -q ^"$STABLE" && continue
                 echo " * Applying $(basename $item) ..."
                 patch -p1 < "$item" || exit 1
             done
