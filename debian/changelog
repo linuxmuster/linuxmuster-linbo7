@@ -1,3 +1,9 @@
+linuxmuster-linbo7 (4.3.14-0) lmn73; urgency=low
+
+  * fix windows efi boot in case of uniform block device names (#126).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 08 Jul 2025 14:38:37 +0200
+
 linuxmuster-linbo7 (4.3.13-0) lmn73; urgency=low
 
   * kernel updates (#134).
