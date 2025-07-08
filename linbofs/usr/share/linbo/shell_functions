@@ -1,7 +1,7 @@
 # common linbo shell functions
 #
 # thomas@linuxmuster.net
-# 20250707
+# 20250708
 #
 
 set -o pipefail
@@ -598,7 +598,7 @@ create_efiboot(){
   # return if entry exists
   efibootmgr | grep ^Boot[0-9] | awk -F\* '{ print $2 }' | grep -qiw " $1" && return 0
   local label="$1"
-  local efipart="$2"
+  local efipart="$(realpath "$2")"
   local efipartnr="$(get_partnr "$efipart")"
   local efidisk="$(get_disk_from_partition "$efipart")"
   local efiloader
@@ -719,7 +719,7 @@ mk_winefiboot(){
   local partition="$1"
   local doneflag="/tmp/.mk_winefiboot.$(basename "$partition")"
   [ -e "$doneflag" ] && return 0
-  local efipart="$2"
+  local efipart="$(realpath "$2")"
   local bootloaderid="$3"
   local RC="0"
   local win_bootdir="$(ls -d /mnt/[Ee][Ff][Ii]/[Mm][Ii][Cc][Rr][Oo][Ss][Oo][Ff][Tt]/[Bb][Oo][Oo][Tt] 2> /dev/null)"
@@ -751,7 +751,7 @@ mk_winefiboot(){
 # mk_efiboot: if returns 1 a reboot via grub will be initiated, othwerwise reboot via efi directly
 # args: efipart partition grubdisk
 mk_efiboot(){
-  local efipart="$1"
+  local efipart="$(realpath "$1")"
   local partition="$2"
   local grubdisk="$3"
   local startflag="/tmp/.start"
@@ -811,7 +811,7 @@ mk_linefiboot(){
   local doneflag="/tmp/.mk_linefiboot.$(basename "$partition")"
   [ -e "$doneflag" ] && return 0
   local grubdisk="$2"
-  local efipart="$3"
+  local efipart="$(realpath "$3")"
   local bootloaderid="$4"
   local RC="0"
   mkdir -p /mnt/boot/efi
@@ -875,7 +875,7 @@ prepare_reboot(){
   local KERNEL="${4#/}"
   local INITRD="${5#/}"
   local APPEND="$6"
-  local efipart="$7"
+  local efipart="$(realpath "$7")"
   local efiboot="false"
   remote_cache "$cache" || local localcache="yes"
   if [ -z "$NOEFIBOOTMGR" -a -n "$efipart" ]; then
@@ -941,7 +941,7 @@ mk_boot(){
   local KERNEL="${2#/}"
   local INITRD="${3#/}"
   local APPEND="$4"
-  local efipart="$(print_efipart)"
+  local efipart="$(realpath "$(print_efipart)")"
   local partition="$1"
   remote_cache "$cache" || local localcache="yes"
   # get disk for grub install, use always the first disk from start.conf
