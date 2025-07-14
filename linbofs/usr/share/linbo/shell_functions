@@ -1,7 +1,7 @@
 # common linbo shell functions
 #
 # thomas@linuxmuster.net
-# 20250708
+# 20250714
 #
 
 set -o pipefail
@@ -869,13 +869,15 @@ prepare_grub(){
 # args: grubdisk partition grubenv kernel initrd append efipart
 prepare_reboot(){
   echo "prepare_reboot $@"
-  local grubdisk="$1"
-  local partition="$2"
+  local grubdisk="$(realpath "$1")"
+  local partition="$(realpath "$2")"
   local grubenv="$3"
   local KERNEL="${4#/}"
   local INITRD="${5#/}"
   local APPEND="$6"
-  local efipart="$(realpath "$7")"
+  if [ -n "$7" ]; then
+    local efipart="$(realpath "$7")"
+  fi
   local efiboot="false"
   remote_cache "$cache" || local localcache="yes"
   if [ -z "$NOEFIBOOTMGR" -a -n "$efipart" ]; then
@@ -896,6 +898,7 @@ prepare_reboot(){
 # mk_grubboot partition grubenv kernel initrd append
 # prepare for grub boot after reboot
 mk_grubboot(){
+  echo "mk_grubboot $@"
   local item
   local partition="$1"
   local grubenv="$2"
@@ -941,7 +944,9 @@ mk_boot(){
   local KERNEL="${2#/}"
   local INITRD="${3#/}"
   local APPEND="$4"
-  local efipart="$(realpath "$(print_efipart)")"
+  if [ -n "$(print_efipart)" ]; then
+    local efipart="$(realpath "$(print_efipart)")"
+  fi
   local partition="$1"
   remote_cache "$cache" || local localcache="yes"
   # get disk for grub install, use always the first disk from start.conf

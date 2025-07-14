@@ -55,9 +55,12 @@ if isinteger "$1"; then
   source /conf/os.$1 &> /dev/null || usage 1
 
 # check root partition
+elif [ -b "$1" ]; then
+  [ "$(realpath "$1")" = "$(realpath "$cache")" ] && shift
+  source /conf/os.$(osnr_startconf "$1") &> /dev/null || usage 1
+
 else
-  [ -z "$1" -o -b "$1" ] || shift
-  source /conf/os.$(osnr_startconf "$@") &> /dev/null || usage 1
+  usage 1
 
 fi
 
@@ -66,7 +69,7 @@ kernel="${kernel#/}"
 initrd="${initrd#/}"
 
 # partition or isofile
-[ -L "$root" ] && root="$(get_realdev "$root")"
+[ -L "$root" ] && root="$(realpath "$root")"
 ext="$(tolower "${baseimage##*.}")"
 if [ "$ext" = "iso" ]; then
   bootpart="/cache/$baseimage"
@@ -81,6 +84,13 @@ fi
 [ -d /sys/firmware/efi/efivars ] && efi="true"
 startflag="/tmp/.start"
 touch "$startflag"
+
+# get root partition label
+label="$(lsblk -n -o LABEL "$root")"
+# evaluate label
+if [ -n "$label" ]; then
+  blkid --label "$label" &> /dev/null || label=""
+fi
 
 # mount os partition or isofile
 mntpnt="/mnt"
@@ -99,6 +109,8 @@ if linbo_mount "$bootpart" "$mntpnt"; then
     if warmstart; then
       kexec --type="bzImage64" --append="$append" --initrd="/mnt/$initrd" --load "/mnt/$kernel" || \
         kexec --append="$append" --initrd="/mnt/$initrd" --load "/mnt/$kernel" || export NOWARMSTART='yes'
+    else
+      export FORCEGRUB="yes"
     fi
   else
     echo "No kernel $kernel on partition $root. Using \"auto\"."
