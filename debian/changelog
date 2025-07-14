@@ -1,3 +1,11 @@
+linuxmuster-linbo7 (4.3.15-0) lmn73; urgency=low
+
+  * kernel updates (#134).
+  * further boot fixes concerning to uniform block device names (#126).
+  * fix evaluation of findiso kernel parameter (#136).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 14 Jul 2025 19:54:57 +0200
+
 linuxmuster-linbo7 (4.3.14-0) lmn73; urgency=low
 
   * fix windows efi boot in case of uniform block device names (#126).
