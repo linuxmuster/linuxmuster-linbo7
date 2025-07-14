@@ -931,7 +931,9 @@ mk_grubboot(){
   for item in $APPEND; do
     echo "$item" | grep -q ^findiso= && eval $item
   done
-  [ -n "$findiso" ] && grub-editenv "$grubenv" set reboot_iso="$findiso" || RC="1"
+  if [ -n "$findiso" ]; then
+    grub-editenv "$grubenv" set reboot_iso="$findiso" || RC="1"
+  fi
   [ "$RC" = "0" ] && touch "$doneflag"
   return "$RC"
 }
