@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20250426
+# 20250715
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -497,7 +497,11 @@ network(){
     echo "Trying to copy start.conf from cache."
     copyfromcache start.conf
     # Still nothing new, revert to old version.
-    [ -s /start.conf ] || mv -f /start.conf.dist /start.conf
+    if [ -s /start.conf ]; then
+      linbo_split_startconf
+    else
+      mv -f /start.conf.dist /start.conf
+    fi
   fi
   # disable auto functions if noauto is given
   if [ -n "$noauto" ]; then
