@@ -1,3 +1,9 @@
+linuxmuster-linbo7 (4.3.16-0) lmn73; urgency=low
+
+  * fix start.conf split in offline mode (6d23867).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 15 Jul 2025 15:29:44 +0200
+
 linuxmuster-linbo7 (4.3.15-0) lmn73; urgency=low
 
   * kernel updates (#134).
