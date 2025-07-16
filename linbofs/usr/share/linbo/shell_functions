@@ -1,7 +1,7 @@
 # common linbo shell functions
 #
 # thomas@linuxmuster.net
-# 20250714
+# 20250716
 #
 
 set -o pipefail
@@ -592,6 +592,17 @@ print_efi_bootnr(){
 }
 
 
+# delete efi label
+# del_efi_label efiloader
+del_efi_label(){
+  local efiloader="$(basename "${1//\\/\/}")"
+  local item
+  efibootmgr | grep "$efiloader" | awk '{print $1}' | sed -e 's|Boot||' -e 's|*||' | while read item; do
+    efibootmgr -B -b "$item" || continue
+  done
+}
+
+
 # create efi boot entry
 # create_efiboot label efipart
 create_efiboot(){
@@ -602,12 +613,13 @@ create_efiboot(){
   local efipartnr="$(get_partnr "$efipart")"
   local efidisk="$(get_disk_from_partition "$efipart")"
   local efiloader
-  local bits
   case "$label" in
     *[Ww][Ii][Nn][Dd][Oo][Ww][Ss]*) efiloader="\\EFI\\Microsoft\\Boot\\bootmgfw.efi" ;;
     grub) efiloader="\\EFI\\grub\\grubx64.efi" ;;
-    *) echo "Unknown efiloader: $efiloader." ; return 1 ;;
+    *) echo "Unknown label: $label." ; return 1 ;;
   esac
+  # delete old label before creating new one
+  del_efi_label "$efiloader"
   if efibootmgr --create --disk "$efidisk" --part "$efipartnr" --loader "$efiloader" --label "$label"; then
     echo "EFI boot entry for $label successfully created."
   else
