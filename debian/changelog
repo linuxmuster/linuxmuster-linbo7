@@ -1,3 +1,10 @@
+linuxmuster-linbo7 (4.3.17-0) lmn73; urgency=low
+
+  * enable zstd compressed firmware and wifi in longterm and legacy kernels (917f194).
+  * delete old efi label before creating new one (45f4944).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 16 Jul 2025 16:56:38 +0200
+
 linuxmuster-linbo7 (4.3.16-0) lmn73; urgency=low
 
   * fix start.conf split in offline mode (6d23867).
