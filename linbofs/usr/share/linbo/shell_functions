@@ -1,7 +1,7 @@
 # common linbo shell functions
 #
 # thomas@linuxmuster.net
-# 20250716
+# 20250717
 #
 
 set -o pipefail
@@ -419,8 +419,7 @@ print_guid(){
   fi
   local i
   # get uuid with blkid
-  for i in "$(timestamp="$(date +%Y%m%d%H%M%S)"
-blkid "$1")"; do
+  for i in $(blkid "$1"); do
     case "$i" in
       PARTUUID=*|PTUUID=*)
         echo "$i" | awk -F\" '{print $2}' | tr a-z A-Z
@@ -498,7 +497,7 @@ get_partition_size(){
 get_partnr(){
   [ -b "$1" ] || return 1
   echo "$1" | sed -e 's|/dev/[hsv]d[abcdefgh]||' -e 's|/dev/xvd[abcdefgh]||' \
-                  -e 's|/dev/mmcblk[0-9]p||' -e 's|/dev/nvme0n[0-9]p||'
+                  -e 's|/dev/mmcblk[0-9]p||' -e 's|/dev/disk[0-9]p||' -e 's|/dev/nvme0n[0-9]p||'
 }
 
 
