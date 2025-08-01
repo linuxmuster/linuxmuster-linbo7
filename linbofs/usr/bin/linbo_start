@@ -2,7 +2,7 @@
 #
 # linbo_start
 # thomas@linuxmuster.net
-# 20250510
+# 20250801
 #
 
 
@@ -56,7 +56,7 @@ if isinteger "$1"; then
 
 # check root partition
 elif [ -b "$1" ]; then
-  [ "$(realpath "$1")" = "$(realpath "$cache")" ] && shift
+  [ "$cache" = "$1" ] && shift
   source /conf/os.$(osnr_startconf "$1") &> /dev/null || usage 1
 
 else
@@ -69,7 +69,6 @@ kernel="${kernel#/}"
 initrd="${initrd#/}"
 
 # partition or isofile
-[ -L "$root" ] && root="$(realpath "$root")"
 ext="$(tolower "${baseimage##*.}")"
 if [ "$ext" = "iso" ]; then
   bootpart="/cache/$baseimage"

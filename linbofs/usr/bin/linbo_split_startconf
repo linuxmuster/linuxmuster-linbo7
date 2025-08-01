@@ -2,7 +2,7 @@
 #
 # split start.conf in machine parseable chunks
 # thomas@linuxmuster.net
-# 20250423
+# 20250801
 #
 
 
@@ -21,6 +21,11 @@ fi
 prefix="/tmp/start.conf."
 pc=0
 oc=0
+
+# replace uniform device names with real ones
+grep ^[CcDdRr][AaEeOo][CcVvOo] /start.conf | grep /dev/ | awk '{print $3}' | sort -ur | while read item; do
+  sed -i "s|$item|$(get_real_partname "$item")|g" /start.conf
+done
 
 # split sections, remove comments
 grep ^"[\[a-zA-Z]" /start.conf | sed 's|# .*||' | awk '{$1=$1};1' | csplit -s -z -f "$prefix" - '/^\[/' '{*}'

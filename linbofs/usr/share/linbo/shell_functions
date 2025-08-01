@@ -1,7 +1,7 @@
 # common linbo shell functions
 #
 # thomas@linuxmuster.net
-# 20250717
+# 20250801
 #
 
 set -o pipefail
@@ -501,6 +501,23 @@ get_partnr(){
 }
 
 
+# compute real partition name from unified partition name
+get_real_partname(){
+  local part="$1"
+  # if not a unified name do nothing
+  if [ "${part:0:9}" != "/dev/disk" ]; then
+    echo "$part"
+    return
+  fi
+  local disk="$(get_disk_from_partition "$part")"
+  local realdisk="$(realpath "$disk")"
+  case "$realdisk" in
+    /dev/mmcblk[0-9]|/dev/nvme0n[0-9]) echo "$part" | sed -e "s|$disk|$realdisk|" ;;
+    *) echo "$part" | sed -e "s|${disk}p|$realdisk|" ;;
+  esac
+}
+
+
 
 #### boot, grub & efi ####
 
@@ -608,7 +625,7 @@ create_efiboot(){
   # return if entry exists
   efibootmgr | grep ^Boot[0-9] | awk -F\* '{ print $2 }' | grep -qiw " $1" && return 0
   local label="$1"
-  local efipart="$(realpath "$2")"
+  local efipart="$2"
   local efipartnr="$(get_partnr "$efipart")"
   local efidisk="$(get_disk_from_partition "$efipart")"
   local efiloader
@@ -689,7 +706,7 @@ repair_efi(){
   echo "repair_efi $@"
   local doneflag="/tmp/.repair_efi"
   [ -e "$doneflag" ] && return 0
-  local efipart="$(realpath "$1")"
+  local efipart="$1"
   local efiout="/tmp/efiout"
   local startflag="/tmp/.start"
   local line
@@ -730,7 +747,7 @@ mk_winefiboot(){
   local partition="$1"
   local doneflag="/tmp/.mk_winefiboot.$(basename "$partition")"
   [ -e "$doneflag" ] && return 0
-  local efipart="$(realpath "$2")"
+  local efipart="$2"
   local bootloaderid="$3"
   local RC="0"
   local win_bootdir="$(ls -d /mnt/[Ee][Ff][Ii]/[Mm][Ii][Cc][Rr][Oo][Ss][Oo][Ff][Tt]/[Bb][Oo][Oo][Tt] 2> /dev/null)"
@@ -762,7 +779,7 @@ mk_winefiboot(){
 # mk_efiboot: if returns 1 a reboot via grub will be initiated, othwerwise reboot via efi directly
 # args: efipart partition grubdisk
 mk_efiboot(){
-  local efipart="$(realpath "$1")"
+  local efipart="$1"
   local partition="$2"
   local grubdisk="$3"
   local startflag="/tmp/.start"
@@ -822,7 +839,7 @@ mk_linefiboot(){
   local doneflag="/tmp/.mk_linefiboot.$(basename "$partition")"
   [ -e "$doneflag" ] && return 0
   local grubdisk="$2"
-  local efipart="$(realpath "$3")"
+  local efipart="$3"
   local bootloaderid="$4"
   local RC="0"
   mkdir -p /mnt/boot/efi
@@ -880,14 +897,14 @@ prepare_grub(){
 # args: grubdisk partition grubenv kernel initrd append efipart
 prepare_reboot(){
   echo "prepare_reboot $@"
-  local grubdisk="$(realpath "$1")"
-  local partition="$(realpath "$2")"
+  local grubdisk="$1"
+  local partition="$2"
   local grubenv="$3"
   local KERNEL="${4#/}"
   local INITRD="${5#/}"
   local APPEND="$6"
   if [ -n "$7" ]; then
-    local efipart="$(realpath "$7")"
+    local efipart="$7"
   fi
   local efiboot="false"
   remote_cache "$cache" || local localcache="yes"
@@ -958,7 +975,7 @@ mk_boot(){
   local INITRD="${3#/}"
   local APPEND="$4"
   if [ -n "$(print_efipart)" ]; then
-    local efipart="$(realpath "$(print_efipart)")"
+    local efipart="$(print_efipart)"
   fi
   local partition="$1"
   remote_cache "$cache" || local localcache="yes"

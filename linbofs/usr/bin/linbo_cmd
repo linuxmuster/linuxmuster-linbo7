@@ -3,7 +3,7 @@
 # linbo_cmd: legacy command wrapper for the linbo_gui
 #
 # thomas@linuxmuster.net
-# 20250417
+# 20250801
 # GPL v3
 #
 
@@ -24,6 +24,11 @@ usage(){
   exit 0
 }
 
+remove_args(){
+  local item
+  for item in $@; do shift; done
+}
+
 [ -z "$1" ] && usage
 
 # get command, substitute outdated commands for legacy reasons
@@ -32,8 +37,8 @@ case "$1" in
   create) cmd="create_image" ;;
   label) cmd="$1" ; options="all" ;;
   memory) cmd="mem" ;;
-  partition) cmd="partition_format" ;;
-  partition_noformat) cmd="partition" ;;
+  partition) cmd="partition_format" ; remove_args ;;
+  partition_noformat) cmd="partition" ; remove_args ;;
   sync|syncr) cmd="syncstart" ;;
   synconly) cmd="sync" ;;
   cmd|wrapper) usage ;;
