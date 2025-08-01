@@ -1,3 +1,10 @@
+linuxmuster-linbo7 (4.3.19-0) lmn73; urgency=low
+
+  * fix partitioning with uniform device names (#126).
+  * kernel updates (#134).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 01 Aug 2025 18:31:21 +0200
+
 linuxmuster-linbo7 (4.3.18-0) lmn73; urgency=low
 
   * fix broken device uuid query and restore in conjunction with windows imaging (f89184b).
