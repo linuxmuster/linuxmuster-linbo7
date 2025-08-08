@@ -1,7 +1,7 @@
 # common linbo shell functions
 #
 # thomas@linuxmuster.net
-# 20250801
+# 20250808
 #
 
 set -o pipefail
@@ -622,8 +622,6 @@ del_efi_label(){
 # create efi boot entry
 # create_efiboot label efipart
 create_efiboot(){
-  # return if entry exists
-  efibootmgr | grep ^Boot[0-9] | awk -F\* '{ print $2 }' | grep -qiw " $1" && return 0
   local label="$1"
   local efipart="$2"
   local efipartnr="$(get_partnr "$efipart")"
@@ -631,8 +629,7 @@ create_efiboot(){
   local efiloader
   case "$label" in
     *[Ww][Ii][Nn][Dd][Oo][Ww][Ss]*) efiloader="\\EFI\\Microsoft\\Boot\\bootmgfw.efi" ;;
-    grub) efiloader="\\EFI\\grub\\grubx64.efi" ;;
-    *) echo "Unknown label: $label." ; return 1 ;;
+    *) label="LINBO"; efiloader="\\EFI\\grub\\grubx64.efi" ;;
   esac
   # delete old label before creating new one
   del_efi_label "$efiloader"
@@ -650,7 +647,7 @@ create_efiboot(){
 set_efibootnext(){
   local bootloaderid="$1"
   local RC="0"
-  [ -n "$FORCEGRUB" ] && bootloaderid="grub"
+  [ -n "$FORCEGRUB" ] && bootloaderid="LINBO"
   # get the bootnr
   local bootnextnr="$(print_efi_bootnr "$bootloaderid")"
   if [ -n "$bootnextnr" ]; then
@@ -668,76 +665,41 @@ set_efibootnext(){
 }
 
 
-# set_efibootorder: set the boot order to local,network
+# set_efibootorder: set the boot order to network,local
 set_efibootorder(){
   local efiout="/tmp/efiout"
   efibootmgr | grep ^Boot | grep -vi ipv6 > "$efiout"
-  local i
+  local item
   local nr
   local RC="0"
-  local bootorder
-  # searchstrings for grub (local boot) and efi network devices
-  for i in grub ipv4 pxev4 "pxe ip4" "efi network" "usb nic" "onboard nic"; do
-    nr="$(print_efi_bootnr "$i" "$efiout")"
-    [ -z "$nr" ] && continue
-    if [ -n "$bootorder" ]; then
-      bootorder="$bootorder,$nr"
-    else
-      bootorder="$nr"
-    fi
-  done
-  if [ -n "$bootorder" ]; then
-    if efibootmgr --bootorder "$bootorder"; then
-      echo "EFI bootorder has been successfully set."
-    else
-      echo "Failed to set EFI bootorder."
-      RC="1"
-    fi
+  local bootorder="$(efibootmgr | grep ^BootOrder | awk '{print $2}')"
+  # add LINBO label if not present
+  if ! echo "$bootorder" | grep -q LINBO; then
+    create_efiboot LINBO "$(print_efipart)"
+    bootorder="$(efibootmgr | grep ^BootOrder | awk '{print $2}')"
   fi
+  rm -f /tmp/bootlabels
+  # boot uefi pxe first, if efipxe kernel param is set
+  [ -n "$EFIPXE" ] && echo "LINBO" > /tmp/bootlabels
+  # efi network devices
+  grep -v ^# /usr/share/linbo/efipxe >> /tmp/bootlabels
+  # boot linbo first
+  [ -z "$EFIPXE" ] && echo "LINBO" >> /tmp/bootlabels
+  # iterate over bootlabels, last item will be first in bootorder
+  cat /tmp/bootlabels | while read item; do
+    [ -z "$item" ] && continue
+    nr="$(print_efi_bootnr "$item" "$efiout")"
+    [ -z "$nr" ] && continue
+    if [ -z "$bootorder" ]; then
+      bootorder="$nr"
+    else
+      bootorder="$nr,$bootorder"
+    fi
+    efibootmgr -o "$bootorder" &> /dev/null || RC="1"
+  done
   # remove dups
   efibootmgr -D || RC="1"
   return "$RC"
-}
-
-
-# repair_efi: sets efi configuration into a proper state
-# args: efipart
-repair_efi(){
-  echo "repair_efi $@"
-  local doneflag="/tmp/.repair_efi"
-  [ -e "$doneflag" ] && return 0
-  local efipart="$1"
-  local efiout="/tmp/efiout"
-  local startflag="/tmp/.start"
-  local line
-  local item
-  local FOUND
-  local bootnr
-  # first remove redundant entries, keep entries with lower number
-  efibootmgr | grep ^Boot[0-9] | sort -r > "$efiout" || return 1
-  # read in the unique boot entries and test for multiple occurances of the same item
-  awk -F\* '{ print $2 }' "$efiout" | sort -u | while read item; do
-    [ -z "$item" ] && continue
-    line=""
-    FOUND=""
-    # delete redundant entries
-    grep "$item" "$efiout" | while read line; do
-      if [ -z "$FOUND" ]; then
-        FOUND="yes"
-        continue
-      else
-        bootnr="$(echo "$line" | awk -F\* '{ print $1 }' | sed 's|Boot||')"
-        efibootmgr --bootnum "$bootnr" --delete-bootnum || return 1
-      fi
-    done
-  done
-  # create grub entry if missing
-  create_efiboot grub "$efipart" || return 1
-  # set bootorder
-  if [ ! -e "$startflag" ]; then
-    set_efibootorder || return 1
-  fi
-  touch "$doneflag"
 }
 
 
@@ -769,8 +731,6 @@ mk_winefiboot(){
     echo "Failed to restore windows EFI bootfiles."
     RC="1"
   fi
-  # create efi bootloader entry if missing
-  create_efiboot "$bootloaderid" "$efipart" || RC="1"
   [ "$RC" = "0" ] && touch "$doneflag"
   return "$RC"
 }
@@ -785,8 +745,6 @@ mk_efiboot(){
   local startflag="/tmp/.start"
   local bootloaderid
   local doneflag="/tmp/.grub-install"
-  # repare efi configuration
-  repair_efi "$efipart" || return 1
   # restore windows efi boot files
   local RC="0"
   if [ "$(linbo_fstype $partition)" = "ntfs" ]; then
@@ -801,6 +759,8 @@ mk_efiboot(){
       fi
     fi
   fi
+  # create efi bootloader entry
+  create_efiboot "$bootloaderid" "$efipart" || RC="1"
   # install default efi boot file
   local grubefi="/boot/efi/EFI/grub/grubx64.efi"
   if [ -s "$grubefi" ]; then

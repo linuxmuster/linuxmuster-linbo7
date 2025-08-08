@@ -6,7 +6,7 @@
 #
 # thomas@linuxmuster.net
 # GPL V3
-# 20250425
+# 20250808
 #
 
 # read linuxmuster environment
@@ -177,6 +177,9 @@ create_linbofs() {
 
 	# copy default start.conf
 	cp -f $LINBODIR/start.conf .
+
+	# copy efi pxe devicenames
+	cp "$LINBOSHAREDIR/efipxe" usr/share/linbo
 
 	# locale
 	lng="${LANG%.*}"
