@@ -1,8 +1,13 @@
 linuxmuster-linbo7 (4.3.20-0) lmn73; urgency=low
 
   * improve uniform device names replacement in downloaded start.conf (#126).
+  * remove deprecated grub module linuxefi from config (5bd6a63).
+  * efiboot fixes and improvements (19ffe74):
+    - fix efiboot entry for linux systems.
+    - rename linbo efiboot entry from grub to LINBO.
+    - add efipxe kernel parameter to force efi bootorder to boot pxe first.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 05 Aug 2025 09:20:26 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 08 Aug 2025 22:21:08 +0200
 
 linuxmuster-linbo7 (4.3.19-0) lmn73; urgency=low
 
