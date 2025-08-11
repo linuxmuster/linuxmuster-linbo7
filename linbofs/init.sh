@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20250715
+# 20250811
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -95,7 +95,7 @@ clean_env(){
     sed -i "/$line/d" /.env
   done
 }
-
+dhcpretry
 # provide environment variables from kernel cmdline and dhcp.log
 do_env(){
   local item
@@ -437,7 +437,10 @@ network(){
       ip link set dev "$dev" up
     fi
     # wifi support
-    [ "$dev" = "wlan0" -a -s /etc/wpa_supplicant.conf ] && wpa_supplicant -B -c/etc/wpa_supplicant.conf -iwlan0
+    if [ "$dev" = "wlan0" -a -s /etc/wpa_supplicant.conf ]; then
+      wpa_supplicant -B -c/etc/wpa_supplicant.conf -iwlan0
+      [ -n "$dhcpretry_wifi" ] && dhcpretry="$dhcpretry_wifi"
+    fi
     udhcpc -O nisdomain -n -i "$dev" -t $dhcpretry ; RC="$?"
     if [ "$RC" = "0" ]; then
       # set mtu
