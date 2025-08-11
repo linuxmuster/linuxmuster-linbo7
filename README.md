@@ -81,8 +81,8 @@ Note:
 ## LINBO kernel parameters
 Parameter  |  Description
 --|--
-`dhcpretry`  |  Retry time in seconds to get an ip address (default 3).
-`dhcpretry_wifi`  |  Retry time to get an ip address over wifi. If not set the `dhcpretry` value will be used.
+`dhcpretry=<n>`  |  Retry time in seconds to get an ip address (default 3).
+`dhcpretry_wifi=<n>`  |  Retry time to get an ip address over wifi. If not set the `dhcpretry` value will be used.
 `forcegrub`  |  Forces grub boot on uefi systems (in case of uefi boot issues).
 `noefibootmgr`  |  Skips providing the EFI boot files and boot entries (in case of uefi boot issues).
 `loadmodules=mod1,mod2,...`  |  List of kernel modules to load on boot.
