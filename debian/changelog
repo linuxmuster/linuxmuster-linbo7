@@ -1,3 +1,9 @@
+linuxmuster-linbo7 (4.3.21-0) lmn73; urgency=low
+
+  * fix #139: Different dhcp-retries on lan and wifi interface.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 11 Aug 2025 16:01:25 +0200
+
 linuxmuster-linbo7 (4.3.20-0) lmn73; urgency=low
 
   * improve uniform device names replacement in downloaded start.conf (#126).
