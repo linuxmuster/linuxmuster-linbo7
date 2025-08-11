@@ -95,7 +95,7 @@ clean_env(){
     sed -i "/$line/d" /.env
   done
 }
-dhcpretry
+
 # provide environment variables from kernel cmdline and dhcp.log
 do_env(){
   local item
