@@ -15,9 +15,10 @@ Windows Registry Editor Version 5.00
 "RequireSignOrSeal"=dword:00000001
 "RequireStrongKey"=dword:00000001
 
-; needed for netlogon
+; needed for netlogon + sysvol (SMB hardening Ausnahmen)
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\NetworkProvider\HardenedPaths]
 "\\\\*\\netlogon"="RequireMutualAuthentication=0,RequireIntegrity=0,RequirePrivacy=0"
+"\\\\*\\sysvol"="RequireMutualAuthentication=0,RequireIntegrity=0,RequirePrivacy=0"
 
 ; disable hiberboot
 [HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Control\Session Manager\Power]
@@ -29,12 +30,12 @@ Windows Registry Editor Version 5.00
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows NT\Printers\PointAndPrint]
 "RestrictDriverInstallationToAdministrators"=dword:00000000
 
-; samba domain, to be adapted
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\]
-"DefaultLogonDomain"="SAMBADOMAIN"
-[HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Services\Tcpip\Parameters]
-"Domain"="SAMBADOMAIN"
-"NV Domain"="SAMBADOMAIN"
+; Drucker-RPC-Kompatibilität
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows NT\Printers\RPC]
+"RpcUseNamedPipeProtocol"=dword:00000001
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Print]
+"RpcAuthnLevelPrivacyEnabled"=dword:00000000
 
 ; don't show the username of the last login
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System]
