@@ -73,7 +73,7 @@ for kvers in ${KVERSARRAY[@]}; do
 
     [ -n "$KERNELSONLY" ] && continue
 
-    # install kernel to packcage
+    # install kernel to package
     mkdir -p "$kinst"
     cp "$klinbo" "$kinst" || exit 1
     echo "$kvers" > "$kinst/version"
