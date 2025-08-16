@@ -1,5 +1,9 @@
 Windows Registry Editor Version 5.00
 
+; linuxmuster.net 7
+; thomas@linuxmuster.net
+; 20230510
+
 [HKEY_CURRENT_USER\SOFTWARE\Microsoft\PCHC]
 "UpgradeEligibility"=dword:00000001
 
