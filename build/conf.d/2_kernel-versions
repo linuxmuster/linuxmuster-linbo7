@@ -1,10 +1,10 @@
 # major stable kernelversions to use
 #
 # thomas@linuxmuster.net
-# 20250606
+# 20250816
 #
 
-STABLE="6.15"
+STABLE="6.16"
 LONGTERM="6.12"
 LEGACY="6.1"
 
