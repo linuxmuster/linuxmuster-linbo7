@@ -1,8 +1,11 @@
 linuxmuster-linbo7 (4.3.21-0) lmn73; urgency=low
 
   * fix #139: Different dhcp-retries on lan and wifi interface.
+  * Merge pull request #141 from amolani/patch-1, add example win11.global.reg (78229b8, b4175ef).
+  * increase verbosity of linbo-remote (e9a363c).
+  * kernel updates (#134).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 11 Aug 2025 16:06:50 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 16 Aug 2025 16:45:50 +0200
 
 linuxmuster-linbo7 (4.3.20-0) lmn73; urgency=low
 
