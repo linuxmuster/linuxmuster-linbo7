@@ -2,7 +2,7 @@
 #
 # linbo_sync
 # thomas@linuxmuster.net
-# 20250427
+# 20250904
 #
 
 
@@ -221,7 +221,7 @@ set_guid(){
 }
 
 
-# patch fstab with root partition: patch_fstab rootdev
+# patch fstab with root & efi partitions: patch_fstab rootdev
 patch_fstab(){
   echo -n "patch_fstab " ;  printargs "$@"
   local fstab="/mnt/etc/fstab"
@@ -234,12 +234,26 @@ patch_fstab(){
   fi
   [ -b "$realroot" ] || return 1
   # get fstab's root partition
-  local fstabroot="$(grep -v ^# /mnt/etc/fstab | awk '{print $1, $2}' | grep -w / | awk '{print $1}' | tail -1)"
+  local fstabroot="$(grep -v ^# "$fstab" | awk '{print $1, $2}' | grep -w / | awk '{print $1}' | tail -1)"
   [ -z "$fstabroot" ] && return 1
   # patch fstab with real root partition
   if [ "$realroot" != "$fstabroot" ]; then
     echo " $fstabroot -> $realroot"
-    sed -i "s|^$fstabroot|$realroot|g" "$fstab" || return 1
+    sed -i "s|^$fstabroot|$realroot|g" "$fstab"
+  fi
+  # patch efi partition
+  local realefi="$(print_efipart)"
+  local fstabefi="$(grep -v ^# "$fstab" | awk '{print $1, $2}' | grep /efi | awk '{print $1}' | tail -1)"
+  # efi partition exists and there is an efi entry in fstab
+  if [ -n "$realefi" -a -n "$fstabefi" ]; then
+    sed -i "s|^$fstabefi|$realefi|g" "$fstab"
+  # efi partition exists and there is no efi entry in fstab
+  elif [ -n "$realefi" -a -z "$fstabefi" ]; then
+    echo "$realefi /boot/efi vfat defaults 0 1" >> "$fstab"
+    mkdir -p /mnt/boot/efi
+  # no efi system but efi entry in fstab
+  elif [ -z "$realefi" -a -n "$fstabefi" ]; then
+    sed -i '/\/efi/d' "$fstab"
   fi
 }
 
