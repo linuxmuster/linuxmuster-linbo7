@@ -1,3 +1,10 @@
+linuxmuster-linbo7 (4.3.22-0) lmn73; urgency=low
+
+  * kernel updates: 6.1.150, 6.12.44 & 6.16.4 (#134).
+  * use linux images on efi and bios systems equally (33835e2).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 04 Sep 2025 19:40:22 +0200
+
 linuxmuster-linbo7 (4.3.21-0) lmn73; urgency=low
 
   * fix #139: Different dhcp-retries on lan and wifi interface.
