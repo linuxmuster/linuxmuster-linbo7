@@ -2,7 +2,7 @@
 #
 # linbo_sync
 # thomas@linuxmuster.net
-# 20250904
+# 20250427
 #
 
 
@@ -221,7 +221,7 @@ set_guid(){
 }
 
 
-# patch fstab with root & efi partitions: patch_fstab rootdev
+# patch fstab with root partition: patch_fstab rootdev
 patch_fstab(){
   echo -n "patch_fstab " ;  printargs "$@"
   local fstab="/mnt/etc/fstab"
@@ -234,18 +234,12 @@ patch_fstab(){
   fi
   [ -b "$realroot" ] || return 1
   # get fstab's root partition
-  local fstabroot="$(grep -v ^# "$fstab" | awk '{print $1, $2}' | grep -w / | awk '{print $1}' | tail -1)"
+  local fstabroot="$(grep -v ^# /mnt/etc/fstab | awk '{print $1, $2}' | grep -w / | awk '{print $1}' | tail -1)"
   [ -z "$fstabroot" ] && return 1
   # patch fstab with real root partition
   if [ "$realroot" != "$fstabroot" ]; then
     echo " $fstabroot -> $realroot"
     sed -i "s|^$fstabroot|$realroot|g" "$fstab" || return 1
-  fi
-  # patch efi partition
-  local realefi="$(print_efipart)"
-  local fstabefi="$(grep -v ^# "$fstab" | awk '{print $1, $2}' | grep /efi | awk '{print $1}' | tail -1)"
-  if [ -n "$realefi" -a -n "$fstabefi" ]; then
-    sed -i "s|^$fstabefi|$realefi|g" "$fstab" || return 1
   fi
 }
 
