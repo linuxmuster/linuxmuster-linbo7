@@ -2,8 +2,11 @@
 #
 # control linbo_gui: gui_ctl <disable|enable|restore>
 # thomas@linuxmuster.net
-# 20250423
+# 20250912
 #
+
+# intercept nogui parameter
+[ -n "$NOGUI" ] && echo "Linbo was started with \"nogui\". Doing nothing." && exit
 
 # test start.conf
 [ -s /start.conf ] || exit 1
@@ -13,7 +16,7 @@ source /usr/share/linbo/shell_functions
 echo "### $timestamp $(basename "$0") $@ ###"
 
 # test gui
-gui_ps="$(ps w | grep "$(which linbo_gui)" | grep -v grep | awk '{print $1, $5}')"
+gui_ps="$(ps w | grep linbo_gui | grep -v grep | awk '{print $1, $5}')"
 gui_pid="$(echo "$gui_ps" | awk '{print $1}')"
 
 backup_start_conf() {
