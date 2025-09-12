@@ -1,0 +1,21 @@
+#!/bin/sh
+#
+# read image description from cache, used by linbo_gui
+# thomas@linuxmuster.net
+# 20250912
+#
+
+# shift obsolete cache partition device name parameter
+[ -b "$1" ] && shift
+
+# test if extension is "desc"
+[ "${1##*.}" = "desc" ] || exit
+
+# test if file exist
+descfile="/cache/$1"
+imagefile="${descfile/.desc/}"
+[ -e "$imagefile" ] || exit
+[ -s "$descfile" ] || echo "$(date): " > "$descfile"
+
+# display file content
+cat "$descfile"
