@@ -1,3 +1,11 @@
+linuxmuster-linbo7 (4.3.23-0) lmn73; urgency=low
+
+  * kernel updates: 6.1.152, 6.12.47 & 6.16.7 (#134, 00f318d).
+  * fix broken description during image creation in linbo_gui (253d418).
+  * fix gui_ctl in case of linbo was started with nogui parameter (051b351).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 12 Sep 2025 10:43:51 +0200
+
 linuxmuster-linbo7 (4.3.22-0) lmn73; urgency=low
 
   * kernel updates: 6.1.150, 6.12.44 & 6.16.4 (#134).
