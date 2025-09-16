@@ -1,3 +1,14 @@
+linuxmuster-linbo7 (4.3.24-0) lmn73; urgency=low
+
+  * nogui mode improvements (372ef5d, 978c57d, 98f2161).
+  * add tmux to linbofs (ba2ebef).
+  * linbo_readfile: improved error handling (6582e4f).
+  * better linbofs locale support (f40fbf4).
+  * update win11.global.reg (bf0b4a5, 0841de2).
+  * harvest-app.sh: avoid archving of libs which are already in linbofs (f623f16).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 16 Sep 2025 20:10:03 +0200
+
 linuxmuster-linbo7 (4.3.23-0) lmn73; urgency=low
 
   * kernel updates: 6.1.152, 6.12.47 & 6.16.7 (#134, 00f318d).
