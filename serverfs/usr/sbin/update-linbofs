@@ -6,7 +6,7 @@
 #
 # thomas@linuxmuster.net
 # GPL V3
-# 20250808
+# 20250916
 #
 
 # read linuxmuster environment
@@ -103,6 +103,35 @@ exec_hooks() {
 }
 
 
+copy_locale() {
+	[ -z "$LANG" ] && return
+	slang="${LANG%.*}"
+	cmap="${LANG#*.}"
+	[ -z "$slang" -o -z "$cmap" ] && return
+	echo "Copy locale $LANG ..."
+	mkdir -p usr/lib/locale
+	mkdir -p usr/share/locale
+	mkdir -p usr/share/i18n/locales
+	mkdir -p usr/share/i18n/charmaps
+	cp -r "/usr/share/locale/$slang" usr/share/locale
+	cp -r "/usr/share/i18n/locales/$slang" usr/share/i18n/locales
+	cp /usr/share/i18n/SUPPORTED usr/share/i18n
+	cp /usr/share/i18n/locales/i18n* usr/share/i18n/locales
+	cp /usr/share/i18n/locales/iso14651_t1* usr/share/i18n/locales
+	cp /usr/share/i18n/locales/translit_* usr/share/i18n/locales
+	cp "/usr/share/i18n/charmaps/$cmap.gz" usr/share/i18n/charmaps
+	cp /usr/sbin/locale-gen usr/sbin
+	cp /usr/bin/localedef usr/bin
+	cp /usr/bin/locale usr/bin
+	cp /etc/locale* etc
+	cp /etc/vconsole.conf etc
+	localtime="$(realpath /etc/localtime)"
+	[ -e "$localtime" ] && cp "$localtime" etc/localtime
+	chroot ./ /usr/sbin/locale-gen --lang "$LANG"
+	rm -f usr/sbin/locale-gen usr/bin/localedef
+}	
+
+
 create_linbofs() {
 	local linbofs="linbofs64"
 	local linbofs_template="$LINBOVARDIR/${linbofs}.xz"
@@ -182,16 +211,7 @@ create_linbofs() {
 	cp "$LINBOSHAREDIR/efipxe" usr/share/linbo
 
 	# locale
-	lng="${LANG%.*}"
-	lngdir="/usr/share/locale/$lng"
-	if [ -n "$lng" ] && [ -d "$lngdir" ]; then
-		mkdir -p ".${lngdir}"
-		rsync -a "$lngdir/" ".${lngdir}/"
-	fi
-
-	# timezone
-	# copy timezone info file
-	[ -e /etc/localtime ] && cp -L "/etc/localtime" etc/localtime
+	copy_locale
 
 	# provide firmware
 	conf="$LINBOSYSDIR/firmware"

@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20250811
+# 20250916
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -177,6 +177,14 @@ init_setup(){
     echo "Loading module $i ..."
     modprobe "$i" || true
   done
+
+  # set locale
+  source /etc/locale.conf
+  if [ -n "$LANG" ]; then
+    export LANG="$LANG"
+    export LC_TYPE="$LANG"
+    export LC_MESSAGES="$LANG"
+  fi
 }
 
 # copyfromcache files - copies files from cache to current dir
