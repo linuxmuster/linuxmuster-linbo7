@@ -3,7 +3,7 @@
 # harvest an app from server os for use in linbofs
 #
 # thomas@linuxmuster.net
-# 20250514
+# 20250916
 #
 
 # get linbo env
@@ -17,6 +17,7 @@ shift
 
 # linbofs paths
 LINBOAPPDIR="$LINBOCACHEDIR/apps"
+LINBOFSDIR="$LINBOCACHEDIR/linbofs64"
 
 # app paths
 APPNAME="$(basename $APP)"
@@ -49,14 +50,17 @@ ldd "$APP" | while read line; do
     lib="$(echo $line | awk '{print $1}')"
     is_ignored "$lib" && continue
     slink="$(echo $line | awk '{print $3}')"
+    # skip if lib does not exist
     [ -e "$slink" ] || continue
+    # skip if lib is already in linbofs
+    [ -n "$(find "$LINBOFSDIR" -type f -name "$lib")" ] && continue
     cp -L "$slink" "$APPDIR/lib"
 done
 
 # add supplemental files
 for i in $@; do
     mkdir -p "$APPDIR/$(dirname $i)"
-    cp -L $i "$APPDIR/$i"
+    cp -rL $i "$APPDIR/$i"
 done
 
 # pack files into xz archive and delete temp dir
