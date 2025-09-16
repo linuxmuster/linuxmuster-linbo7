@@ -55,6 +55,7 @@ elif [ -s /usr/bin/linbo_gui ]; then
 else # handle missing gui problem
 
   # autostart if requested in start.conf
+  linbo_autostart
   clear
   export myname="| Name: $HOSTNAME"
   source /.profile

@@ -1,0 +1,22 @@
+#!/bin/sh
+#
+# linbo_autostart
+# thomas@linuxmuster.net
+# 20250916
+#
+
+# invoke defaultaction if autostart is requested in start.conf
+for item in /conf/os.1; do
+    osnr="${item#*.}"
+    autostart=""
+    defaultaction=""
+    source "$item"
+    if [ "$autostart" = "yes" ]; then
+        case "$defaultaction" in
+            start) linbo_start "$osnr" ;;
+            sync) linbo_syncstart "$osnr" ;;
+            new) linbo_forcesyncstart "$osnr" ;;
+            *) ;;
+        esac
+    fi
+done
