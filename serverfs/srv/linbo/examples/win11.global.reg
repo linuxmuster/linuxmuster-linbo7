@@ -2,10 +2,9 @@ Windows Registry Editor Version 5.00
 
 ; linuxmuster.net 7
 ; thomas@linuxmuster.net
-; 20230510
+; 20250916
 
 ; to be applied once before domain join and image creation
-; change SAMBADOMAIN to the name of your samba domainname
 
 ; machine account password may not expire
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\Netlogon\Parameters]
@@ -30,7 +29,7 @@ Windows Registry Editor Version 5.00
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows NT\Printers\PointAndPrint]
 "RestrictDriverInstallationToAdministrators"=dword:00000000
 
-; Drucker-RPC-Kompatibilität
+; printer rpc compatibility
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows NT\Printers\RPC]
 "RpcUseNamedPipeProtocol"=dword:00000001
 
@@ -40,5 +39,18 @@ Windows Registry Editor Version 5.00
 ; don't show the username of the last login
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System]
 "dontdisplaylastusername"=dword:00000001
+
+; install win11 on incompatible hardware
+[HKEY_CURRENT_USER\SOFTWARE\Microsoft\PCHC]
+"UpgradeEligibility"=dword:00000001
+
+; bypass tpm and secure boot checks
+[HKEY_LOCAL_MACHINE\SYSTEM\Setup\LabConfig]
+"BypassTPMCheck"=dword:00000001
+"BypassSecureBootCheck"=dword:00000001
+"BypassRAMCheck"=dword:00000001
+"BypassStorageCheck"=dword:00000001
+"BypassCPUCheck"=dword:00000001
+"BypassDiskCheck"=dword:00000001
 
 ; add your custom registry patches below
