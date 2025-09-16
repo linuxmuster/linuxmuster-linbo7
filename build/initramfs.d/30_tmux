@@ -1,0 +1,6 @@
+# /usr/bin/tmux
+
+file /usr/bin/tmux /usr/bin/tmux 755 0 0
+file /lib/libutempter.so.0 /lib/x86_64-linux-gnu/libutempter.so.0 755 0 0
+file /lib/libevent_core-2.1.so.7 /lib/x86_64-linux-gnu/libevent_core-2.1.so.7 755 0 0
+file /lib/libresolv.so.2 /lib/x86_64-linux-gnu/libresolv.so.2 755 0 0

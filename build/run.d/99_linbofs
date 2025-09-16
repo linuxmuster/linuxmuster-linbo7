@@ -3,7 +3,7 @@
 # collect all components for linbo filesystem
 #
 # thomas@linuxmuster.net
-# 20250321
+# 20250916
 #
 
 echo "Creating linbofs ..."
@@ -41,6 +41,13 @@ find . -maxdepth 1 -name "*" -type f -printf "file %p %p %m 0 0\n" | \
   sed -e 's|\./|/usr/lib/grub/x86_64-efi/|' | \
   sed -e "s|\./|/usr/lib/grub/x86_64-efi/|" \
   >> "$INITRAMFS_BUILD" || exit 1
+
+# add terminfo stuff
+echo "Adding terminfo stuff ..."
+echo "# terminfo stuff" >> "$INITRAMFS_BUILD"
+find /usr/share/terminfo -type d -printf "dir %p %m 0 0\n" && \
+  find /usr/share/terminfo -type f -printf "file %p %p %m 0 0\n" | \
+  sed -e 's|\./|/|g' >> "$INITRAMFS_BUILD" || exit 1
 
 # add udev stuff
 echo "Adding udev stuff ..."
