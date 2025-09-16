@@ -1,0 +1,14 @@
+#!/bin/sh
+#
+# linbo_login
+# thomas@linuxmuster.net
+# 20250916
+#
+
+source /etc/locale.conf
+export LC_CTYPE="$LANG"
+echo -n "Please type linbo password: "
+read -s password
+linbo_auth "$password" >> /tmp/linbo.log && tmux new -t linbo
+pid="$(ps w | grep -v grep | grep /linbo.sh | awk '{print $1}')"
+[ -n "$pid" ] && kill -9 "$pid"
