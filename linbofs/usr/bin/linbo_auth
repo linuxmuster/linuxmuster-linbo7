@@ -2,7 +2,7 @@
 #
 # linbo_auth
 # thomas@linuxmuster.net
-# 20250423
+# 20250916
 #
 
 # get environment
@@ -19,7 +19,7 @@ usage(){
   echo "For compatibility reasons legacy options are also accepted but not used:"
   echo "  linbo_auth <server> <user> <password>"
   echo
-  exit 0
+  exit 1
 }
 
 # print help
@@ -41,7 +41,7 @@ if [ -s /etc/linbo_pwhash -a -s /etc/linbo_salt ]; then
     msg="Password does not match!"; RC=1
   fi
 else
-  msg="No password file available!"; RC=2
+  msg="No password hash available!"; RC=2
 fi
 
 echo "$msg"
