@@ -1,7 +1,7 @@
 # busybox ash profile
 #
 # thomas@schmitt.tk
-# 20220618
+# 20250915
 
 # environment
 source /.env
@@ -11,15 +11,15 @@ source /.env
 
 # logo
 echo
-echo 'Welcome to'
-echo ' _      _____ _   _ ____   ____'
-echo '| |    |_   _| \ | |  _ \ / __ \'
-echo '| |      | | |  \| | |_) | |  | |'
-echo '| |      | | | . ` |  _ <| |  | |'
-echo '| |____ _| |_| |\  | |_) | |__| |'
-echo '|______|_____|_| \_|____/ \____/'
+echo ' Welcome to'
+echo '  _      _____ _   _ ____   ____'
+echo ' | |    |_   _| \ | |  _ \ / __ \'
+echo ' | |      | | |  \| | |_) | |  | |'
+echo ' | |      | | | . ` |  _ <| |  | |'
+echo ' | |____ _| |_| |\  | |_) | |__| |'
+echo ' |______|_____|_| \_|____/ \____/'
 echo
-echo "$LINBOFULLVER $myip $mymac $myname"
+echo " $LINBOFULLVER $myip $mymac $myname"
 echo
-uname -a | sed -e "s| $HOSTNAME||"
+echo -n " " ; uname -a | sed -e "s| $HOSTNAME||"
 echo

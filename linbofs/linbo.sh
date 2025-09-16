@@ -4,7 +4,7 @@
 # (C) Klaus Knopper 2007
 # License: GPL V2
 # thomas@linuxmuster.net
-# 20250426
+# 20250916
 #
 
 # Reset fb color mode
@@ -14,7 +14,6 @@ CLEAR="c"
 
 # get environment
 source /usr/share/linbo/shell_functions
-echo "### $timestamp linbo_gui ###"
 
 # plymouth
 if [ -x "/sbin/plymouthd" -a -n "$SPLASH" ]; then
@@ -27,9 +26,11 @@ fi
 # update & extract linbo_gui
 linbo_update_gui &> /dev/null
 
+# quit plymouth
+plymouth quit
+
 # DEBUG mode
 if [ -n "$DEBUG" ]; then
-  plymouth quit
   for item in /tmp/linbo_gui.*.log; do
     if [ -s "$item" ]; then
       echo "There is a logfile from a previous start of linbo_gui in $item:"
@@ -42,28 +43,35 @@ if [ -n "$DEBUG" ]; then
   echo "Starting DEBUG shell, leave with 'exit'."
   sendlog
   ash >/dev/tty1 2>&1 < /dev/tty1
-fi
 
 # Start LINBO GUI
-if [ -s /usr/bin/linbo_gui ]; then
+elif [ -s /usr/bin/linbo_gui ]; then
 
-  plymouth quit &> /dev/null
+  echo "### $timestamp linbo_gui ###"
   sendlog
   export XKB_DEFAULT_LAYOUT=de
   /usr/bin/linbo_gui -platform linuxfb
 
 else # handle missing gui problem
 
-  plymouth quit
-  if [ -n "$DEBUG" ]; then
-    echo "Starting DEBUG shell."
-    sendlog
-    ash >/dev/tty1 2>&1 < /dev/tty1
+  # autostart if requested in start.conf
+  clear
+  export myname="| Name: $HOSTNAME"
+  source /.profile
+  # print console menu
+  if [ -n "$NOMENU" ]; then
+    echo "----------------------------------------------"
+    echo " This LINBO client is in remote control mode."
+    echo "----------------------------------------------"
+    echo
+    while true; do
+      answer=$(stty -icanon -echo; dd ibs=1 count=1 2>/dev/null)
+      echo -n "X"
+    done
   else
-    export myname="| Name: $HOSTNAME"
-    source /.profile
-    echo "Console boot menue of group $HOSTGROUP"
-    echo "----------------------------------------"
+    echo "----------------------------------------------"
+    echo " Console boot menu of group $HOSTGROUP"
+    echo "----------------------------------------------"
     count=0
     for item in /conf/os.*; do
       [ -s "$item" ] || continue
@@ -71,15 +79,15 @@ else # handle missing gui problem
       source "$item"
       [ -z "$name" ] && continue
       count=$(( count + 1 ))
-      echo "[$count] Start $name"
+      echo " [$count] Start $name"
       count=$(( count + 1 ))
-      echo "[$count] Sync & start $name"
+      echo " [$count] Sync & start $name"
     done
-    echo "----------------------------------------"
-    echo "[R] Reboot"
-    echo "[S] Shutdown"
-    echo
-    sendlog
+    echo "----------------------------------------------"
+    echo " [R] Reboot"
+    echo " [S] Shutdown"
+    echo "----------------------------------------------"
+    sendlog &> /dev/null
     while true; do
       answer=$(stty -icanon -echo; dd ibs=1 count=1 2>/dev/null)
       case "$answer" in
@@ -93,4 +101,5 @@ else # handle missing gui problem
       esac
     done
   fi
+
 fi

@@ -533,7 +533,7 @@ network(){
   fi
   # start dropbear
   print_status "Starting ssh service."
-  /sbin/dropbear -r /etc/dropbear/dropbear_dss_host_key -r /etc/dropbear/dropbear_rsa_host_key -s -g -E -p 2222
+  /sbin/dropbear -r /etc/dropbear/dropbear_dss_host_key -r /etc/dropbear/dropbear_rsa_host_key -s -g -p 2222
   # remove reboot flag, save windows activation
   do_housekeeping
   # done
