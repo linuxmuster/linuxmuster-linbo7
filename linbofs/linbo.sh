@@ -85,7 +85,6 @@ else # handle missing gui problem
       echo " [$count] Sync & start $name"
     done
     echo "----------------------------------------------"
-    echo " [C] Console"
     echo " [R] Reboot"
     echo " [S] Shutdown"
     echo "----------------------------------------------"
@@ -93,7 +92,6 @@ else # handle missing gui problem
     while true; do
       answer=$(stty -icanon -echo; dd ibs=1 count=1 2>/dev/null)
       case "$answer" in
-        c|C) linbo_login ;;
         r|R) /sbin/reboot ;;
         s|S) /sbin/poweroff ;;
         *)
