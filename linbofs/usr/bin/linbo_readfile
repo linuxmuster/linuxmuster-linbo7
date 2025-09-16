@@ -1,21 +1,36 @@
 #!/bin/sh
 #
-# read image description from cache, used by linbo_gui
+# display file content from cache, used by linbo_gui to get the image description
 # thomas@linuxmuster.net
-# 20250912
+# 20250914
 #
 
-# shift obsolete cache partition device name parameter
-[ -b "$1" ] && shift
+# test options
+[ -z "$1" ] && exit 1
 
-# test if extension is "desc"
-[ "${1##*.}" = "desc" ] || exit
+# shift obsolete cache device name option given by linbo_gui
+if [ -b "$1" ]; then
+    shift
+    GUI="yes"
+fi
 
-# test if file exist
+# test remaining option
+[ -z "$1" ] && exit 1
+
 descfile="/cache/$1"
-imagefile="${descfile/.desc/}"
-[ -e "$imagefile" ] || exit
-[ -s "$descfile" ] || echo "$(date): " > "$descfile"
+if [ -f "$descfile" ]; then
 
-# display file content
-cat "$descfile"
+    # display file content
+    cat "$descfile" || exit 1
+
+elif [ -n "$GUI" -a ! -e "$descfile" ]; then
+
+    # display date in case of gui invokation and file does not exist
+    echo "$(date): "
+
+else
+
+    # file does not exist or is no file
+    exit 1
+
+fi
