@@ -88,7 +88,7 @@ Parameter  |  Description
 `forcegrub`  |  Forces grub boot with windows uefi systems (in case of uefi boot issues).
 `noefibootmgr`  |  Skips providing the EFI boot files and boot entries (in case of uefi boot issues). Note that you have to organize the uefi boot entries yourself in this case.
 `loadmodules=mod1,mod2,...`  |  List of kernel modules to load on boot.
-`linbocmd=cmd1,cmd2,...`  |  Provide linbo-remote commands to be processed during boot (see [linbo-remote](https://github.com/linuxmuster/linuxmuster-linbo7/blob/main/README.md#linbo-remote) below).
+`linbocmd=cmd1,cmd2,...`  |  Provide [linbo-remote](https://github.com/linuxmuster/linuxmuster-linbo7/blob/main/README.md#linbo-remote) commands to be processed during boot.
 `quiet`  |  Suppresses kernel boot messages.
 `splash`  |  Displays graphical splash screen at boot time. Without this parameter, only text is displayed on the console at boot time.
 `nogui`  |  Does not start linbo_gui, provides a simple text console menu.
