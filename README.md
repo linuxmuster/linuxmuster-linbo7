@@ -81,10 +81,12 @@ Note:
 ## LINBO kernel parameters
 Parameter  |  Description
 --|--
+`debug`  |  Boots LINBO into a debug shell, no gui will be started.
 `dhcpretry=<n>`  |  Retry time in seconds to get an ip address (default 3).
 `dhcpretry_wifi=<n>`  |  Retry time to get an ip address over wifi. If not set the `dhcpretry` value will be used.
+`efipxe`  |  Forces the efi bootorder to boot pxe first.
 `forcegrub`  |  Forces grub boot with windows uefi systems (in case of uefi boot issues).
-`noefibootmgr`  |  Skips providing the EFI boot files and boot entries (in case of uefi boot issues).
+`noefibootmgr`  |  Skips providing the EFI boot files and boot entries (in case of uefi boot issues). Note that you have to organize the uefi boot entries yourself in this case.
 `loadmodules=mod1,mod2,...`  |  List of kernel modules to load on boot.
 `linbocmd=cmd1,cmd2,...`  |  Provide linbo-remote commands to be processed during boot (see `linbo-remote -h` on the server).
 `quiet`  |  Suppresses kernel boot messages.
@@ -94,7 +96,6 @@ Parameter  |  Description
 `nowarmstart`  |  Suppresses linbo warmstart after downloading a new linbo kernel from the server (in case warmstart causes problems). Note: The old parameter `warmstart=no` is still functional for compatibility reasons.
 `restoremode`  |  Allows to control the writing performance of qemu-img when restoring whole partitions according to certain storage hardware. `restoremode=dd` uses the dd mode of qemu-img and may improve the writing performance to certain nvme disks. `restoremode=ooo` uses the out-of-order mode of qemu-img. This option may improve performance with other raw block devices.
 `vncserver`  |  Starts the LINBO builtin framebuffer vnc server on boot. The service listens on port 9999 and allows access only from the linuxmuster server ip. So if you want to access the vnc server from your pc or laptop you have to create a ssh tunnel (`ssh -L 9999:<linbo client lan address>:9999 root@<serverip>`). Then you are able to access the LINBO gui with a vncviewer (`vncviewer localhost:9999`).
-`efipxe`  |  Forces the efi bootorder to boot pxe first.
 
 ## Improved LINBO server scripts
 
