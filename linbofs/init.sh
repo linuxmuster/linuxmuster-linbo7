@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20250916
+# 20250918
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -141,6 +141,8 @@ do_env(){
     export DOMAIN="${FQDN/$HOSTNAME./}"
     echo "export DOMAIN='"$DOMAIN"'" >> /.env
   fi
+  # provide linbocmd from cmdline
+  [ -n "$LINBOCMD" ] && echo "$LINBOCMD" > /linbocmd
   # set hostname
   echo "$HOSTNAME" > /etc/hostname
   hostname "$HOSTNAME"
