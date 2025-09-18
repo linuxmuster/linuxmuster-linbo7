@@ -329,8 +329,10 @@ With the LINBO kernel parameter `nogui` (see above) you get a cpu saving alterna
 ----------------------------------------------
  [1] Start Windows
  [2] Sync & start Windows
- [3] Start Debian
- [4] Sync & start Debian
+ [3] New & start Windows
+ [4] Start Debian
+ [5] Sync & start Debian
+ [6] New & start Debian
 ----------------------------------------------
  [C] Console
  [R] Reboot
@@ -338,9 +340,10 @@ With the LINBO kernel parameter `nogui` (see above) you get a cpu saving alterna
 ----------------------------------------------
 ```
 Note:
-* To access the console the LINBO password has to be entered.
+* To access the console the LINBO password has to be entered. After login a tmux session is started, that can be left with `exit`.
 * If you use the `nomenu` parameter additionally the menu will be suppressed, so LINBO can only be remote controlled.
 * Any autostart entries in the group's start.conf are processed as usual.
+* Boot entries are created according to start.conf enabled buttons.
 
 ## Adding firmware
 From Linbo 4.2.0 there is a configuration file `/etc/linuxmuster/linbo/firmware` which can be used to integrate supplemental firmware files into the Linbo filesystem. Here is an example:
