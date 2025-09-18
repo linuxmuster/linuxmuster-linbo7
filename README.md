@@ -86,15 +86,15 @@ Parameter  |  Description
 `dhcpretry_wifi=<n>`  |  Retry time to get an ip address over wifi. If not set the `dhcpretry` value will be used.
 `efipxe`  |  Forces the efi bootorder to boot pxe first.
 `forcegrub`  |  Forces grub boot with windows uefi systems (in case of uefi boot issues).
-`noefibootmgr`  |  Skips providing the EFI boot files and boot entries (in case of uefi boot issues). Note that you have to organize the uefi boot entries yourself in this case.
-`loadmodules=mod1,mod2,...`  |  List of kernel modules to load on boot.
 `linbocmd=cmd1,cmd2,...`  |  Provide [linbo-remote](https://github.com/linuxmuster/linuxmuster-linbo7/blob/main/README.md#linbo-remote) commands to be processed during boot.
+`loadmodules=mod1,mod2,...`  |  List of kernel modules to load on boot.
+`noefibootmgr`  |  Skips providing the UEFI boot files and entries, if you need to organize them yourself or in case of boot issues.
+`nogui`  |  Does not start linbo_gui, provides a [nogui mode](https://github.com/linuxmuster/linuxmuster-linbo7?tab=readme-ov-file#nogui-mode) with a simple text console menu.
+`nomenu`  |  Suppresses the console menu in [nogui mode](https://github.com/linuxmuster/linuxmuster-linbo7?tab=readme-ov-file#nogui-mode) to provide a remote only mode.
+`nowarmstart`  |  Suppresses linbo warmstart after downloading a new linbo kernel from the server (in case warmstart causes problems). Note: The old parameter `warmstart=no` is still functional for compatibility reasons.
+`restoremode`  |  Allows to control the writing performance of qemu-img when restoring whole partitions according to certain storage hardware. `restoremode=dd` uses the dd mode of qemu-img and may improve the writing performance to nvme disks. `restoremode=ooo` uses the out-of-order mode of qemu-img. This option may improve performance with other raw block devices.
 `quiet`  |  Suppresses kernel boot messages.
 `splash`  |  Displays graphical splash screen at boot time. Without this parameter, only text is displayed on the console at boot time.
-`nogui`  |  Does not start linbo_gui, provides a simple text console menu.
-`nomenu`  |  Suppresses the console menu in nogui mode.
-`nowarmstart`  |  Suppresses linbo warmstart after downloading a new linbo kernel from the server (in case warmstart causes problems). Note: The old parameter `warmstart=no` is still functional for compatibility reasons.
-`restoremode`  |  Allows to control the writing performance of qemu-img when restoring whole partitions according to certain storage hardware. `restoremode=dd` uses the dd mode of qemu-img and may improve the writing performance to certain nvme disks. `restoremode=ooo` uses the out-of-order mode of qemu-img. This option may improve performance with other raw block devices.
 `vncserver`  |  Starts the LINBO builtin framebuffer vnc server on boot. The service listens on port 9999 and allows access only from the linuxmuster server ip. So if you want to access the vnc server from your pc or laptop you have to create a ssh tunnel (`ssh -L 9999:<linbo client lan address>:9999 root@<serverip>`). Then you are able to access the LINBO gui with a vncviewer (`vncviewer localhost:9999`).
 
 ## Improved LINBO server scripts
@@ -236,9 +236,11 @@ Note:
  * Creates an ISO file under `/srv/linbo/linbo.iso` that allows you to create a bootable Linbo USB stick.
  * Allows to trigger custom actions on the server after `update-linbofs` has done it's job. Therefore you place a corresponding script in the directory `/var/lib/linuxmuster/hooks/update-linbofs.post.d`. Don't forget to make the script executable.
 
-## Improved LINBO client shell
+## Improved LINBO client
 
-The improved LINBO client shell not only presents a new login prompt
+### The shell
+
+The improved client shell not only presents a new login prompt
 ```
 Welcome to
  _      _____ _   _ ____   ____
@@ -317,6 +319,28 @@ kerneloptions="quiet splash forcegrub"
 icons="win10.svg ubuntu.svg"
 ```
  This makes the LINBO client shell more powerful than ever. For more details please take a look at [#72](https://github.com/linuxmuster/linuxmuster-linbo7/issues/72).
+
+ ### Nogui mode
+
+With the LINBO kernel parameter `nogui` (see above) you get a cpu saving alternative for all use cases where a graphical user interface is not required or desired. A simple text menu will be presented at the end of the LINBO boot process:
+```
+----------------------------------------------
+ Console boot menu of group tuxwin
+----------------------------------------------
+ [1] Start Windows
+ [2] Sync & start Windows
+ [3] Start Debian
+ [4] Sync & start Debian
+----------------------------------------------
+ [C] Console
+ [R] Reboot
+ [S] Shutdown
+----------------------------------------------
+```
+Note:
+* To access the console the LINBO password has to be entered.
+* If you use the `nomenu` parameter additionally the menu will be suppressed, so LINBO can only be remote controlled.
+* Any autostart entries in the group's start.conf are processed as usual.
 
 ## Adding firmware
 From Linbo 4.2.0 there is a configuration file `/etc/linuxmuster/linbo/firmware` which can be used to integrate supplemental firmware files into the Linbo filesystem. Here is an example:
