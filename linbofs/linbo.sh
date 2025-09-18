@@ -74,15 +74,32 @@ else # handle missing gui problem
     echo " Console boot menu of group $HOSTGROUP"
     echo "----------------------------------------------"
     count=0
+    rm -f /tmp/menu
+    # iterate start.conf os items
     for item in /conf/os.*; do
       [ -s "$item" ] || continue
       name=""
       source "$item"
       [ -z "$name" ] && continue
-      count=$(( count + 1 ))
-      echo " [$count] Start $name"
-      count=$(( count + 1 ))
-      echo " [$count] Sync & start $name"
+      osnr="${item#*.}"
+      # create menu entry for start
+      if [ "$startenabled" = "yes" -o -z "$startenabled" ]; then
+        count=$(( count + 1 ))
+        echo "$count start $osnr" >> /tmp/menu
+        echo " $count Start $name"
+      fi
+      # create menu entry for sync & start
+      if [ "$syncenabled" = "yes" -o -z "$syncenabled" ]; then
+        count=$(( count + 1 ))
+        echo "$count syncstart $osnr" >> /tmp/menu
+        echo " $count Sync & start $name"
+      fi
+      # create menu entry for new & start
+      if [ "$newenabled" = "yes" -o -z "$newenabled" ]; then
+        count=$(( count + 1 ))
+        echo "$count forcesyncstart $osnr" >> /tmp/menu
+        echo " $count New & start $name"
+      fi
     done
     echo "----------------------------------------------"
     echo " [C] Console"
@@ -98,8 +115,13 @@ else # handle missing gui problem
         s|S) /sbin/poweroff ;;
         *)
           isinteger $answer || continue
-          osnr=$(($answer-$(($answer/2))))
-          if iseven $answer; then linbo_syncstart $osnr &> /dev/null; else linbo_start $osnrr &> /dev/null; fi
+          menucmd="$(grep -w ^$answer /tmp/menu | sed "s|^$answer ||")"
+          cmd="$(echo "$menucmd" | awk '{print $1}')"
+          linbocmd="linbo_${cmd}"
+          [ -z "$(which "$linbocmd")" ] && continue
+          osnr="$(echo "$menucmd" | awk '{print $2}')"
+          [ -s "/conf/os.$osnr" ] || continue
+          $linbocmd $osnr || continue
           ;;
       esac
     done
