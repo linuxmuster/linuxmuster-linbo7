@@ -1,3 +1,13 @@
+linuxmuster-linbo7 (4.3.25-0) lmn73; urgency=low
+
+  * fix linbocmd kernel option (345d6c7).
+  * redirect vncserver output to linbo.log (e64a725).
+  * nogui mode improvements: create menu entries according to start.conf,
+    add nomenu kernel option to be able to suppress console menu (feb0efe).
+  * kernel updates: 6.1.153, 6.12.48 & 6.16.8 (#134, ea94e78).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 24 Sep 2025 15:03:41 +0200
+
 linuxmuster-linbo7 (4.3.24-0) lmn73; urgency=low
 
   * nogui mode improvements (372ef5d, 978c57d, 98f2161).
