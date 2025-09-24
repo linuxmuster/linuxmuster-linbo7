@@ -340,7 +340,7 @@ With the LINBO kernel parameter `nogui` (see above) you get a cpu saving alterna
 ----------------------------------------------
 ```
 Note:
-* To access the console the LINBO password has to be entered. After login a tmux session is started, that can be left with `exit`.
+* To access the console the LINBO password has to be entered. After login a tmux session is started, that can be closed with `exit`.
 * If you use the `nomenu` parameter additionally the menu will be suppressed, so LINBO can only be remote controlled.
 * Any autostart entries in the group's start.conf are processed as usual.
 * Boot entries are created according to start.conf enabled buttons.
