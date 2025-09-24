@@ -2,7 +2,7 @@
 #
 # split start.conf in machine parseable chunks
 # thomas@linuxmuster.net
-# 20250805
+# 20250924
 #
 
 
@@ -55,6 +55,44 @@ for item in "$prefix"*; do
   grep -v ^"\[" "$item" | sed -e 's|[ ]*=[ ]*|="|' | awk -F= '{ st = index($0,"=");print tolower($1) "=" substr($0,st+1) "\""}' > "$cfgfile"
 done
 
+# write menufile for nogui mode
+[ -s /conf/linbo ] && source /conf/linbo
+rm -f /conf/menu
+if [ -n "$group" -a -n "$NOGUI" -a -z "$NOMENU" ]; then
+  echo "----------------------------------------------" > /conf/menu
+  echo " Console boot menu of group $group" >> /conf/menu
+  echo "----------------------------------------------" >> /conf/menu
+  # iterate start.conf os items and create menu entries and according start commands
+  count=0
+  for item in /conf/os.*; do
+    [ -s "$item" ] || continue
+    name=""
+    source "$item"
+    [ -z "$name" ] && continue
+    osnr="${item#*.}"
+    # create menu entry for start
+    if [ "$startenabled" = "yes" -o -z "$startenabled" ]; then
+      count=$(( count + 1 ))
+      echo " [$count] start $osnr Start $name" >> /conf/menu
+    fi
+    # create menu entry for sync & start
+    if [ "$syncenabled" = "yes" -o -z "$syncenabled" ]; then
+      count=$(( count + 1 ))
+       echo " [$count] syncstart $osnr Sync & start $name" >> /conf/menu
+    fi
+    # create menu entry for new & start
+    if [ "$newenabled" = "yes" -o -z "$newenabled" ]; then
+      count=$(( count + 1 ))
+      echo " [$count] forcesyncstart $osnr New & start $name" >> /conf/menu
+    fi
+  done
+  echo "----------------------------------------------" >> /conf/menu
+  echo " [C] Console" >> /conf/menu
+  echo " [R] Reboot" >> /conf/menu
+  echo " [S] Shutdown" >> /conf/menu
+  echo "----------------------------------------------" >> /conf/menu
+fi 
+
 # write icons to linbo section
-icons="$(grep -iw ^iconname /start.conf | awk -F\= '{print $2}' | awk '{print $1}' | awk -F\# '{print $1}' | awk '{print $1}')"
+icons="$(grep -w ^iconname /conf/os.* | awk -F\" '{print $2}' | sort -u | sed ':a;N;$!ba;s/\n/ /g')"
 echo "icons=\"$icons\"" >> /conf/linbo

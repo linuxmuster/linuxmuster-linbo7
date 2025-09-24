@@ -4,7 +4,7 @@
 # (C) Klaus Knopper 2007
 # License: GPL V2
 # thomas@linuxmuster.net
-# 20250916
+# 20250924
 #
 
 # Reset fb color mode
@@ -59,36 +59,11 @@ else # handle missing gui problem
   clear
   export myname="| Name: $HOSTNAME"
   source /.profile
+
   # print console menu
-  if [ -n "$NOMENU" ]; then
-    echo "----------------------------------------------"
-    echo " This LINBO client is in remote control mode."
-    echo "----------------------------------------------"
-    echo
-    while true; do
-      answer=$(stty -icanon -echo; dd ibs=1 count=1 2>/dev/null)
-      echo -n "X"
-    done
-  else
-    echo "----------------------------------------------"
-    echo " Console boot menu of group $HOSTGROUP"
-    echo "----------------------------------------------"
-    count=0
-    for item in /conf/os.*; do
-      [ -s "$item" ] || continue
-      name=""
-      source "$item"
-      [ -z "$name" ] && continue
-      count=$(( count + 1 ))
-      echo " [$count] Start $name"
-      count=$(( count + 1 ))
-      echo " [$count] Sync & start $name"
-    done
-    echo "----------------------------------------------"
-    echo " [C] Console"
-    echo " [R] Reboot"
-    echo " [S] Shutdown"
-    echo "----------------------------------------------"
+  if [ -s /conf/menu ]; then
+    # print menu file, filter commands
+    sed 's|] .* [1-9]|]|g' /conf/menu
     sendlog &> /dev/null
     while true; do
       answer=$(stty -icanon -echo; dd ibs=1 count=1 2>/dev/null)
@@ -96,12 +71,28 @@ else # handle missing gui problem
         c|C) linbo_login ;;
         r|R) /sbin/reboot ;;
         s|S) /sbin/poweroff ;;
-        *)
+        *) # interpret the commands assigned to the menu items
           isinteger $answer || continue
-          osnr=$(($answer-$(($answer/2))))
-          if iseven $answer; then linbo_syncstart $osnr &> /dev/null; else linbo_start $osnrr &> /dev/null; fi
+          [ -s /conf/menu ] || continue
+          menucmd="$(grep "\[$answer\]" /conf/menu | awk '{print $2, $3}')"
+          cmd="$(echo "$menucmd" | awk '{print $1}')"
+          linbocmd="linbo_${cmd}"
+          [ -z "$(which "$linbocmd")" ] && continue
+          osnr="$(echo "$menucmd" | awk '{print $2}')"
+          [ -s "/conf/os.$osnr" ] || continue
+          $linbocmd $osnr || continue
           ;;
       esac
+    done
+  # no menu, message only
+  else
+    echo "----------------------------------------------"
+    echo " This LINBO client is in remote control mode."
+    echo "----------------------------------------------"
+    echo
+    while true; do
+      answer=$(stty -icanon -echo; dd ibs=1 count=1 2>/dev/null)
+      echo -n "X"
     done
   fi
 
