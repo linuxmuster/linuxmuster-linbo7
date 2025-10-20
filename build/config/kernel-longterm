@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/x86 6.12.48 Kernel Configuration
+# Linux/x86 6.12.53 Kernel Configuration
 #
 CONFIG_CC_VERSION_TEXT="gcc (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0"
 CONFIG_CC_IS_GCC=y
@@ -4978,7 +4978,6 @@ CONFIG_PROC_MEM_ALWAYS_FORCE=y
 # CONFIG_STATIC_USERMODEHELPER is not set
 # CONFIG_IMA_SECURE_AND_OR_TRUSTED_BOOT is not set
 CONFIG_DEFAULT_SECURITY_DAC=y
-CONFIG_LSM="lockdown,yama,loadpin,safesetid,integrity"
 
 #
 # Kernel hardening options
