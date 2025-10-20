@@ -590,10 +590,18 @@ syncl(){
   #fi
 
   # hostname
-  if [ -f /mnt/etc/hostname ]; then
-    if [ -n "$HOSTNAME" ]; then
+  if [ -n "$HOSTNAME" ]; then
+    if [ -f /mnt/etc/hostname ]; then
       echo "Setting hostname -> $HOSTNAME."
       echo "$HOSTNAME" > /mnt/etc/hostname
+    fi
+    if [ -f /mnt/etc/hosts ]; then
+      local ip="127.0.1.1"
+      if grep -q ^"$ip" /mnt/etc/hosts; then
+        sed -i "s|^$ip.*|$ip\t$HOSTNAME|" /mnt/etc/hosts
+      else
+        echo -e "$ip\t$HOSTNAME" >> /mnt/etc/hosts
+      fi
     fi
   fi
 
