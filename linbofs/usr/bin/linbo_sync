@@ -2,7 +2,7 @@
 #
 # linbo_sync
 # thomas@linuxmuster.net
-# 20250904
+# 20251020
 #
 
 
@@ -70,7 +70,7 @@ sync_image(){
   local ROPTS="-HAa"
   [ "$(linbo_fstype "$targetdev")" = "vfat" ] && ROPTS="-rt"
   # mount qcow2 image as network block device
-  qemu-nbd -r --connect /dev/nbd0 "$imagefile" ; RC="$?"
+  qemu-nbd --connect /dev/nbd0 "$imagefile" ; RC="$?"
   if [ "$RC" != "0" ]; then
     echo "Connection to $imagefile failed!"
     qemu-nbd --disconnect /dev/nbd0
