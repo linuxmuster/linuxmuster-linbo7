@@ -2,7 +2,7 @@
 #
 # linbo_sync
 # thomas@linuxmuster.net
-# 20251020
+# 20250904
 #
 
 
@@ -122,7 +122,7 @@ cp_image(){
   fi
 
   # check sizes
-  qemu-nbd --connect /dev/nbd0 "$imagefile" || return "$RC"
+  qemu-nbd -r --connect /dev/nbd0 "$imagefile" || return "$RC"
   # wait a few seconds after qemu-nbd connect attempt
   sleep 3
   local s1="$(get_partition_size /dev/nbd0)"
