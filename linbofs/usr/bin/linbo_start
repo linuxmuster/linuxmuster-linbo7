@@ -2,7 +2,7 @@
 #
 # linbo_start
 # thomas@linuxmuster.net
-# 20250801
+# 20251107
 #
 
 
@@ -136,6 +136,9 @@ if linbo_mount "$bootpart" "$mntpnt"; then
     imagebase="$(cat /mnt/.linbo)"
     prestart="${imagebase}.prestart"
     if ! localmode; then
+      # sets machine password on server
+      invoke_macct "$imagebase"
+      # download prestart script
       linbo_download "images/$imagebase/$prestart" &> /dev/null
       [ -e "$prestart" ] || linbo_download "$prestart" &> /dev/null
       if [ -e "$prestart" ]; then
@@ -144,7 +147,20 @@ if linbo_mount "$bootpart" "$mntpnt"; then
         rm -f "/cache/$prestart"
       fi
     fi
+    # invoke prestart script
     [ -s "/cache/$prestart" ] && source "/cache/$prestart"
+    # copy host's krb5.keytab if system is linux with krb5
+    src_keytab="/cache/${imagebase}.keytab"
+    krb5_path="/mnt/etc/krb5"
+    tgt_keytab="${krb5_path}.keytab"
+    krb5_conf="${krb5_path}.conf"
+    if [ -e "$krb5_conf" -a -s "$src_keytab" ]; then
+      echo -n "Providing "
+      rsync -v "$src_keytab" "$tgt_keytab"
+      chmod 600 "$tgt_keytab"
+      # remove sssd cache
+      rm -rf /mnt/var/lib/sss/db/*
+    fi
   fi
 else
   echo "Unable to mount operating system partition $bootpart." >&2
@@ -152,8 +168,6 @@ else
   exit 1
 fi
 
-# sets machine password on server
-invoke_macct "$imagebase"
 
 sync
 umount /mnt
