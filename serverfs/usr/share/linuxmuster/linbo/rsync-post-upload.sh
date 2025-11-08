@@ -109,20 +109,20 @@ case "$EXT" in
     linbo-multicast restart >&2
 
     # save samba passwords of host we made the new image
-    if [ -n "$RSYNC_HOST_NAME" -a -n "$LDBSEARCH" -a -n "$basedn" ]; then
+    if [ -n "$RSYNC_HOST_NAME" -a -n "$basedn" ]; then
       # fetch samba nt password hash from ldap machine account
       url="--url=/var/lib/samba/private/sam.ldb"
       unicodepwd="$(ldbsearch "$url" "(&(sAMAccountName=$compname$))" unicodePwd | grep ^unicodePwd:: | awk '{ print $2 }')"
       suppcredentials="$(ldbsearch "$url" "(&(sAMAccountName=$compname$))" supplementalCredentials | sed -n '/^'supplementalCredentials':/,/^$/ { /^'supplementalCredentials':/ { s/^'supplementalCredentials': *// ; h ; $ !d}; /^ / { H; $ !d}; /^ /! { x; s/\n //g; p; q}; $ { x; s/\n //g; p; q} }' | awk '{ print $2 }')"
       imagemacct="$IMGDIR/${BASENAME}.macct"
       if [ -n "$unicodepwd" ]; then
-        echo "Saving samba password hash and kvno for $image."
+        echo "Saving samba password hash for $image."
         template="$LINBOTPLDIR/machineacct"
         sed -e "s|@@unicodepwd@@|$unicodepwd|" \
           -e "s|@@suppcredentials@@|$suppcredentials|" "$template" > "$imagemacct"
         chmod 600 "$imagemacct"
-        # remove obsolete macct file if present
-        rm -f "$IMGDIR/${BASE}.macct"
+        # remove former keytabs, which are no more valid yet
+        rm -rf "$IMGDIR/keytabs"
       else
         rm -f "$imagemacct"
       fi
