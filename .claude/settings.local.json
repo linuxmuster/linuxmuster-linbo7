@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(bash -n:*)",
+      "Bash(shellcheck:*)"
+    ],
+    "deny": [
+      "Read(cache/**)",
+      "Read(src/**)",
+      "Read(cache/**)"
+    ],
+    "ask": []
+  }
+}
