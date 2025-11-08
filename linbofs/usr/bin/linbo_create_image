@@ -2,7 +2,7 @@
 #
 # linbo_create_image
 # thomas@linuxmuster.net
-# 20250423
+# 20251108
 #
 
 
@@ -181,7 +181,7 @@ mk_diffimage(){
     return 1
   fi
   echo "Start syncing differences of $rootdev -> $imagefile."
-  interruptible rsync --skip-compress="$RSYNC_SKIP_COMPRESS" -HAa --exclude="/.linbo" --exclude-from="/etc/rsync.exclude" --delete --delete-excluded  /mnt/ /image 2>&1 ; RC="$?"
+  interruptible rsync --skip-compress="$RSYNC_SKIP_COMPRESS" -HXAa --exclude="/.linbo" --exclude-from="/etc/rsync.exclude" --delete --delete-excluded  /mnt/ /image 2>&1 ; RC="$?"
   umount /image || umount -l /image
   qemu-nbd --disconnect /dev/nbd0
   [ "$RC" = "0" ] && return
