@@ -5,6 +5,7 @@ linuxmuster-linbo7 (4.3.26-1) lmn73; urgency=low
   * add hostname to hosts file when syncing a linux system (4b23872).
   * minor code refactor in rsync scripts (9648d69).
   * fix rsync options for extended attributes (143d961).
+  * add Blair's Windows Imaging Preparation Script (c9f755a).
 
  -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 08 Nov 2025 17:40:25 +0100
 
