@@ -1,12 +1,12 @@
-linuxmuster-linbo7 (4.3.26-0) lmn73-testing; urgency=low
+linuxmuster-linbo7 (4.3.26-0) lmn73; urgency=low
 
   * kernel updates: 6.1.158, 6.12.57 & 6.17.7 (#134).
   * fix rw qemu-nbd connection to image file (0e75b6c).
   * add hostname to hosts file when syncing a linux system (4b23872).
-  * minor code refactor in rsync scripts (58528d4).
-  * Handle the KVNO problem with krb5 client authentication against samba ad (#142).
+  * minor code refactor in rsync scripts (9648d69).
+  * fix rsync options for extended attributes (143d961).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 08 Nov 2025 14:49:29 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 08 Nov 2025 16:52:32 +0100
 
 linuxmuster-linbo7 (4.3.25-0) lmn73; urgency=low
 
