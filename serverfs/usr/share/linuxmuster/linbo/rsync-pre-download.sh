@@ -49,6 +49,8 @@ case $EXT in
   # handle machine account password
   macct)
     url="--url=/var/lib/samba/private/sam.ldb"
+    LDBSEARCH="$(which ldbsearch) $url"
+    LDBMODIFY="$(which ldbmodify) $url"
     # old version: image's macct file resides in LINBODIR
     imagemacct_old="$FILE"
     # new version: image's macct file resides in subdirs below LINBODIR/images
@@ -60,21 +62,14 @@ case $EXT in
         echo "Machine account ldif file: $imagemacct"
         echo "Host: $compname"
         # get dn of host
-        dn="$(ldbsearch "$url" "(&(sAMAccountName=$compname$))" | grep ^dn | awk '{ print $2 }')"
+        dn="$($LDBSEARCH "(&(sAMAccountName=$compname$))" | grep ^dn | awk '{ print $2 }')"
         if [ -n "$dn" ]; then
-          # write ldif
           echo "DN: $dn"
           ldif="/var/tmp/${compname}_macct.$$"
           ldbopts="--nosync --verbose --controls=relax:0 --controls=local_oid:1.3.6.1.4.1.7165.4.3.7:0 --controls=local_oid:1.3.6.1.4.1.7165.4.3.12:0"
           sed -e "s|@@dn@@|$dn|" "$imagemacct" > "$ldif"
-          # upload ldif
-          ldbmodify "$url" $ldbopts "$ldif"
+          $LDBMODIFY $ldbopts "$ldif"
           rm -f "$ldif"
-          # export keytab
-          keytab="${IMGDIR}/keytabs/${compname}.keytab"
-          [ -s "$keytab" ] || "${LINBOSHAREDIR}/export-keytab.py" "$compname" "$IMGDIR"
-          # copy keytab to client, rename to <imagebasename>.keytab
-          [ -s "$keytab" ] && linbo-scp "$keytab" "$compname":/cache/"$(basename "$IMGDIR")".keytab
         else
           echo "Cannot determine DN of $compname! Aborting!"
         fi

@@ -1,7 +1,7 @@
-#!/usr/bin/env bash
+#!/bin/bash
 #
 # thomas@linuxmuster.net
-# 20251104
+# 20250326
 #
 
 # read in linuxmuster specific environment
@@ -109,20 +109,20 @@ case "$EXT" in
     linbo-multicast restart >&2
 
     # save samba passwords of host we made the new image
-    if [ -n "$RSYNC_HOST_NAME" -a -n "$basedn" ]; then
-      # fetch samba nt password hash from ldap machine account
+    LDBSEARCH="$(which ldbsearch)"
+    if [ -n "$RSYNC_HOST_NAME" -a -n "$LDBSEARCH" -a -n "$basedn" ]; then
+      #  fetch samba nt password hash from ldap machine account
       url="--url=/var/lib/samba/private/sam.ldb"
-      unicodepwd="$(ldbsearch "$url" "(&(sAMAccountName=$compname$))" unicodePwd | grep ^unicodePwd:: | awk '{ print $2 }')"
+      unicodepwd="$("$LDBSEARCH" "$url" "(&(sAMAccountName=$compname$))" unicodePwd | grep ^unicodePwd:: | awk '{ print $2 }')"
       suppcredentials="$(ldbsearch "$url" "(&(sAMAccountName=$compname$))" supplementalCredentials | sed -n '/^'supplementalCredentials':/,/^$/ { /^'supplementalCredentials':/ { s/^'supplementalCredentials': *// ; h ; $ !d}; /^ / { H; $ !d}; /^ /! { x; s/\n //g; p; q}; $ { x; s/\n //g; p; q} }' | awk '{ print $2 }')"
-      imagemacct="$IMGDIR/${BASENAME}.macct"
       if [ -n "$unicodepwd" ]; then
-        echo "Saving samba password hash for $image."
+        echo "Writing samba password hash file for image $image."
         template="$LINBOTPLDIR/machineacct"
-        sed -e "s|@@unicodepwd@@|$unicodepwd|" \
-          -e "s|@@suppcredentials@@|$suppcredentials|" "$template" > "$imagemacct"
+        imagemacct="$IMGDIR/${BASENAME}.macct"
+        sed -e "s|@@unicodepwd@@|$unicodepwd|" -e "s|@@suppcredentials@@|$suppcredentials|" "$template" > "$imagemacct"
         chmod 600 "$imagemacct"
-        # remove former keytabs, which are no more valid yet
-        rm -rf "$IMGDIR/keytabs"
+        # remove obsolete macct file if present
+        rm -f "$IMGDIR/${BASE}.macct"
       else
         rm -f "$imagemacct"
       fi
