@@ -21,9 +21,9 @@ Conflicts: atftpd, bittorrent, linuxmuster-linbo, linuxmuster-linbo-common,
   linuxmuster-linbo-common7, opentracker
 Recommends: linuxmuster-base7
 Pre-Depends: linuxmuster-common
-Depends: argon2, coreutils, cpio, ctorrent, diceware, dosfstools, dropbear-bin,
+Depends: argon2, coreutils, cpio, ctorrent, dosfstools, dropbear-bin,
   grub-common, grub-efi-amd64-bin, grub-ipxe, grub-pc-bin, isolinux,
-  libowfat0t64, linux-firmware, linuxmuster-linbo-gui7, linuxmuster-tools7, mbr,
+  libowfat0t64, linux-firmware, linuxmuster-linbo-gui7, mbr,
   python3, qemu-utils, rsync, sed, ssh, syslinux-common, syslinux-utils, tftpd-hpa,
   tmux, udpcast, wakeonlan, xorriso, xz-utils, zip, zlib1g
 Suggests: isc-dhcp-server | dhcp3-server
