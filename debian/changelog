@@ -1,4 +1,4 @@
-linuxmuster-linbo7 (4.3.26-0) lmn73; urgency=low
+linuxmuster-linbo7 (4.3.26-1) lmn73; urgency=low
 
   * kernel updates: 6.1.158, 6.12.57 & 6.17.7 (#134).
   * fix rw qemu-nbd connection to image file (0e75b6c).
@@ -6,7 +6,7 @@ linuxmuster-linbo7 (4.3.26-0) lmn73; urgency=low
   * minor code refactor in rsync scripts (9648d69).
   * fix rsync options for extended attributes (143d961).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 08 Nov 2025 16:52:32 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 08 Nov 2025 17:40:25 +0100
 
 linuxmuster-linbo7 (4.3.25-0) lmn73; urgency=low
 
