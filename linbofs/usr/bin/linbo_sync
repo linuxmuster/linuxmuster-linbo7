@@ -2,7 +2,7 @@
 #
 # linbo_sync
 # thomas@linuxmuster.net
-# 20251020
+# 20251108
 #
 
 
@@ -67,7 +67,7 @@ sync_image(){
     return "$RC"
   fi
 
-  local ROPTS="-HAa"
+  local ROPTS="-HXAa"
   [ "$(linbo_fstype "$targetdev")" = "vfat" ] && ROPTS="-rt"
   # mount qcow2 image as network block device
   qemu-nbd --connect /dev/nbd0 "$imagefile" ; RC="$?"
