@@ -1,3 +1,9 @@
+linuxmuster-linbo7 (4.3.27-0) lmn73; urgency=low
+
+  * fix #143: Linbo cmd readfile/writefile not working anymore.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sun, 09 Nov 2025 13:48:01 +0100
+
 linuxmuster-linbo7 (4.3.26-1) lmn73; urgency=low
 
   * kernel updates: 6.1.158, 6.12.57 & 6.17.7 (#134).
