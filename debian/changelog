@@ -1,3 +1,10 @@
+linuxmuster-linbo7 (4.3.28-0) lmn73; urgency=low
+
+  * linbo-remote noauto fix (083b973).
+  * update-linbofs locale fix (43daaa2).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 10 Nov 2025 15:43:58 +0100
+
 linuxmuster-linbo7 (4.3.27-0) lmn73; urgency=low
 
   * fix #143: Linbo cmd readfile/writefile not working anymore.
