@@ -2,8 +2,9 @@ linuxmuster-linbo7 (4.3.28-0) lmn73; urgency=low
 
   * linbo-remote noauto fix (083b973).
   * update-linbofs locale fix (43daaa2).
+  * Fix #143 linbo_readfile prints filename (bb702ac).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 10 Nov 2025 15:43:58 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 10 Nov 2025 16:08:44 +0100
 
 linuxmuster-linbo7 (4.3.27-0) lmn73; urgency=low
 
