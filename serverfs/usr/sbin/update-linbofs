@@ -6,7 +6,7 @@
 #
 # thomas@linuxmuster.net
 # GPL V3
-# 20250916
+# 20251110
 #
 
 # read linuxmuster environment
@@ -105,16 +105,14 @@ exec_hooks() {
 
 copy_locale() {
 	[ -z "$LANG" ] && return
-	slang="${LANG%.*}"
 	cmap="${LANG#*.}"
-	[ -z "$slang" -o -z "$cmap" ] && return
 	echo "Copy locale $LANG ..."
 	mkdir -p usr/lib/locale
 	mkdir -p usr/share/locale
 	mkdir -p usr/share/i18n/locales
 	mkdir -p usr/share/i18n/charmaps
-	cp -r "/usr/share/locale/$slang" usr/share/locale
-	cp -r "/usr/share/i18n/locales/$slang" usr/share/i18n/locales
+	cp -r "/usr/share/locale/${LANG%_*}" usr/share/locale
+	cp -r "/usr/share/i18n/locales/${LANG%.*}" usr/share/i18n/locales
 	cp /usr/share/i18n/SUPPORTED usr/share/i18n
 	cp /usr/share/i18n/locales/i18n* usr/share/i18n/locales
 	cp /usr/share/i18n/locales/iso14651_t1* usr/share/i18n/locales
