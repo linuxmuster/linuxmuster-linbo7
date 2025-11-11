@@ -3,7 +3,7 @@
 # exec linbo commands remote per ssh
 #
 # thomas@linuxmuster.net
-# 20251110
+# 20251111
 # GPL V3
 #
 
@@ -381,7 +381,7 @@ fi # onboot command string
 [ -n "$NOAUTO" ] && onbootcmds="$onbootcmds,noauto"
 
 # add disablegui triggers to onbootcmds
-[ -n "$DISABLEGUI" ] && onbootcmds="$onbootcmds disablegui"
+[ -n "$DISABLEGUI" ] && onbootcmds="$onbootcmds,disablegui"
 
 
 # create linbocmd files for onboot tasks
