@@ -91,7 +91,7 @@ exec_hooks() {
 	esac
     local hookdir="$HOOKSDIR/update-linbofs.$1.d"
 	[ -d "$hookdir" ] || mkdir -p $hookdir
-    local hook_files=$(find "$hookdir" -type f -executable)
+    local hook_files=$(find "$hookdir" -xtype f -executable)
 	[ -z "$hook_files" ] && return
 	local file
     for file in $hook_files; do
