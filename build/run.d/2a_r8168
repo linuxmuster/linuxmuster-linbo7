@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # thomas@linuxmuster.net
-# 20231206
+# 20231227
 #
 
 # read build environment
@@ -51,8 +51,9 @@ for kvers in ${KVERSARRAY[@]}; do
     [ -n "$KERNELSONLY" ] && continue
 
     # install r8168
-    r81target="$kmoddir/kernel/drivers/net/ethernet/realtek/$(basename "$r81mod")"
     echo " * Installing $R81NAME ..."
+    r81target="$kmoddir/kernel/drivers/net/ethernet/realtek/$(basename "$r81mod")"
+    mkdir -p "$(dirname "$r81target")"
     cp "$r81mod" "$r81target" || exit 1
 
 done
