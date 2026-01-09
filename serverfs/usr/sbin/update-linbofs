@@ -162,19 +162,25 @@ download_fwlist() {
 
 # download firmware file from kernel.org
 download_fwfile() {
-	local local_file="$1"
-	# get remote firmware path from downloaded firmware filelist
-	local remote_file="$(grep ^File: "$FW_LIST_LOCAL" | grep -w -m1 "$(basename "$local_file")" | awk '{print $2}')"
-	[ -z "$remote_file" ] && return
+	local fw_name="$1"
+	# get remote firmware path(s) from downloaded firmware filelist
+	local remote_files="$(grep ^File: "$FW_LIST_LOCAL" | grep -w "$fw_name" | awk '{print $2}')"
+	[ -z "$remote_files" ] && return
 	# download to temporary file, if successful, move in place
-	local tmp_file="${local_file}.tmp"
-	if wget -q "$FW_URL/$remote_file" -O "$tmp_file"; then
-		mv "$tmp_file" "$local_file"
-		# compress downloaded firmware file
-		zstd -qf --adapt --rm "$local_file"
-	else
-		rm -f "$tmp_file"
-	fi
+	local tmp_file
+	local local_file
+	local item
+	for item in $remote_files; do
+		local_file="$FW_CACHE/$(basename "$item")"
+		tmp_file="${local_file}.tmp"
+		if wget -q "$FW_URL/$item" -O "$tmp_file"; then
+			mv "$tmp_file" "$local_file"
+			# compress downloaded firmware file
+			zstd -qf --adapt --rm "$local_file"
+		else
+			rm -f "$tmp_file"
+		fi
+	done
 }
 
 
@@ -223,18 +229,17 @@ provide_firmware() {
 		# regulatory.db is already copied
 		stringinstring regulatory "$fwname" && continue
 		fw_zst="${fw_name}.zst"
-		# get firmware from local system
-		fw_src="$(find "$fw_system" -name "$fw_zst")"
-		if [ -s "$fw_src" ]; then
-			rsync -L "$fw_src" "$FW_CACHE" && continue
-		fi
+		# get firmware file from local system
+		fw_src="$(find "$fw_system" -name "$fw_zst" -type f,l -print -quit)"
+		[ -n "$fw_src" ] && rsync -L "$fw_src" "$FW_CACHE/" && continue
+		# get firmware directory from local system
+		fw_src="$(find "$fw_system" -name "$fw_name" -type d -print -quit)"
+		[ -n "$fw_src" ] && find "$fw_src" -type f,l | xargs -I % rsync -L % "$FW_CACHE/" && continue
 		# download firmware not provided local
-		[ -s "$FW_LIST_LOCAL" ] && download_fwfile "$FW_CACHE/$fw_name"
+		[ -s "$FW_LIST_LOCAL" ] && download_fwfile "$fw_name"
 	done
 	echo "Copying firmware files to linbofs ..."
-	for item in "$FW_CACHE"/*; do
-		rsync "$item" "$fw_target"/ && echo "* $(basename "$item")"
-	done
+	rsync -av --delete --exclude="$(basename "$FW_LIST_LOCAL")" "$FW_CACHE/" "$fw_target/"
 }
 
 
