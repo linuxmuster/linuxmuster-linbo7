@@ -1,8 +1,8 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/x86 6.12.57 Kernel Configuration
+# Linux/x86 6.12.64 Kernel Configuration
 #
-CONFIG_CC_VERSION_TEXT="gcc (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0"
+CONFIG_CC_VERSION_TEXT="x86_64-linux-gnu-gcc (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0"
 CONFIG_CC_IS_GCC=y
 CONFIG_GCC_VERSION=130300
 CONFIG_CLANG_VERSION=0
