@@ -25,7 +25,7 @@ Depends: argon2, coreutils, cpio, ctorrent, dosfstools, dropbear-bin,
   grub-common, grub-efi-amd64-bin, grub-ipxe, grub-pc-bin, isolinux,
   libowfat0t64, linux-firmware, linuxmuster-linbo-gui7, mbr,
   python3, qemu-utils, rsync, sed, ssh, syslinux-common, syslinux-utils, tftpd-hpa,
-  tmux, udpcast, wakeonlan, xorriso, xz-utils, zip, zlib1g
+  tmux, udpcast, wakeonlan, xorriso, xz-utils, zip, zlib1g, zstd
 Suggests: isc-dhcp-server | dhcp3-server
 Description: linuxmuster-linbo7
   This package contains kernel, initrd, scripts and pxe boot configuration for
