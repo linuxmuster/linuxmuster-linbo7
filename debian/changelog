@@ -1,3 +1,17 @@
+linuxmuster-linbo7 (4.3.30-0) lmn73; urgency=low
+
+  * add dell x86 platform drivers to stable kernel config (#134, 9641cd5).
+  * switch to stable kernel version 6.18.* (#134, 7523e63).
+  * make number of kernel build jobs configurable via DISTCC_JOBS environment variable (c153227).
+  * r8168 module target dir fix (528c47c).
+  * add iommu feature to stable kernel config to support dell pro 16 laptops (#134, 65ac32c).
+  * update longterm kernel to 6.12.64 (#134, a9f2250).
+  * update legacy kernel to 6.1.159 (#134, a9f2250).
+  * add zstd to package depends (53f6cc2).
+  * firmware handling improvements in update-linbofs (a6b798d, 94fb4af, 6c47dfc).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 10 Jan 2026 16:28:00 +0100
+
 linuxmuster-linbo7 (4.3.29-0) lmn73; urgency=low
 
   * linbo-remote disablegui fix (5ebf98b).
