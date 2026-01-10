@@ -6,7 +6,7 @@
 #
 # thomas@linuxmuster.net
 # GPL V3
-# 20260109
+# 20260110
 #
 
 # read linuxmuster environment
@@ -31,6 +31,7 @@ chmod 400 "$locker"
 
 
 # globals
+FW_SYSTEM="/lib/firmware"
 FW_CACHE="$LINBOCACHEDIR/firmware"
 FW_LIST_LOCAL="$FW_CACHE/.fw_list"
 FW_LIST_REMOTE="WHENCE"
@@ -139,8 +140,9 @@ copy_locale() {
 }
 
 
-# download firmware filelist from kernel.org
+# download firmware filelist from kernel.org to cache
 download_fwlist() {
+	mkdir -p "$FW_CACHE"
 	local tmp_file="${FW_LIST_LOCAL}.tmp"
 	local RC=0
 	# download to temporary file, if successful, move in place
@@ -160,86 +162,97 @@ download_fwlist() {
 }
 
 
-# download firmware file from kernel.org
-download_fwfile() {
+# download firmware from kernel.org to cache
+download_fw() {
 	local fw_name="$1"
 	# get remote firmware path(s) from downloaded firmware filelist
 	local remote_files="$(grep ^File: "$FW_LIST_LOCAL" | grep -w "$fw_name" | awk '{print $2}')"
-	[ -z "$remote_files" ] && return
+	[ -z "$remote_files" ] && return 1
 	# download to temporary file, if successful, move in place
 	local tmp_file
 	local local_file
 	local item
+	local RC=0
 	for item in $remote_files; do
 		local_file="$FW_CACHE/$(basename "$item")"
 		tmp_file="${local_file}.tmp"
 		if wget -q "$FW_URL/$item" -O "$tmp_file"; then
 			mv "$tmp_file" "$local_file"
 			# compress downloaded firmware file
-			zstd -qf --adapt --rm "$local_file"
+			zstd -qf --adapt --rm "$local_file" || RC=1
 		else
 			rm -f "$tmp_file"
+			RC=1
 		fi
 	done
+	return $RC
 }
 
 
-# handling firmare
-provide_firmware() {
-	# get file names of missing firmware from admin config
-	local fw_conf="$LINBOSYSDIR/firmware"
-	local fw_names="$(basename -a $(grep -v ^# "$fw_conf") | sed 's|.zst||')"
-
-	# get file names of missing firmware from logs
-	local item
-	local fw_item
-	local fw_items
-	local fw_name
+# parse linbo logs for missing firmware and print found firmware names
+parse_firmware_logs(){
+	# get pci ids of devices with failed firmware load
 	if find $LINBOLOGDIR -name \*_linbo.log &> /dev/null; then
 		local pci_ids="$(grep firmware $LINBOLOGDIR/*_linbo.log | grep -i failed \
 			| grep -o "00:[0-9a-f][0-9a-f].[0-9a-f]:" | sort -u)"
 	fi
-	if [ -n "$pci_ids" ]; then
-		for item in $pci_ids; do
-			fw_items="$(grep "$item" $LINBOLOGDIR/*_linbo.log | grep -o "for .* failed" | sed 's|for ||' | sed 's| failed||' | sort -u)"
-			# add items to fw_names
-			if [ -n "$fw_items" ]; then
-				for fw_item in $fw_items; do
-					fw_name="$(basename "$fw_item")"
-					stringinstring "$fw_name" "$fw_names" || fw_names="$fw_names $fw_name"
-				done
-			fi
-		done
-	fi
+	[ -z "$pci_ids" ] && return
+	# extract firmware names with pci ids of devices with failed firmware load
+	local pci_id
+	for pci_id in $pci_ids; do
+		grep "$pci_id" $LINBOLOGDIR/*_linbo.log |\
+		grep -o "for .* failed" |\
+		sed 's|for ||' |\
+		sed 's| failed||' |\
+		sort -u
+	done | xargs
+}
+
+
+# copy local firmware to cache
+copy_fw() {
+	local fw_name="$1"
+	local fw_zst="${fw_name}.zst"
+	# get firmware file from local system
+	local fw_src="$(find "$FW_SYSTEM" -name "$fw_zst" -type f,l -print -quit)"
+	[ -n "$fw_src" ] && rsync -L "$fw_src" "$FW_CACHE/" && return
+	# get firmware directory from local system
+	fw_src="$(find "$FW_SYSTEM" -name "$fw_name" -type d -print -quit)"
+	[ -n "$fw_src" ] && find "$fw_src" -type f,l | xargs -I % rsync -L % "$FW_CACHE/" && return
+	return 1
+}
+
+
+# provide firmare defined in LINBOSYSDIR/firmware or found in LINBOLOGDIR/*_linbo.log
+provide_firmware() {
+	local fw_conf="$LINBOSYSDIR/firmware"
+	# collect firmware filenames from config and logs and strip dupes
+	local fw_names="$(echo $(basename -a $(grep -v ^# "$fw_conf") | sed 's|.zst||') \
+		$(parse_firmware_logs) | xargs -n1 | sort -u | xargs)"
+	# return if empty
 	[ -z "$fw_names" ] && return
 
-	local fw_system="/lib/firmware"
-	mkdir -p "$FW_CACHE"
 	# download firmware list from kernel.org
 	download_fwlist
-	# use local copy of regulatory.db
-	rsync "$fw_system"/regulatory.db* "$FW_CACHE"
 
+	echo "Collecting firmware to cache:"
+	# use local copy of regulatory.db
+	rsync "$FW_SYSTEM"/regulatory.db* "$FW_CACHE" && echo " - regulatory.db (local)"
 	# copy firmware to cache (local & remote)
-	local fw_target="${fw_system/\/}"
-	local fw_src
-	local fw_zst
-	local fw_path
+	local fw_name
 	for fw_name in $fw_names; do
-		# regulatory.db is already copied
-		stringinstring regulatory "$fwname" && continue
-		fw_zst="${fw_name}.zst"
-		# get firmware file from local system
-		fw_src="$(find "$fw_system" -name "$fw_zst" -type f,l -print -quit)"
-		[ -n "$fw_src" ] && rsync -L "$fw_src" "$FW_CACHE/" && continue
-		# get firmware directory from local system
-		fw_src="$(find "$fw_system" -name "$fw_name" -type d -print -quit)"
-		[ -n "$fw_src" ] && find "$fw_src" -type f,l | xargs -I % rsync -L % "$FW_CACHE/" && continue
-		# download firmware not provided local
-		[ -s "$FW_LIST_LOCAL" ] && download_fwfile "$fw_name"
+		# regulatory.db is already copied to cache
+		stringinstring regulatory "$fw_name" && continue
+		# copy firmware locally available
+		copy_fw "$fw_name" && echo " - "$fw_name" (local)" && continue
+		# download firmware not locally available
+		[ -s "$FW_LIST_LOCAL" ] && download_fw "$fw_name" && echo " - "$fw_name" (remote)"
 	done
-	echo "Copying firmware files to linbofs ..."
-	rsync -av --delete --exclude="$(basename "$FW_LIST_LOCAL")" "$FW_CACHE/" "$fw_target/"
+
+	echo "Copying all cached firmware to linbofs:"
+	local fw_target="${FW_SYSTEM/\/}"
+	local fw_list="$(basename "$FW_LIST_LOCAL")"
+	rsync -v --exclude="$fw_list" "$FW_CACHE/"* "$fw_target/"
 }
 
 
