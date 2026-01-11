@@ -346,7 +346,7 @@ Note:
 * Boot entries are created according to start.conf enabled buttons.
 
 ## Adding firmware
-From Linbo 4.2.0 there is a configuration file `/etc/linuxmuster/linbo/firmware` which can be used to integrate supplemental firmware files into the Linbo filesystem. Here is an example:
+Starting with Linbo 4.2.0 there is a configuration file `LINBOSYSDIR/firmware` which can be used to integrate supplemental firmware files into the Linbo filesystem. Here is an example:
 ```
 # /etc/linuxmuster/linbo/firmware
 
@@ -354,12 +354,12 @@ From Linbo 4.2.0 there is a configuration file `/etc/linuxmuster/linbo/firmware`
 rtl_nic
 
 # Realtek RTL8821AE wifi firmware (single file)
-rtlwifi/rtl8821aefw.bin
+rtl8821aefw.bin
 
 # Intel Wi-Fi 6 AX200 firmware (single file)
 iwlwifi-cc-a0-77.ucode
 ```
-You can enter files or whole directories, one per line. The firmware files are taken from the linux-firmware package, which is installed on the server per default. Note that the path to the firmware must be specified relative to /lib/firmware.
+You can enter file or directory names, one per line. The firmware files are taken from the linux-firmware package or are downloaded from kernel.org, if not found locally. Note that the path to the firmware must be specified relative to /lib/firmware.
 Examine the output of `dmesg` on the Linbo client to get infos about missing firmware:
 ```
 nb-01: ~ # dmesg | grep firmware
@@ -367,7 +367,11 @@ i915 0000:00:02.0: Direct firmware load for i915/kbl_dmc_ver1_04.bin failed with
 i915 0000:00:02.0: [drm] Failed to load DMC firmware i915/kbl_dmc_ver1_04.bin. Disabling runtime power management.
 i915 0000:00:02.0: [drm] DMC firmware homepage: https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git/tree/i915
 ```
-In this case you have to add the line "i915/kbl_dmc_ver1_04.bin" to the firmware configuration file. Finally you have to invoke `update-linbofs` on the server terminal to add the firmware file to the linbofs archive.
+In this case simply add the firmware filename "kbl_dmc_ver1_04.bin" to the firmware configuration file. Finally you have to invoke `update-linbofs` on the server terminal to add the firmware file to the linbofs archive.
+
+Starting with Linbo version 4.3.30, `update-linbofs` parses the Linbo host log files (LINBOLOGDIR/*_linbo.log) for indications of missing firmware and automatically adds them to the Linbo file system.
+
+All firmware files found are cached in their latest version under LINBOCACHEDIR/firmware.
 
 Note: If loaded wifi firmware leads to a non functional wifi adapter within a warm booted linux os, switch off warmstart by using the `nowarmstart` kernel option (see above).
 
