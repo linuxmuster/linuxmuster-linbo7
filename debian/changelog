@@ -1,3 +1,9 @@
+linuxmuster-linbo7 (4.3.31-0) lmn73; urgency=low
+
+  * fix error handling in case of not existing firmware configuration and logs (2491143).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 12 Jan 2026 15:53:10 +0100
+
 linuxmuster-linbo7 (4.3.30-0) lmn73; urgency=low
 
   * add dell x86 platform drivers to stable kernel config (#134, 9641cd5).
@@ -10,7 +16,7 @@ linuxmuster-linbo7 (4.3.30-0) lmn73; urgency=low
   * add zstd to package depends (53f6cc2).
   * firmware handling improvements in update-linbofs (a6b798d, 94fb4af, 6c47dfc).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 10 Jan 2026 16:28:00 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 12 Jan 2026 15:29:43 +0100
 
 linuxmuster-linbo7 (4.3.29-0) lmn73; urgency=low
 
