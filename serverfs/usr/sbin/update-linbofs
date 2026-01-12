@@ -191,11 +191,11 @@ download_fw() {
 
 # parse linbo logs for missing firmware and print found firmware names
 parse_firmware_logs(){
+	# return if no log file exists
+	[ -z "$(find $LINBOLOGDIR -name \*_linbo.log)" ] && return
 	# get pci ids of devices with failed firmware load
-	if find $LINBOLOGDIR -name \*_linbo.log &> /dev/null; then
-		local pci_ids="$(grep firmware $LINBOLOGDIR/*_linbo.log | grep -i failed \
-			| grep -o "00:[0-9a-f][0-9a-f].[0-9a-f]:" | sort -u)"
-	fi
+	local pci_ids="$(grep firmware $LINBOLOGDIR/*_linbo.log | grep -i failed \
+		| grep -o "00:[0-9a-f][0-9a-f].[0-9a-f]:" | sort -u)"
 	[ -z "$pci_ids" ] && return
 	# extract firmware names with pci ids of devices with failed firmware load
 	local pci_id
@@ -226,9 +226,14 @@ copy_fw() {
 # provide firmare defined in LINBOSYSDIR/firmware or found in LINBOLOGDIR/*_linbo.log
 provide_firmware() {
 	local fw_conf="$LINBOSYSDIR/firmware"
-	# collect firmware filenames from config and logs and strip dupes
-	local fw_names="$(echo $(basename -a $(grep -v ^# "$fw_conf") | sed 's|.zst||') \
-		$(parse_firmware_logs) | xargs -n1 | sort -u | xargs)"
+	local fw_names
+	# extract firmware filenames from config, if it exists and contains lines
+	if [ -s "$fw_conf" ]; then
+		[ -n "$(grep -v ^# "$fw_conf")" ] && \
+			fw_names="$(basename -a $(grep -v ^# "$fw_conf") | sed 's|.zst||' | xargs)"
+	fi
+	# extract firmware filenames from logs
+	fw_names="$(echo "$fw_names $(parse_firmware_logs | xargs -n1 | sort -u)" | xargs)"
 	# return if empty
 	[ -z "$fw_names" ] && return
 
