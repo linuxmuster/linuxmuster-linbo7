@@ -1,0 +1,11 @@
+#!/bin/sh
+#
+# linbo_autoinitcache: execute start.conf defined autoinitcache in case of nogui is set on cmdline
+# thomas@linuxmuster.net
+# 20260325
+#
+
+# get environment
+source /usr/share/linbo/shell_functions
+
+[ "$NOGUI" = yes -a "$autoinitcache" = "yes" ] && linbo_initcache
