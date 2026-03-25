@@ -6,7 +6,7 @@
 #
 # thomas@linuxmuster.net
 # GPL V3
-# 20260110
+# 20260325
 #
 
 # read linuxmuster environment
@@ -171,10 +171,13 @@ download_fw() {
 	# download to temporary file, if successful, move in place
 	local tmp_file
 	local local_file
+	local fw_dir
 	local item
 	local RC=0
 	for item in $remote_files; do
-		local_file="$FW_CACHE/$(basename "$item")"
+		fw_dir="$(dirname "$item")"
+		[ "$fw_dir" != "." ] && mkdir -p "$FW_CACHE/$fw_dir"
+		local_file="$FW_CACHE/$item"
 		tmp_file="${local_file}.tmp"
 		if wget -q "$FW_URL/$item" -O "$tmp_file"; then
 			mv "$tmp_file" "$local_file"
@@ -211,15 +214,22 @@ parse_firmware_logs(){
 
 # copy local firmware to cache
 copy_fw() {
-	local fw_name="$1"
+	local fw_name="$(basename "$1")"
 	local fw_zst="${fw_name}.zst"
 	# get firmware file from local system
-	local fw_src="$(find "$FW_SYSTEM" -name "$fw_zst" -type f,l -print -quit)"
-	[ -n "$fw_src" ] && rsync -L "$fw_src" "$FW_CACHE/" && return
+	local fw_src="$(find "$FW_SYSTEM" -name "$fw_name" -type f,l -print -quit)"
+	[ -e "$fw_src" ] || fw_src="$(find "$FW_SYSTEM" -name "$fw_zst" -type f,l -print -quit)"
+	if [ -e "$fw_src" ]; then
+		local fw_dir="$(dirname "$fw_src")"
+		local fw_target="${fw_dir/$FW_SYSTEM/$FW_CACHE}"
+		mkdir -p "$fw_target"
+		cp -L "$fw_src" "$fw_target" || return 1
+		return
+	fi
 	# get firmware directory from local system
 	fw_src="$(find "$FW_SYSTEM" -name "$fw_name" -type d -print -quit)"
-	[ -n "$fw_src" ] && find "$fw_src" -type f,l | xargs -I % rsync -L % "$FW_CACHE/" && return
-	return 1
+	[ -d "$fw_src" ] || return 1
+	cp -r "$fw_src" "$FW_CACHE"
 }
 
 
@@ -257,7 +267,7 @@ provide_firmware() {
 	echo "Copying all cached firmware to linbofs:"
 	local fw_target="${FW_SYSTEM/\/}"
 	local fw_list="$(basename "$FW_LIST_LOCAL")"
-	rsync -v --exclude="$fw_list" "$FW_CACHE/"* "$fw_target/"
+	rsync -rv --exclude="$fw_list" "$FW_CACHE/" "$fw_target/"
 }
 
 
