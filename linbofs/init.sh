@@ -626,6 +626,12 @@ if [ -s /linbocmd ]; then
   IFS="$OIFS"
 fi
 
+# autoinitcache in case of nogui
+linbo_autoinitcache | while read line; do
+  line="${line/---/}"
+  print_status "$line"
+done
+
 # seed cached torrents
 linbo_seed
 

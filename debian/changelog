@@ -1,3 +1,10 @@
+linuxmuster-linbo7 (4.3.32-0) lmn73; urgency=low
+
+  * kernel updates: 6.1.167, 6.12.78 & 6.19.10 (95f9ab0, #134).
+  * update-linbofs firmware fix.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 25 Mar 2026 13:16:22 +0100
+
 linuxmuster-linbo7 (4.3.31-0) lmn73; urgency=low
 
   * fix error handling in case of not existing firmware configuration and logs (2491143).
