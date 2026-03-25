@@ -1,3 +1,11 @@
+linuxmuster-linbo7 (4.3.32-0) lmn73; urgency=low
+
+  * execute start.conf defined autoinitcache in case of nogui is set on cmdline. (64ad4b4).
+  * kernel updates: 6.1.167, 6.12.78 & 6.19.10 (#134).
+  * fix #148: Wifi Firmware could not be loaded anymore (6837d3d).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 12 Jan 2026 15:53:10 +0100
+
 linuxmuster-linbo7 (4.3.31-0) lmn73; urgency=low
 
   * fix error handling in case of not existing firmware configuration and logs (2491143).
