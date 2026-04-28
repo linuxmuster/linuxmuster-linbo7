@@ -633,6 +633,10 @@ syncl(){
   # source postsync script
   [ -s "/cache/$postsync" ] && . "/cache/$postsync"
 
+  # source driver postsync script (patchless driver matching)
+  local driverpostsync="${imagebase}.driverpostsync"
+  [ -s "/cache/$driverpostsync" ] && . "/cache/$driverpostsync"
+
   # finally do minimal boot configuration
   mk_boot || RC=1
 
