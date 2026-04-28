@@ -13,6 +13,7 @@ rm -f debian/files
 
 dpkg-buildpackage \
     -tc -sn -us -uc \
+    -I".claude" \
     -I".git" \
     -I".github" \
     -I".gitignore" \
