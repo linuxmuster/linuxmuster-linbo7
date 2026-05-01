@@ -1,3 +1,10 @@
+linuxmuster-linbo7 (7.4.0-0) lmn74; urgency=low
+
+  * remove self compiled kernels, switch to stock ubuntu kernel.
+  * Equalise versioning.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 30 Apr 2026 17:52:17 +0200
+
 linuxmuster-linbo7 (4.3.33-0) lmn73; urgency=low
 
   * kernel updates: 6.1.169, 6.12.84 & 6.19.14 (#134, f609324).
@@ -6,7 +13,7 @@ linuxmuster-linbo7 (4.3.33-0) lmn73; urgency=low
   * Merge pull request #149 from amolani/feature/treiberpostsync-support,
     feat: add .driverpostsync hook support (bc04d94).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 28 Apr 2026 16:35:54 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 30 Apr 2026 17:52:17 +0200
 
 linuxmuster-linbo7 (4.3.32-0) lmn73; urgency=low
 
@@ -14,13 +21,13 @@ linuxmuster-linbo7 (4.3.32-0) lmn73; urgency=low
   * kernel updates: 6.1.167, 6.12.78 & 6.19.10 (#134).
   * fix #148: Wifi Firmware could not be loaded anymore (6837d3d).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 28 Apr 2026 16:35:54 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 30 Apr 2026 17:52:17 +0200
 
 linuxmuster-linbo7 (4.3.31-0) lmn73; urgency=low
 
   * fix error handling in case of not existing firmware configuration and logs (2491143).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 28 Apr 2026 16:35:54 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 30 Apr 2026 17:52:17 +0200
 
 linuxmuster-linbo7 (4.3.30-0) lmn73; urgency=low
 
