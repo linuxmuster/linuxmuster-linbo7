@@ -3,7 +3,7 @@
 # collect all components for linbo filesystem
 #
 # thomas@linuxmuster.net
-# 20250916
+# 20260429
 #
 
 echo "Creating linbofs ..."
@@ -78,8 +78,18 @@ find . -type f -printf "file %p %p %m 0 0\n" | \
           s| ./| $LINBOFS/|g" >> "$INITRAMFS_BUILD" || exit 1
 
 # create linbofs cpio archive from created initramfs.conf
-kvers="${KVERSARRAY[0]}"
-source "$KNAMES"
-cd "$ksrc"
-./usr/gen_init_cpio "$INITRAMFS_BUILD" > "$PKGVARDIR/linbofs64" || exit 1
+echo "Adding modules ..."
+echo "# modules" >> "$INITRAMFS_BUILD"
+cd "$KERNELDIR"
+find lib -type d -printf "dir %p %m 0 0\n" | sed -e 's|^dir |dir /|g' \
+  >> "$INITRAMFS_BUILD" || exit 1
+find lib -type f -printf "file %p %p %m 0 0\n" | \
+  sed -e "s|^file |file /|g
+          s| lib/| $KERNELDIR/lib/|g" >> "$INITRAMFS_BUILD" || exit 1
+find /lib/modules -name modules.order -printf "file %p %p %m 0 0\n" >> "$INITRAMFS_BUILD" || exit 1
+find /lib/modules -name modules.builtin -printf "file %p %p %m 0 0\n" >> "$INITRAMFS_BUILD" || exit 1
+find /lib/modules -name modules.builtin.modinfo -printf "file %p %p %m 0 0\n" >> "$INITRAMFS_BUILD" || exit 1
+
+# create linbofs cpio archive from created initramfs.conf
+gen_init_cpio "$INITRAMFS_BUILD" > "$PKGVARDIR/linbofs64" || exit 1
 xz --threads=0 -zve "$PKGVARDIR/linbofs64" || exit 1

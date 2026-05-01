@@ -6,7 +6,7 @@
 #
 # thomas@linuxmuster.net
 # GPL V3
-# 20260325
+# 20260429
 #
 
 # read linuxmuster environment
@@ -43,45 +43,26 @@ FW_URL="https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.
 if [ -s "$LINBOSYSDIR/custom_kernel" ]; then
 	# read custom kernel config if provided
 	source "$LINBOSYSDIR/custom_kernel"
-	if [ -n "$KERNELPATH" ]; then
-		# validate entries
-		case "$KERNELPATH" in
-			${KLGCDIR}*|legacy)
-				# legacy kernel stuff
-				KERNELPATH="$KLGCDIR/linbo64"
-				MODULESPATH="$KLGCDIR/modules.tar.xz"
-				KVERS="$(cat "$KLGCDIR/version")"
-				KTYPE="legacy"
-				;;
-			${KLTSDIR}*|longterm)
-				# longterm kernel stuff
-				KERNELPATH="$KLTSDIR/linbo64"
-				MODULESPATH="$KLTSDIR/modules.tar.xz"
-				KVERS="$(cat "$KLTSDIR/version")"
-				KTYPE="longterm"
-				;;
-			*)
-				# custom kernel stuff (see /etc/linuxmuster/linbo/custom_kernel.ex for examples)
-				if [ ! -s "$KERNELPATH" ]; then
-					echo "KERNELPATH $KERNELPATH is not valid!"
-					exit 1
-				fi
-				if [ ! -d "$MODULESPATH" ]; then
-					echo "MODULESPATH $MODULESPATH is not valid!"
-					exit 1
-				fi
+	# handle old kernel types for backward compatibility
+	case "$KERNELPATH" in
+		stable|longterm|legacy) ;;
+		*)
+			# custom kernel stuff (see /etc/linuxmuster/linbo/custom_kernel.ex for examples)
+			if [ -s "$KERNELPATH" -a -d "$MODULESPATH" ]; then
 				KVERS="$(basename "$MODULESPATH")"
 				KTYPE="custom"
-				;;
-		esac
-	fi
+			else
+				echo "Custom kernel configuration is not valid! Using default kernel instead!"
+			fi
+			;;
+	esac
 fi
-# otherwise set default kernel to stable
-if [ -z "$KERNELPATH" ]; then
-	KERNELPATH="$KSTBDIR/linbo64"
-	MODULESPATH="$KSTBDIR/modules.tar.xz"
-	KVERS="$(cat "$KSTBDIR/version")"
-	KTYPE="stable"
+# otherwise set default kernel
+if [ "$KTYPE" != "custom" ]; then
+	KERNELPATH="$LINBOVARDIR/linbo64"
+	MODULESPATH="$LINBOVARDIR/modules.tar.xz"
+	KVERS="$(cat "$LINBOVARDIR/version")"
+	KTYPE="default"
 fi
 
 
@@ -299,7 +280,7 @@ create_linbofs() {
 	echo "Using $KTYPE kernel version $KVERS ..."
 	mkdir -p lib/modules
 	case "$KTYPE" in
-		stable|longterm|legacy)
+		default)
 			echo "Extracting modules ..."
 			tar xf "$MODULESPATH" | exit 1
 			;;

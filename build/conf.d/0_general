@@ -1,7 +1,7 @@
 # build.conf
 # general environment variables
 # thomas@linuxmuster.net
-# 20250325
+# 20260429
 #
 
 # must be buildroot
@@ -31,10 +31,10 @@ PKGVARDIR="$PKGBUILDROOT/var/lib/linuxmuster/linbo"
 # linbo related
 LINBODIR="$PKGBUILDROOT/srv/linbo"
 
-# kernel scripts
-KGET="$BUILDBIN/get-verified-kernel.sh"
-KNAMES="$BUILDBIN/kernel-names.sh"
-KRNLINDEX="$SRC/kernel.org"
+# kernel related
+MODULESLIST="$BUILDCONFIG/modules.list"
+KERNELDIR="$SRC/kernel"
+MODULESARCHIVE="$KERNELDIR/modules.tar.xz"
 
 # initramfs file used during kernel build
 INITRAMFS_KERNEL="$BUILDINITD/00_basic"

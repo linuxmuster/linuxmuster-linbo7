@@ -1,0 +1,18 @@
+#!/bin/bash
+#
+# harvest kernel & modules
+#
+# thomas@linuxmuster.net
+# 20240429
+#
+
+# read build environment
+source build/conf.d/0_general
+
+# harvesting the default ubuntu kernel
+$BUILDBIN/kernel-harvest.sh
+
+# copy kernel to package
+mkdir -p "$PKGVARDIR"
+cp "$KERNELDIR/linbo64" "$PKGVARDIR" || exit 1
+cp "$KERNELDIR/version" "$PKGVARDIR" || exit 1

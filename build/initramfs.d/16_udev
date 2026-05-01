@@ -3,9 +3,7 @@
 dir /lib/firmware 755 0 0
 file /bin/readlink /bin/readlink 755 0 0
 file /bin/systemd-hwdb /bin/systemd-hwdb 755 0 0
-file /bin/udevadm /bin/udevadm 755 0 0
-file /lib/systemd/systemd-sysctl /lib/systemd/systemd-sysctl 755 0 0
-file /lib/systemd/systemd-udevd /lib/systemd/systemd-udevd 755 0 0
-slink /sbin/udevd /lib/systemd/systemd-udevd 755 0 0
-slink /sbin/udevadm /bin/udevadm 755 0 0
+file /bin/udevadm /usr/bin/udevadm 755 0 0
+file /lib/libsystemd-shared-259.so /usr/lib/x86_64-linux-gnu/systemd/libsystemd-shared-259.so 755 0 0
+slink /bin/udevd /bin/udevadm 755 0 0
 slink /lib/udev /usr/lib/udev 755 0 0

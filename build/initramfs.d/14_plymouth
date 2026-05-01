@@ -6,12 +6,12 @@ file /sbin/plymouthd /sbin/plymouthd 755 0 0
 file /lib/libbsd.so.0 /lib/x86_64-linux-gnu/libbsd.so.0 755 0 0
 file /lib/libbz2.so.1.0 /lib/x86_64-linux-gnu/libbz2.so.1.0 755 0 0
 file /lib/libdrm.so.2 /lib/x86_64-linux-gnu/libdrm.so.2 755 0 0
-file /lib/libevdev.so.2 /lib/x86_64-linux-gnu/libevdev.so.2 755 0 0
+file /lib/libevdev.so.2 /usr/lib/x86_64-linux-gnu/libevdev.so.2 755 0 0
 file /lib/libexpat.so.1 /lib/x86_64-linux-gnu/libexpat.so.1 755 0 0
-file /lib/libply.so.5 /lib/x86_64-linux-gnu/libply.so.5 755 0 0
-file /lib/libply-splash-core.so.5 /lib/x86_64-linux-gnu/libply-splash-core.so.5 755 0 0
+file /lib/libply.so.5 /usr/lib/x86_64-linux-gnu/libply.so.5 755 0 0
+file /lib/libply-splash-core.so.5 /usr/lib/x86_64-linux-gnu/libply-splash-core.so.5 755 0 0
 file /lib/libply-splash-graphics.so.5 /lib/x86_64-linux-gnu/libply-splash-graphics.so.5 755 0 0
-file /lib/libxkbcommon.so.0 /lib/x86_64-linux-gnu/libxkbcommon.so.0 755 0 0
+file /lib/libxkbcommon.so.0 /usr/lib/x86_64-linux-gnu/libxkbcommon.so.0 755 0 0
 
 file /usr/lib/libbrotlicommon.so.1 /usr/lib/x86_64-linux-gnu/libbrotlicommon.so.1 755 0 0
 file /usr/lib/libbrotlidec.so.1 /usr/lib/x86_64-linux-gnu/libbrotlidec.so.1 755 0 0
@@ -23,6 +23,7 @@ file /usr/lib/libfreetype.so.6 /usr/lib/x86_64-linux-gnu/libfreetype.so.6 755 0 
 file /usr/lib/libfribidi.so.0 /usr/lib/x86_64-linux-gnu/libfribidi.so.0 755 0 0
 file /usr/lib/libgio-2.0.so.0 /usr/lib/x86_64-linux-gnu/libgio-2.0.so.0 755 0 0
 file /usr/lib/libglib-2.0.so.0 /usr/lib/x86_64-linux-gnu/libglib-2.0.so.0 755 0 0
+file /usr/lib/libatomic.so.1 /usr/lib/x86_64-linux-gnu/libatomic.so.1 755 0 0
 file /usr/lib/libgobject-2.0.so.0 /usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0 755 0 0
 file /usr/lib/libgraphite2.so.3 /usr/lib/x86_64-linux-gnu/libgraphite2.so.3 755 0 0
 file /usr/lib/libharfbuzz.so.0 /usr/lib/x86_64-linux-gnu/libharfbuzz.so.0 755 0 0
