@@ -1,6 +1,6 @@
 linuxmuster-linbo7 (7.4.0-0) lmn74; urgency=low
 
-  * remove self compiled kernels, switch to stock ubuntu kernel.
+  * remove self compiled kernels, switch to stock ubuntu kernel (#140).
   * Equalise versioning.
 
  -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 30 Apr 2026 17:52:17 +0200
