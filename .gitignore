@@ -8,5 +8,4 @@ cache
 configure-stamp
 kernel64
 mkpkg
-src
 tmp
