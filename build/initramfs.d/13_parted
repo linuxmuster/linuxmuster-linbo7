@@ -1,4 +1,0 @@
-# parted
-
-file /sbin/parted /sbin/parted 755 0 0
-file /lib/libparted.so.2 /lib/x86_64-linux-gnu/libparted.so.2 755 0 0

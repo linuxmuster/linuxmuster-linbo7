@@ -1,6 +1,0 @@
-# modules to load on boot
-fan
-thermal
-nbd
-ntfs3
-uinput

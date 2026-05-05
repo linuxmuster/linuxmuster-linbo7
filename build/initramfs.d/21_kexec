@@ -1,3 +1,0 @@
-# kexec
-
-file /sbin/kexec @@KXBIN@@ 755 0 0

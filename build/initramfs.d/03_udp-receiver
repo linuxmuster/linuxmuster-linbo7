@@ -1,3 +1,0 @@
-# udp-receiver (Multicast client)
-
-file /bin/udp-receiver /usr/bin/udp-receiver 755 0 0

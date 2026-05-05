@@ -1,3 +1,0 @@
-# /usr/sbin/dmidecode
-
-file /usr/sbin/dmidecode /usr/sbin/dmidecode 755 0 0
