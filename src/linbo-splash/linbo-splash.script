@@ -84,14 +84,13 @@ LINE_WIDTH=55;
 
 // Initialising text images and their positions
 // 20 is the height (including line spacing) of each line
+message_y = logo_y + logo.image.GetHeight() + 50;
 for (i=0; i < NUM_SCROLL_LINES; i++) {
-  lines[i]= Image.Text("", 1.0, 1.0, 1.0, status_font);
-	message_y = logo_y + logo.image.GetHeight() + 50;
+  lines[i] = Image.Text("", 1.0, 1.0, 1.0, status_font);
   message_sprite[i] = Sprite();
-	message_sprite[i].SetPosition(Window.GetWidth () * 0.2, (Window.GetHeight () * 0.6) + (i * 20), 10000);
-	message_sprite[i].SetX(logo_x);
-	message_sprite[i].SetY(message_y + (i* 20));
-	message_sprite[i].SetZ(20);
+  message_sprite[i].SetX(Window.GetWidth() / 2);
+  message_sprite[i].SetY(message_y + (i * 20));
+  message_sprite[i].SetZ(20);
 }
 
 // From ubuntu-logo
@@ -119,9 +118,10 @@ fun scroll_message_callback(text) {
    // Create the image for the latest message
    lines[i] = Image.Text(text, 1.0, 1.0, 1.0);
 
-   // Re-positioning the text images
+   // Re-positioning the text images (centered)
    for (i = 0; i < NUM_SCROLL_LINES; i++) {
      message_sprite[i].SetImage(lines[i]);
+     message_sprite[i].SetX(Window.GetWidth() / 2 - lines[i].GetWidth() / 2);
    }
 }
 
