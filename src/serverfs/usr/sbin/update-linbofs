@@ -354,8 +354,10 @@ create_linbofs() {
 
 	# pack linbofs64
 	echo "Creating linbofs archive (may take a while) ..."
+	local linbofs_size
+	linbofs_size=$(du -sb . | awk '{print $1}')
 	set -o pipefail
-	find . -print | cpio --quiet -o -H newc | xz -e --check=none -z -f -T 0 -c -v > "$linbofs_xz" ; RC="$?"
+	find . -print | cpio --quiet -o -H newc | pv -s "$linbofs_size" | xz -e --check=none -z -f -T 0 -c > "$linbofs_xz" ; RC="$?"
 	set +o pipefail
   	[ $RC -ne 0 ] && bailout "failed!"
 
