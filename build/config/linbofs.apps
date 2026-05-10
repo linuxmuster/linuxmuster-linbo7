@@ -1,0 +1,135 @@
+# applications which are taken from the ubuntu filesystem to be integrated into linbofs
+#
+# thomas@linuxmuster.net
+# 20260507
+#
+
+# busybox
+/usr/bin/busybox
+
+# init-tools
+/usr/sbin/killall5
+/usr/bin/bc
+
+# udp-receiver
+/usr/bin/udp-receiver
+
+# e2fsprogs
+/usr/sbin/mke2fs
+/usr/sbin/e2fsck
+/usr/sbin/e2label
+/usr/sbin/resize2fs
+/usr/sbin/tune2fs
+/usr/sbin/mkfs.ext2
+/usr/sbin/mkfs.ext3
+/usr/sbin/mkfs.ext4
+
+# find
+/usr/bin/find
+
+# opentracker
+/usr/bin/opentracker
+
+# msdosfs
+/usr/sbin/dosfsck
+/usr/sbin/fatlabel
+
+# ntfs-3g progs
+/usr/sbin/ntfsclone
+
+# grub
+/usr/bin/grub-editenv
+/usr/bin/grub-mkimage
+/usr/bin/grub-mkrelpath
+/usr/sbin/grub-install
+/usr/sbin/grub-probe
+/usr/sbin/grub-reboot
+/usr/sbin/grub-set-default
+/usr/share/grub/grub-mkconfig_lib
+/usr/share/grub/unicode.pf2
+/usr/lib/grub/x86_64-efi/modinfo.sh
+/usr/lib/grub/grub-mkconfig_lib
+
+# efibootmgr
+/usr/bin/efibootmgr
+
+# rsync
+/usr/bin/rsync
+
+# tar
+/usr/bin/tar
+
+# chntpw
+/usr/sbin/reged
+
+# fdisk/gdisk
+/usr/sbin/fdisk
+/usr/sbin/gdisk
+
+# parted
+/usr/sbin/parted
+
+# qemu utils
+/usr/bin/qemu-img
+/usr/bin/qemu-nbd
+
+# udev
+/usr/bin/readlink
+/usr/bin/systemd-hwdb
+/usr/bin/udevadm
+/usr/lib/systemd/systemd-udevd
+
+# time
+/usr/lib/systemd/systemd-timesyncd
+/etc/systemd/timesyncd.conf
+
+# uuidgen
+/usr/bin/uuidgen
+
+# ctorrent
+/usr/bin/ctorrent
+
+# pv
+/usr/bin/pv
+
+# dropbear
+/usr/sbin/dropbear
+
+# ethtool
+/usr/sbin/ethtool
+
+# kexec
+/usr/sbin/kexec
+
+# csplit
+/lib/cargo/bin/coreutils/csplit
+/usr/bin/csplit
+
+# argon2
+/usr/bin/argon2
+
+# wpa_supplicant
+/usr/sbin/wpa_supplicant
+
+# x11vnc
+/usr/bin/x11vnc
+
+# hwinfo
+/usr/sbin/hwinfo
+
+# block device tools
+/usr/sbin/blkid
+/usr/bin/lsblk
+
+# dmidecode
+/usr/sbin/dmidecode
+
+# tmux
+/usr/bin/tmux
+
+# terminfo
+/usr/share/terminfo/l/linux
+/usr/share/terminfo/t/tmux
+/usr/share/terminfo/t/tmux-256color
+/usr/share/terminfo/x/xterm
+/usr/share/terminfo/x/xterm-256color

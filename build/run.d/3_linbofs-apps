@@ -1,0 +1,46 @@
+#!/bin/bash
+#
+# add an app from ubuntu for use in linbofs
+#
+# thomas@linuxmuster.net
+# 20260505
+#
+
+# read build environment
+source build/config/build.env || exit 1
+
+echo
+echo "####################################"
+echo "# Populating linbofs with apps ... #"
+echo "####################################"
+
+# collect apps to linbofs
+mkdir -p "$LINBOFSDST"
+grep ^/ "$LINBOFSAPPS" | while IFS= read -r app; do
+    [ -e "$app" ] || continue
+    dstapp="$LINBOFSDST/$app"
+    [ -L "$dstapp" ] && rm -f "$dstapp"
+    [ -e "$dstapp" ] && continue
+    echo "$app"
+    dstdir="$LINBOFSDST/$(dirname "$app")"
+    mkdir -p "$dstdir"
+    cp -a "$app" "$dstdir/"
+    [ -L "$app" ] && continue
+
+    # get dependent libraries and copy them
+    ldd "$app" | awk '/=>/ {print $3}' | while IFS= read -r dep; do
+        [ -e "$dep" ] || continue
+        [ -e "$LINBOFSDST/$dep" ] && continue
+        mkdir -p "$LINBOFSDST/$(dirname "$dep")"
+        echo " - $dep"
+        cp -a "$dep" "$LINBOFSDST/$dep"
+        [ -L "$dep" ] || continue
+        realdep="$(realpath "$dep")"
+        realdst="$LINBOFSDST/$realdep"
+        [ -e "$realdst" ] && continue
+        mkdir -p "$LINBOFSDST/$(dirname "$realdep")"
+        echo " - $realdep"
+        cp -a "$realdep" "$realdst"
+    done
+
+done

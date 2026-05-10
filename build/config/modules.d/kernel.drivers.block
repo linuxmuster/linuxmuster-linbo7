@@ -1,0 +1,8 @@
+# Block device driver modules
+# thomas@linuxmuster.net
+# 20260504
+
+kernel/drivers/block/brd.ko.zst
+kernel/drivers/block/floppy.ko.zst
+kernel/drivers/block/mtip32xx/mtip32xx.ko.zst
+kernel/drivers/block/nbd.ko.zst

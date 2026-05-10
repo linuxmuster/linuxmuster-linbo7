@@ -1,0 +1,20 @@
+# SCSI storage driver modules
+# thomas@linuxmuster.net
+# 20260504
+
+kernel/drivers/scsi/3w-9xxx.ko.zst
+kernel/drivers/scsi/aic94xx/aic94xx.ko.zst
+kernel/drivers/scsi/arcmsr/arcmsr.ko.zst
+kernel/drivers/scsi/BusLogic.ko.zst
+kernel/drivers/scsi/libsas/libsas.ko.zst
+kernel/drivers/scsi/megaraid.ko.zst
+kernel/drivers/scsi/megaraid/megaraid_mbox.ko.zst
+kernel/drivers/scsi/megaraid/megaraid_mm.ko.zst
+kernel/drivers/scsi/megaraid/megaraid_sas.ko.zst
+kernel/drivers/scsi/mpt3sas/mpt3sas.ko.zst
+kernel/drivers/scsi/mvsas/mvsas.ko.zst
+kernel/drivers/scsi/mvumi.ko.zst
+kernel/drivers/scsi/raid_class.ko.zst
+kernel/drivers/scsi/scsi_transport_sas.ko.zst
+kernel/drivers/scsi/scsi_transport_spi.ko.zst
+kernel/drivers/scsi/vmw_pvscsi.ko.zst

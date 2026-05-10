@@ -1,0 +1,8 @@
+# Message passing (Fusion/MPT) driver modules
+# thomas@linuxmuster.net
+# 20260504
+
+kernel/drivers/message/fusion/mptbase.ko.zst
+kernel/drivers/message/fusion/mptsas.ko.zst
+kernel/drivers/message/fusion/mptscsih.ko.zst
+kernel/drivers/message/fusion/mptspi.ko.zst

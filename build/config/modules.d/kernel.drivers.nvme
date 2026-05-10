@@ -1,0 +1,9 @@
+# NVMe storage driver modules
+# thomas@linuxmuster.net
+# 20260504
+
+kernel/drivers/nvme/host/nvme-core.ko.zst
+kernel/drivers/nvme/host/nvme-fabrics.ko.zst
+kernel/drivers/nvme/host/nvme.ko.zst
+kernel/drivers/nvme/target/nvme-loop.ko.zst
+kernel/drivers/nvme/target/nvmet.ko.zst

@@ -1,0 +1,26 @@
+# GPU and display driver modules
+# thomas@linuxmuster.net
+# 20260504
+
+kernel/drivers/gpu/drm/amd/amdgpu/amdgpu.ko.zst
+kernel/drivers/gpu/drm/amd/amdxcp/amdxcp.ko.zst
+kernel/drivers/gpu/drm/display/drm_display_helper.ko.zst
+kernel/drivers/gpu/drm/drm_buddy.ko.zst
+kernel/drivers/gpu/drm/drm_exec.ko.zst
+kernel/drivers/gpu/drm/drm_gpuvm.ko.zst
+kernel/drivers/gpu/drm/drm_panel_backlight_quirks.ko.zst
+kernel/drivers/gpu/drm/drm_suballoc_helper.ko.zst
+kernel/drivers/gpu/drm/drm_ttm_helper.ko.zst
+kernel/drivers/gpu/drm/drm_vram_helper.ko.zst
+kernel/drivers/gpu/drm/gma500/gma500_gfx.ko.zst
+kernel/drivers/gpu/drm/i915/i915.ko.zst
+kernel/drivers/gpu/drm/nouveau/nouveau.ko.zst
+kernel/drivers/gpu/drm/qxl/qxl.ko.zst
+kernel/drivers/gpu/drm/radeon/radeon.ko.zst
+kernel/drivers/gpu/drm/scheduler/gpu-sched.ko.zst
+kernel/drivers/gpu/drm/tiny/bochs.ko.zst
+kernel/drivers/gpu/drm/tiny/cirrus-qemu.ko.zst
+kernel/drivers/gpu/drm/ttm/ttm.ko.zst
+kernel/drivers/gpu/drm/vboxvideo/vboxvideo.ko.zst
+kernel/drivers/gpu/drm/virtio/virtio-gpu.ko.zst
+kernel/drivers/gpu/drm/vmwgfx/vmwgfx.ko.zst

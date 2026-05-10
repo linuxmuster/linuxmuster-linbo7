@@ -1,0 +1,6 @@
+# PTP (Precision Time Protocol) driver modules
+# thomas@linuxmuster.net
+# 20260504
+
+kernel/drivers/ptp/ptp_kvm.ko.zst
+kernel/drivers/ptp/ptp_vmclock.ko.zst

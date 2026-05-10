@@ -1,0 +1,23 @@
+# MMC/SD card driver modules
+# thomas@linuxmuster.net
+# 20260504
+
+kernel/drivers/mmc/core/mmc_block.ko.zst
+kernel/drivers/mmc/core/sdio_uart.ko.zst
+kernel/drivers/mmc/host/cb710-mmc.ko.zst
+kernel/drivers/mmc/host/cqhci.ko.zst
+kernel/drivers/mmc/host/mmc_hsq.ko.zst
+kernel/drivers/mmc/host/mtk-sd.ko.zst
+kernel/drivers/mmc/host/sdhci-acpi.ko.zst
+kernel/drivers/mmc/host/sdhci.ko.zst
+kernel/drivers/mmc/host/sdhci-pci.ko.zst
+kernel/drivers/mmc/host/sdhci-pltfm.ko.zst
+kernel/drivers/mmc/host/sdhci-uhs2.ko.zst
+kernel/drivers/mmc/host/sdricoh_cs.ko.zst
+kernel/drivers/mmc/host/tifm_sd.ko.zst
+kernel/drivers/mmc/host/toshsd.ko.zst
+kernel/drivers/mmc/host/usdhi6rol0.ko.zst
+kernel/drivers/mmc/host/ushc.ko.zst
+kernel/drivers/mmc/host/via-sdmmc.ko.zst
+kernel/drivers/mmc/host/vub300.ko.zst
+kernel/drivers/mmc/host/wbsd.ko.zst

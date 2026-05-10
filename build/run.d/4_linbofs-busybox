@@ -1,0 +1,34 @@
+#!/bin/bash
+#
+# download and build busybox
+#
+# thomas@linuxmuster.net
+# 20260508
+#
+
+# read build environment
+source build/config/build.env || exit 1
+
+echo
+echo "###########################"
+echo "# Installing busybox apps #"
+echo "###########################"
+
+# skip some unneeded app
+skip_unneeded_app() {
+    echo "$BBREMOVE" | grep -qwF -- "$1" && return 0
+    return 1
+}
+
+# install
+busybox --list-full | while read -r app; do
+    if skip_unneeded_app "$(basename "$app")"; then
+        #echo "Skipping $app"
+        continue
+    else
+        echo "$app"
+        ln -sf "/usr/bin/busybox" "$LINBOFSDST/$app"
+    fi
+done
+
+ln -sf "/usr/bin/busybox" "$LINBOFSDST/init"

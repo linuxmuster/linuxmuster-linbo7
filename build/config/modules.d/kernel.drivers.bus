@@ -1,0 +1,5 @@
+# Bus controller driver modules
+# thomas@linuxmuster.net
+# 20260504
+
+kernel/drivers/bus/mhi/host/mhi.ko.zst

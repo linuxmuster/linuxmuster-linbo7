@@ -1,0 +1,61 @@
+#!/bin/bash
+#
+# create linbofs root dir
+#
+# thomas@linuxmuster.net
+# 20260506
+#
+
+# read build environment
+source build/config/build.env || exit 1
+
+echo
+echo "####################################"
+echo "# Creating new linbofs file system #"
+echo "####################################"
+
+# create new linbofs dir
+sudo rm -rf "$LINBOFSDST"
+mkdir "$LINBOFSDST" || exit 1
+
+# create root directories
+for path in $LINBOFSROOT; do
+    echo "/$path"
+    mkdir -p "$LINBOFSDST/$path"
+done
+
+# permissions
+while read item; do
+    read -r path mode <<< "$item"
+    echo "/$path -> $mode"
+    chmod "$mode" "$LINBOFSDST/$path"
+done <<< "$LINBOFSPERMS"
+
+# create nodes
+while read item; do
+    read -r path mode type major minor <<< "$item"
+    echo "/$path $mode $type $major $minor"
+    sudo mknod -m "$mode" "$LINBOFSDST/$path" "$type" "$major" "$minor"
+done <<< "$LINBOFSNODES"
+
+# unpack ubuntu initrd
+#sudo unmkinitramfs "$INITRDFSRC" "$LINBOFSDST" || exit 1
+#sudo chown -R "$MYNAME:$MYGROUP" "$LINBOFSDST"
+#rm -f "$LINBOFSDST/init"
+
+# create directories for linbofs
+#for path in $LINBOFSROOT; do
+#    [ -e "$LINBOFSDST/$path" ] && continue
+#    echo "/$path"
+#    mkdir -p "$LINBOFSDST/$path"
+#done
+
+# copy linbo stuff to linbofs root
+rsync -a "$LINBOFSSRC/" "$LINBOFSDST/"
+
+# copy grub.cfg.local to linbofs
+mkdir -p "$(dirname "$GRUBCFGDST")"
+cp "$GRUBCFGSRC" "$GRUBCFGDST"
+
+# set linbo version in linbofs
+echo "LINBO $LINBOVERSION: $LINBORELEASE" > "$LINBOFSDST/etc/linbo-version"

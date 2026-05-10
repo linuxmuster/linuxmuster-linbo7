@@ -1,0 +1,22 @@
+#!/bin/bash
+#
+# install plymouth boot splash
+#
+# thomas@linuxmuster.net
+# 20260505
+#
+
+# read build environment
+source build/config/build.env
+
+echo
+echo "###################################"
+echo "# Installing plymouth boot splash #"
+echo "###################################"
+
+# copy linbo splash theme
+sudo cp -a "$LINBOSPLASH" "/usr/share/plymouth/themes"
+
+# install plymouth
+export PLYMOUTH_THEME_NAME="$(basename "$LINBOSPLASH")"
+/usr/libexec/plymouth/plymouth-populate-initrd --targetdir "$LINBOFSDST"

@@ -1,0 +1,7 @@
+# Vhost virtual host driver modules
+# thomas@linuxmuster.net
+# 20260504
+
+kernel/drivers/vhost/vhost_iotlb.ko.zst
+kernel/drivers/vhost/vhost.ko.zst
+kernel/drivers/vhost/vhost_net.ko.zst

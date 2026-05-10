@@ -1,0 +1,30 @@
+# USB driver modules
+# thomas@linuxmuster.net
+# 20260504
+
+kernel/drivers/usb/c67x00/c67x00.ko.zst
+kernel/drivers/usb/class/cdc-wdm.ko.zst
+kernel/drivers/usb/dwc3/dwc3-haps.ko.zst
+kernel/drivers/usb/dwc3/dwc3.ko.zst
+kernel/drivers/usb/dwc3/dwc3-pci.ko.zst
+kernel/drivers/usb/host/isp116x-hcd.ko.zst
+kernel/drivers/usb/host/oxu210hp-hcd.ko.zst
+kernel/drivers/usb/host/r8a66597-hcd.ko.zst
+kernel/drivers/usb/host/sl811_cs.ko.zst
+kernel/drivers/usb/host/sl811-hcd.ko.zst
+kernel/drivers/usb/host/ssb-hcd.ko.zst
+kernel/drivers/usb/host/xhci-plat-hcd.ko.zst
+kernel/drivers/usb/storage/uas.ko.zst
+kernel/drivers/usb/storage/ums-alauda.ko.zst
+kernel/drivers/usb/storage/ums-cypress.ko.zst
+kernel/drivers/usb/storage/ums-datafab.ko.zst
+kernel/drivers/usb/storage/ums-eneub6250.ko.zst
+kernel/drivers/usb/storage/ums-freecom.ko.zst
+kernel/drivers/usb/storage/ums-isd200.ko.zst
+kernel/drivers/usb/storage/ums-jumpshot.ko.zst
+kernel/drivers/usb/storage/ums-karma.ko.zst
+kernel/drivers/usb/storage/ums-onetouch.ko.zst
+kernel/drivers/usb/storage/ums-sddr09.ko.zst
+kernel/drivers/usb/storage/ums-sddr55.ko.zst
+kernel/drivers/usb/storage/ums-usbat.ko.zst
+kernel/drivers/usb/storage/usb-storage.ko.zst

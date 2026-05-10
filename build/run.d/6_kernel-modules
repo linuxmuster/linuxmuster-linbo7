@@ -1,0 +1,30 @@
+#!/bin/bash
+#
+# archiving modules
+#
+# thomas@linuxmuster.net
+# 20260506
+#
+
+# read build environment
+source build/config/build.env
+
+echo
+echo "########################################"
+echo "# Collecting ubuntu kernel and modules #"
+echo "########################################"
+
+# harvesting the default ubuntu kernel
+$BUILDBIN/kernel-harvester.sh
+
+# copy kernel to package
+
+cd "$CACHE"
+mkdir -p "$PKGVARDIR"
+cp -v "linbo64" "$PKGVARDIR" || exit 1
+cp -v "kversion" "$PKGVARDIR" || exit 1
+
+# create modules archive
+rm -f "$MODARCHIVE"
+tar -v -c -I 'xz -T0' -f "$MODARCHIVE" "lib" || exit 1
+cd "$BUILDROOT"

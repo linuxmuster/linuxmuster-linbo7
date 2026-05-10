@@ -1,0 +1,9 @@
+# Kernel library modules
+# thomas@linuxmuster.net
+# 20260504
+
+kernel/lib/crc/crc7.ko.zst
+kernel/lib/crc/crc8.ko.zst
+kernel/lib/crc/crc-itu-t.ko.zst
+kernel/lib/crypto/libarc4.ko.zst
+kernel/lib/math/cordic.ko.zst

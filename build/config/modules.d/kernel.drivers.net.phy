@@ -1,0 +1,24 @@
+# PHY (Physical Layer) driver modules
+# thomas@linuxmuster.net
+# 20260504
+
+kernel/drivers/net/phy/ax88796b.ko.zst
+kernel/drivers/net/phy/bcm7xxx.ko.zst
+kernel/drivers/net/phy/bcm-phy-lib.ko.zst
+kernel/drivers/net/phy/broadcom.ko.zst
+kernel/drivers/net/phy/cicada.ko.zst
+kernel/drivers/net/phy/davicom.ko.zst
+kernel/drivers/net/phy/et1011c.ko.zst
+kernel/drivers/net/phy/icplus.ko.zst
+kernel/drivers/net/phy/lxt.ko.zst
+kernel/drivers/net/phy/marvell.ko.zst
+kernel/drivers/net/phy/micrel.ko.zst
+kernel/drivers/net/phy/microchip.ko.zst
+kernel/drivers/net/phy/national.ko.zst
+kernel/drivers/net/phy/phylink.ko.zst
+kernel/drivers/net/phy/phy_package.ko.zst
+kernel/drivers/net/phy/qsemi.ko.zst
+kernel/drivers/net/phy/realtek/realtek.ko.zst
+kernel/drivers/net/phy/smsc.ko.zst
+kernel/drivers/net/phy/ste10Xp.ko.zst
+kernel/drivers/net/phy/vitesse.ko.zst

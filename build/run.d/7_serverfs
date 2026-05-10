@@ -1,0 +1,38 @@
+#!/bin/bash
+#
+# create linbofs root dir
+#
+# thomas@linuxmuster.net
+# 20260505
+#
+
+# read build environment
+for i in build/config/*.env; do source "$i" || exit 1; done
+
+echo
+echo "##############################################"
+echo "# Copying linbo server files and directories #"
+echo "##############################################"
+
+# copy rootfs files to package root directory
+cp -v -a "$SERVERFS"/* "$PKGBUILDROOT" || exit 1
+
+# make certain files executable
+chmod 755 "$SRVFS_SHAREDIR"/*.sh
+
+# create dirs
+for i in $SRVFS_DIRS; do
+    mkdir -p "$PKGBUILDROOT/${i#/}" || exit 1
+done
+
+# copy extra files
+while read -r src dst; do
+    [[ -z "$src" ]] && continue
+    cp -v "$PKGBUILDROOT/${src#/}" "$PKGBUILDROOT/${dst#/}" || exit 1
+done <<< "$SRVFS_FILES"
+
+# create links
+while read -r src dst; do
+    [[ -z "$src" ]] && continue
+    ln -sf "/${src#/}" "$PKGBUILDROOT/${dst#/}" || exit 1
+done <<< "$SRVFS_LINKS"

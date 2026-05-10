@@ -1,0 +1,29 @@
+# USB network adapter driver modules
+# thomas@linuxmuster.net
+# 20260504
+
+kernel/drivers/net/usb/asix.ko.zst
+kernel/drivers/net/usb/ax88179_178a.ko.zst
+kernel/drivers/net/usb/catc.ko.zst
+kernel/drivers/net/usb/cdc_eem.ko.zst
+kernel/drivers/net/usb/cdc_ether.ko.zst
+kernel/drivers/net/usb/cdc_mbim.ko.zst
+kernel/drivers/net/usb/cdc_ncm.ko.zst
+kernel/drivers/net/usb/cdc_subset.ko.zst
+kernel/drivers/net/usb/ch9200.ko.zst
+kernel/drivers/net/usb/cx82310_eth.ko.zst
+kernel/drivers/net/usb/dm9601.ko.zst
+kernel/drivers/net/usb/int51x1.ko.zst
+kernel/drivers/net/usb/kaweth.ko.zst
+kernel/drivers/net/usb/lan78xx.ko.zst
+kernel/drivers/net/usb/mcs7830.ko.zst
+kernel/drivers/net/usb/pegasus.ko.zst
+kernel/drivers/net/usb/r8152.ko.zst
+kernel/drivers/net/usb/r8153_ecm.ko.zst
+kernel/drivers/net/usb/rndis_host.ko.zst
+kernel/drivers/net/usb/rtl8150.ko.zst
+kernel/drivers/net/usb/smsc75xx.ko.zst
+kernel/drivers/net/usb/smsc95xx.ko.zst
+kernel/drivers/net/usb/sr9700.ko.zst
+kernel/drivers/net/usb/sr9800.ko.zst
+kernel/drivers/net/usb/usbnet.ko.zst

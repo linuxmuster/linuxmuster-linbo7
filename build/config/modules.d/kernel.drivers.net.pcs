@@ -1,0 +1,6 @@
+# PCS (Physical Coding Sublayer) modules
+# thomas@linuxmuster.net
+# 20260504
+
+kernel/drivers/net/pcs/pcs-lynx.ko.zst
+kernel/drivers/net/pcs/pcs_xpcs.ko.zst

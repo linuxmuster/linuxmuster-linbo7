@@ -1,0 +1,16 @@
+# Input device driver modules
+# thomas@linuxmuster.net
+# 20260504
+
+kernel/drivers/input/ff-memless.ko.zst
+kernel/drivers/input/mouse/elan_i2c.ko.zst
+kernel/drivers/input/mouse/psmouse.ko.zst
+kernel/drivers/input/mouse/sermouse.ko.zst
+kernel/drivers/input/mouse/synaptics_i2c.ko.zst
+kernel/drivers/input/mouse/synaptics_usb.ko.zst
+kernel/drivers/input/sparse-keymap.ko.zst
+kernel/drivers/input/tablet/wacom_serial4.ko.zst
+kernel/drivers/input/touchscreen/surface3_spi.ko.zst
+kernel/drivers/input/touchscreen/usbtouchscreen.ko.zst
+kernel/drivers/input/touchscreen/wacom_i2c.ko.zst
+kernel/drivers/input/touchscreen/wacom_w8001.ko.zst

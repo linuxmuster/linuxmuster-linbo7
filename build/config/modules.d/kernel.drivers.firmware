@@ -1,0 +1,5 @@
+# Firmware interface driver modules
+# thomas@linuxmuster.net
+# 20260504
+
+kernel/drivers/firmware/efi/efibc.ko.zst

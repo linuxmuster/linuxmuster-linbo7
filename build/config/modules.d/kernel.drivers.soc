@@ -1,0 +1,5 @@
+# System-on-Chip driver modules
+# thomas@linuxmuster.net
+# 20260504
+
+kernel/drivers/soc/qcom/qmi_helpers.ko.zst

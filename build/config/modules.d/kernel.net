@@ -1,0 +1,11 @@
+# Network protocol and stack modules
+# thomas@linuxmuster.net
+# 20260504
+
+kernel/net/mac80211/mac80211.ko.zst
+kernel/net/qrtr/qrtr.ko.zst
+kernel/net/qrtr/qrtr-mhi.ko.zst
+kernel/net/sunrpc/auth_gss/auth_rpcgss.ko.zst
+kernel/net/sunrpc/auth_gss/rpcsec_gss_krb5.ko.zst
+kernel/net/sunrpc/sunrpc.ko.zst
+kernel/net/wireless/cfg80211.ko.zst

@@ -1,0 +1,19 @@
+# HID (Human Interface Device) driver modules
+# thomas@linuxmuster.net
+# 20260504
+
+kernel/drivers/hid/hid-apple.ko.zst
+kernel/drivers/hid/hid-elan.ko.zst
+kernel/drivers/hid/hid-kensington.ko.zst
+kernel/drivers/hid/hid-kye.ko.zst
+kernel/drivers/hid/hid-lenovo.ko.zst
+kernel/drivers/hid/hid-microsoft.ko.zst
+kernel/drivers/hid/hid-monterey.ko.zst
+kernel/drivers/hid/hid-multitouch.ko.zst
+kernel/drivers/hid/i2c-hid/i2c-hid-acpi.ko.zst
+kernel/drivers/hid/i2c-hid/i2c-hid.ko.zst
+kernel/drivers/hid/intel-ish-hid/intel-ish-ipc.ko.zst
+kernel/drivers/hid/intel-ish-hid/intel-ishtp-hid.ko.zst
+kernel/drivers/hid/intel-ish-hid/intel-ishtp.ko.zst
+kernel/drivers/hid/usbhid/usbmouse.ko.zst
+kernel/drivers/hid/wacom.ko.zst

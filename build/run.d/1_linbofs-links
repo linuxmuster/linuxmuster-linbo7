@@ -1,0 +1,21 @@
+#!/bin/bash
+#
+# create necessary symlinks
+#
+# thomas@linuxmuster.net
+# 20260505
+#
+
+# read build environment
+source build/config/build.env || exit 1
+
+echo
+echo "#############################"
+echo "# Creating linbofs symlinks #"
+echo "#############################"
+
+while read item; do
+    read -r src dst <<< "$item"
+    echo "$src -> $dst"
+    ln -s "$src" "$LINBOFSDST/$dst"
+done <<< "$LINBOFSLINKS"

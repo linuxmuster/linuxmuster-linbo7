@@ -1,0 +1,5 @@
+# DMA engine driver modules
+# thomas@linuxmuster.net
+# 20260504
+
+kernel/drivers/dma/dw/dw_dmac_core.ko.zst
