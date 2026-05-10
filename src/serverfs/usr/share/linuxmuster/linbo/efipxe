@@ -1,0 +1,12 @@
+# efi pxe netboot devicenames, last item will be first in bootorder
+#
+# thomas@linuxmuster.net
+# 20250808
+#
+
+efi network
+usb nic
+onboard nic
+pci lan
+ipv4
+pxev4

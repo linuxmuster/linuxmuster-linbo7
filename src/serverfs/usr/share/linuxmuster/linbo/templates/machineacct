@@ -1,0 +1,7 @@
+dn: @@dn@@
+changetype: modify
+replace: unicodePwd
+unicodePwd:: @@unicodepwd@@
+replace: supplementalCredentials
+supplementalCredentials:: @@suppcredentials@@
+-

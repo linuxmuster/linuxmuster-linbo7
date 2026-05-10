@@ -1,0 +1,11 @@
+#!/bin/sh
+#
+# linbo_size_disk
+# thomas@linuxmuster.net
+# 20240917
+#
+
+# read common shell functions
+source /usr/share/linbo/shell_functions
+
+linbo_size "$(get_disk_from_partition "$cache")" || exit 1

@@ -1,0 +1,8 @@
+# /etc/inittab
+#
+# thomas@linuxmuster.net
+# 20260508
+#
+::sysinit:/init.sh
+::respawn:/linbo.sh
+::wait:/usr/bin/linbo_vnc onboot

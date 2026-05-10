@@ -1,0 +1,23 @@
+#!/bin/sh
+#
+# linbo_mem [-h|help|--help]
+# prints available ram in mb
+# thomas@linuxmuster.net
+# 20220610
+#
+
+usage(){
+  echo
+  echo "Prints available RAM in MB."
+  echo
+  echo "Usage: linbo_mem [help]"
+  echo
+  exit 0
+}
+
+case "$1" in
+  help) usage ;;
+  *) free | grep Mem | awk '{printf "%d MB\n",$2 / 1024}' ;;
+esac
+
+exit 0

@@ -1,0 +1,10 @@
+[Unit]
+Description=OpenTracker service
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/sbin/opentracker -u nobody -d /srv/linbo
+
+[Install]
+WantedBy=multi-user.target

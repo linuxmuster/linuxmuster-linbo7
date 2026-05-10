@@ -1,0 +1,43 @@
+Windows Registry Editor Version 5.00
+
+; linuxmuster.net 7
+; thomas@linuxmuster.net
+; 20230510
+
+; to be applied once before domain join and image creation
+; change SAMBADOMAIN to the name of your samba domainname
+
+; machine account password may not expire
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\Netlogon\Parameters]
+"DisablePasswordChange"=dword:00000001
+"MaximumPasswordAge"=dword:000f4240
+"RefusePasswordChange"=dword:00000001
+"RequireSignOrSeal"=dword:00000001
+"RequireStrongKey"=dword:00000001
+
+; needed for netlogon
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\NetworkProvider\HardenedPaths]
+"\\\\*\\netlogon"="RequireMutualAuthentication=0,RequireIntegrity=0,RequirePrivacy=0"
+
+; disable hiberboot
+[HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Control\Session Manager\Power]
+"HiberbootEnabled"=dword:00000000
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Power]
+"HiberbootEnabled"=dword:00000000
+
+; allow users to install printer drivers
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows NT\Printers\PointAndPrint]
+"RestrictDriverInstallationToAdministrators"=dword:00000000
+
+; samba domain, to be adapted
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\]
+"DefaultLogonDomain"="SAMBADOMAIN"
+[HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Services\Tcpip\Parameters]
+"Domain"="SAMBADOMAIN"
+"NV Domain"="SAMBADOMAIN"
+
+; don't show the username of the last login
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System]
+"dontdisplaylastusername"=dword:00000001
+
+; add your custom registry patches below

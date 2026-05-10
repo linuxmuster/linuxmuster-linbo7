@@ -1,0 +1,13 @@
+[Unit]
+Description=Linbo torrent service
+After=network.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/sbin/linbo-torrent start
+ExecStop=/usr/sbin/linbo-torrent stop
+ExecReload=/usr/sbin/linbo-torrent reload
+
+[Install]
+WantedBy=multi-user.target

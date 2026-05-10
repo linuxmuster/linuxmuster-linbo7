@@ -1,0 +1,24 @@
+#!/bin/sh
+#
+# write image description to cache, used by linbo_gui
+# thomas@linuxmuster.net
+# 20251109
+#
+
+# linbo_writefile cachepartition filename
+
+# test options
+[ -z "$1" ] && exit 1
+
+# shift obsolete cache device name option given by linbo_gui
+if [ -b "$1" -o "$1" = "/cache" ]; then
+    shift
+    GUI="yes"
+fi
+
+# test remaining option
+[ -z "$1" ] && exit 1
+
+descfile="/cache/$1"
+
+cat > "$descfile" || exit 1

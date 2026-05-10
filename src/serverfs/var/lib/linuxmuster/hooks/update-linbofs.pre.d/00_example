@@ -1,0 +1,16 @@
+#!/bin/bash
+#
+# update-linbofs pre hook example
+# DON'T make this script executable!
+#
+# thomas@linuxmuster.net
+# 20231112
+#
+
+echo "### pre hook example ###"
+
+# this script will be executed in the root directory of the linbo filesystem
+
+# copies my script to linbofs
+myscript="/root/linbofs/myscript.sh"
+cp "$myscript" usr/bin
