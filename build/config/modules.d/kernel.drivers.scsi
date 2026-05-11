@@ -17,4 +17,5 @@ kernel/drivers/scsi/mvumi.ko.zst
 kernel/drivers/scsi/raid_class.ko.zst
 kernel/drivers/scsi/scsi_transport_sas.ko.zst
 kernel/drivers/scsi/scsi_transport_spi.ko.zst
+kernel/drivers/scsi/sym53c8xx_2/sym53c8xx.ko.zst
 kernel/drivers/scsi/vmw_pvscsi.ko.zst

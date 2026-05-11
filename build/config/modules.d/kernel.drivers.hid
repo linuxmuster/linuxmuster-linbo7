@@ -2,6 +2,9 @@
 # thomas@linuxmuster.net
 # 20260504
 
+kernel/drivers/hid/hid.ko.zst
+kernel/drivers/hid/hid-generic.ko.zst
+kernel/drivers/hid/usbhid/usbhid.ko.zst
 kernel/drivers/hid/hid-apple.ko.zst
 kernel/drivers/hid/hid-elan.ko.zst
 kernel/drivers/hid/hid-kensington.ko.zst

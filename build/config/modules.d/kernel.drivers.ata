@@ -22,6 +22,7 @@ kernel/drivers/ata/pata_hpt3x2n.ko.zst
 kernel/drivers/ata/pata_hpt3x3.ko.zst
 kernel/drivers/ata/pata_it821x.ko.zst
 kernel/drivers/ata/pata_jmicron.ko.zst
+kernel/drivers/ata/pata_legacy.ko.zst
 kernel/drivers/ata/pata_marvell.ko.zst
 kernel/drivers/ata/pata_mpiix.ko.zst
 kernel/drivers/ata/pata_netcell.ko.zst
@@ -42,6 +43,7 @@ kernel/drivers/ata/pata_triflex.ko.zst
 kernel/drivers/ata/pata_via.ko.zst
 kernel/drivers/ata/pdc_adma.ko.zst
 kernel/drivers/ata/sata_dwc_460ex.ko.zst
+kernel/drivers/ata/sata_inic162x.ko.zst
 kernel/drivers/ata/sata_mv.ko.zst
 kernel/drivers/ata/sata_nv.ko.zst
 kernel/drivers/ata/sata_promise.ko.zst
