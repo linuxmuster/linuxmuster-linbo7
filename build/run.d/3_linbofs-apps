@@ -3,7 +3,7 @@
 # add an app from ubuntu for use in linbofs
 #
 # thomas@linuxmuster.net
-# 20260505
+# 20260511
 #
 
 # read build environment
@@ -15,13 +15,17 @@ echo "# Populating linbofs with apps ... #"
 echo "####################################"
 
 # collect apps to linbofs
-mkdir -p "$LINBOFSDST"
 grep ^/ "$LINBOFSAPPS" | while IFS= read -r app; do
     [ -e "$app" ] || continue
     dstapp="$LINBOFSDST/$app"
     [ -L "$dstapp" ] && rm -f "$dstapp"
     [ -e "$dstapp" ] && continue
     echo "$app"
+    if [ -d "$app" ]; then
+        mkdir -p "$dstapp"
+        rsync -v "$app/"* "$dstapp/"
+        continue
+    fi
     dstdir="$LINBOFSDST/$(dirname "$app")"
     mkdir -p "$dstdir"
     cp -a "$app" "$dstdir/"
