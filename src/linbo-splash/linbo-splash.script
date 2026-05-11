@@ -72,7 +72,7 @@ fun message_callback (text)
 	version_y = logo_y + logo.image.GetHeight() + version_image.GetHeight() / 4 ;
 	version_sprite.SetX(Window.GetWidth () / 2 - version_image.GetWidth() / 2);
 	version_sprite.SetY(version_y);
-	version.sprite.SetZ(11);
+	version_sprite.SetZ(11);
 }
 
 Plymouth.SetMessageFunction(message_callback);
