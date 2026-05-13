@@ -1,7 +1,7 @@
 # applications which are taken from the ubuntu filesystem to be integrated into linbofs
 #
 # thomas@linuxmuster.net
-# 20260512
+# 20260513
 #
 
 # busybox
@@ -29,14 +29,14 @@
 /usr/bin/udp-receiver
 
 # e2fsprogs
-/usr/sbin/mke2fs
 /usr/sbin/e2fsck
 /usr/sbin/e2label
-/usr/sbin/resize2fs
-/usr/sbin/tune2fs
+/usr/sbin/mke2fs
 /usr/sbin/mkfs.ext2
 /usr/sbin/mkfs.ext3
 /usr/sbin/mkfs.ext4
+/usr/sbin/resize2fs
+/usr/sbin/tune2fs
 
 # find
 /usr/bin/find
@@ -45,9 +45,24 @@
 /usr/sbin/dosfsck
 /usr/sbin/fsck.fat
 /usr/sbin/fatlabel
+/usr/sbin/mkfs.fat
+/usr/sbin/mkdosfs
+/usr/sbin/mkfs.msdos
+/usr/sbin/mkfs.vfat
 
 # ntfs-3g progs
+/usr/bin/ntfsfix
+/usr/bin/ntfssecaudit
+/usr/sbin/mkntfs
+/usr/sbin/mkfs.ntfs
 /usr/sbin/ntfsclone
+/usr/sbin/ntfslabel
+/usr/sbin/ntfsresize
+
+# mkfs other
+/usr/sbin/mkfs
+/usr/sbin/mklost+found
+/usr/sbin/mkswap
 
 # grub
 /usr/bin/grub-editenv
