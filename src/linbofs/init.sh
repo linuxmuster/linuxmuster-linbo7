@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20260509
+# 20260512
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -163,7 +163,6 @@ init_setup(){
     udev_extra_nodes
   fi
 
-  loadkmap < /etc/german.kbd
   ifconfig lo 127.0.0.1 up
   hostname linbo
   klogd >/dev/null 2>&1
@@ -551,9 +550,12 @@ hwsetup(){
   rm -f /tmp/linbo-cache.done
 
   # start hw recognition
+    # start hw recognition
   echo > /sys/kernel/uevent_helper
-  mkdir -p /run/udev /dev/.udev/db/ /dev/.udev/queue/
-  /usr/lib/systemd/systemd-udevd --daemon
+  mkdir -p /run/udev
+  /usr/lib/systemd/systemd-udevd &
+  sleep 3
+  mkdir -p /dev/.udev/db/ /dev/.udev/queue/
   udevadm trigger --type=all --action=add --prioritized-subsystem=module,block,tpmrm,net,tty,input
   mkdir -p /dev/pts
   mount /dev/pts
@@ -567,10 +569,6 @@ hwsetup(){
   # link blockdevices
   linbo_link_blkdev
 
-  # start qemu guest
-  dmidecode -s system-manufacturer | grep -q QEMU && qemu-ga -d
-
-  #sleep 2
   touch /tmp/linbo-cache.done
 }
 
@@ -598,10 +596,13 @@ hwsetup
 
 # start plymouth boot splash daemon
 if grep -qiw splash /proc/cmdline; then
-  plymouthd --mode=boot --attach-to-session  # --pid-file=/run/plymouth/pid
+  plymouthd --mode=boot
   plymouth --show-splash
   SPLASH="yes"
 fi
+
+# mount cache partition if available for later use
+linbo_mountcache
 
 # do network setup
 network
