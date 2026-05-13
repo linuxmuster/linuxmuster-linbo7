@@ -1,5 +1,4 @@
 root:x:0:
-fuse:x:0:root
 daemon:x:1:
 bin:x:2:
 sys:x:3:
@@ -19,7 +18,7 @@ voice:x:22:
 cdrom:x:24:
 floppy:x:25:
 tape:x:26:
-sudo:x:27:
+sudo:x:27:build
 audio:x:29:
 dip:x:30:
 www-data:x:33:
@@ -28,7 +27,6 @@ operator:x:37:
 list:x:38:
 irc:x:39:
 src:x:40:
-gnats:x:41:
 shadow:x:42:
 utmp:x:43:
 video:x:44:
@@ -38,10 +36,15 @@ staff:x:50:
 games:x:60:
 users:x:100:
 nogroup:x:65534:
-libuuid:x:101:
-crontab:x:102:
-Debian-exim:x:103:
-mlocate:x:104:
-ssh:x:105:
-kvm:x:106:
-colord:x:107:
+_ssh:x:101:
+_cvsadmin:x:102:
+uuidd:x:103:
+messagebus:x:996:
+input:x:995:
+sgx:x:994:
+clock:x:993:
+kvm:x:992:
+render:x:991:
+rdma:x:104:
+netdev:x:105:
+polkitd:x:988:
