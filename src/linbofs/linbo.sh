@@ -4,7 +4,7 @@
 # (C) Klaus Knopper 2007
 # License: GPL V2
 # thomas@linuxmuster.net
-# 20250924
+# 20260512
 #
 
 # Reset fb color mode
@@ -15,16 +15,13 @@ CLEAR="c"
 # get environment
 source /usr/share/linbo/shell_functions
 
-# plymouth
-if [ -x "/sbin/plymouthd" -a -n "$SPLASH" ]; then
+# start plymouth
+if [ -n "$SPLASH" ]; then
   if ! plymouth --ping &> /dev/null; then
     plymouthd --mode=boot --tty="/dev/tty2" --attach-to-session
     plymouth show-splash message --text="$LINBOFULLVER"
   fi
 fi
-
-echo "### plymouthd started ###"
-sleep 10
 
 # update & extract linbo_gui
 linbo_update_gui &> /dev/null
