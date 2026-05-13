@@ -1,7 +1,9 @@
 # NVMe storage driver modules
 # thomas@linuxmuster.net
-# 20260504
+# 20260513
 
+kernel/drivers/nvme/common/nvme-auth.ko.zst
+kernel/drivers/nvme/common/nvme-keyring.ko.zst
 kernel/drivers/nvme/host/nvme-core.ko.zst
 kernel/drivers/nvme/host/nvme-fabrics.ko.zst
 kernel/drivers/nvme/host/nvme.ko.zst
