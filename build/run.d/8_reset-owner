@@ -1,0 +1,21 @@
+#!/bin/bash
+#
+# reset root ownership
+#
+# thomas@linuxmuster.net
+# 20260512
+#
+
+# read build environment
+source build/config/build.env || exit 1
+
+echo
+echo "#########################"
+echo "# Reset root ownerships #"
+echo "#########################"
+
+# chown all files and directories owned by root during the build process to the current user
+find . -maxdepth 2 -user 0 | while read -r item; do
+    echo "$item"
+    sudo chown "$MYNAME":"$MYGROUP" "$item" -R
+done
