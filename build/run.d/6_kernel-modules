@@ -25,6 +25,7 @@ cp -v "linbo64" "$PKGVARDIR" || exit 1
 cp -v "kversion" "$PKGVARDIR" || exit 1
 
 # create modules archive
-rm -f "$MODARCHIVE"
-tar -v -c -I 'xz -T0' -f "$MODARCHIVE" "lib" || exit 1
+sudo rm -f "$MODARCHIVE"
+sudo chown root:root "lib" -R
+sudo tar -v -c -I 'xz -T0' -f "$MODARCHIVE" "lib" || exit 1
 cd "$BUILDROOT"
