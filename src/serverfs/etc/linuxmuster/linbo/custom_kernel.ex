@@ -2,14 +2,8 @@
 # to be placed under /etc/linuxmuster/linbo/custom_kernel
 #
 # thomas@linuxmuster.net
-# 20231116
+# 20260518
 #
-
-# use Linbo's alternative legacy kernel
-KERNELPATH="legacy"
-
-# use Linbo's alternative longterm kernel
-KERNELPATH="longterm"
 
 # currently active kernel image and modules used by the server
 # path to kernel image
