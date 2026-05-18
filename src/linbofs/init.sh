@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20260512
+# 20260518
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -232,117 +232,9 @@ copytocache(){
 
 # Utilities
 
-# save windows activation tokens
-save_winact(){
-  # rename obsolete activation status file
-  [ -e /mnt/linuxmuster-win/activation_status ] && mv /mnt/linuxmuster-win/activation_status /mnt/linuxmuster-win/win_activation_status
-  # get windows activation status
-  if [ -e /mnt/linuxmuster-win/win_activation_status ]; then
-    grep -i ^li[cz]en /mnt/linuxmuster-win/win_activation_status | grep -i status | grep -i li[cz]en[sz][ei][de] | grep -vqi not && local win_activated="yes"
-  fi
-  if [ -n "$win_activated" ]; then
-    echo "Windows is activated."
-  else
-    echo "Windows is not activated."
-  fi
-  # get msoffice activation status
-  if [ -e /mnt/linuxmuster-win/office_activation_status ]; then
-    grep -i ^li[cz]en /mnt/linuxmuster-win/office_activation_status | grep -i status | grep -i li[cz]en[sz][ei][de] | grep -vqi not && office_activated="yes"
-  fi
-  if [ -n "$office_activated" ]; then
-    echo "MSOffice is activated."
-  else
-    echo "MSOffice is not activated or not installed."
-  fi
-  # remove activation status files
-  rm -f /mnt/linuxmuster-win/*activation_status
-  # get activation token files
-  if [ -n "$win_activated" ]; then
-    local windir="$(ls -d /mnt/[Ww][Ii][Nn][Dd][Oo][Ww][Ss])"
-    # find all windows tokens and key files in windir (version independent)
-    local win_tokens="$(find "$windir" -iname tokens.dat)"
-    [ "$win_tokens" = "" ] || win_tokens="$win_tokens $(find "$windir" -iname pkeyconfig.xrm-ms)"
-    #local win_tokensdat="$(ls /mnt/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Ss][Ee][Rr][Vv][Ii][Cc][Ee][Pp][Rr][Oo][Ff][Ii][Ll][Ee][Ss]/[Nn][Ee][Tt][Ww][Oo][Rr][Kk][Ss][Ee][Rr][Vv][Ii][Cc][Ee]/[Aa][Pp][Pp][Dd][Aa][Tt][Aa]/[Rr][Oo][Aa][Mm][Ii][Nn][Gg]/[Mm][Ii][Cc][Rr][Oo][Ss][Oo][Ff][Tt]/[Ss][Oo][Ff][Tt][Ww][Aa][Rr][Ee][Pp][Rr][Oo][Tt][Ee][Cc][Tt][Ii][Oo][Nn][Pp][Ll][Aa][Tt][Ff][Oo][Rr][Mm]/[Tt][Oo][Kk][Ee][Nn][Ss].[Dd][Aa][Tt] 2> /dev/null)"
-    #local win_pkeyconfig="$(ls /mnt/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Ss][Yy][Ss][Ww][Oo][Ww]64/[Ss][Pp][Pp]/[Tt][Oo][Kk][Ee][Nn][Ss]/[Pp][Kk][Ee][Yy][Cc][Oo][Nn][Ff][Ii][Gg]/[Pp][Kk][Ee][Yy][Cc][Oo][Nn][Ff][Ii][Gg].[Xx][Rr][Mm]-[Mm][Ss] 2> /dev/null)"
-  fi
-  [ -n "$office_activated" ] && local office_tokens="$(ls /mnt/[Pp][Rr][Oo][Gg][Rr][Aa][Mm][Dd][Aa][Tt][Aa]/[Mm][Ii][Cc][Rr][Oo][Ss][Oo][Ff][Tt]/[Oo][Ff][Ff][Ii][Cc][Ee][Ss][Oo][Ff][Tt][Ww][Aa][Rr][Ee][Pp][Rr][Oo][Tt][Ee][Cc][Tt][Ii][Oo][Nn][Pp][Ll][Aa][Tt][Ff][Oo][Rr][Mm]/[Tt][Oo][Kk][Ee][Nn][Ss].[Dd][Aa][Tt] 2> /dev/null)"
-  # test if files exist
-  if [ -n "$win_activated" -a -z "$win_tokens" ]; then
-    echo "No windows activation tokens found."
-    win_activated=""
-  fi
-  if [ -n "$office_activated" -a -z "$office_tokens" ]; then
-    echo "No office activation tokens found."
-    office_activated=""
-  fi
-  # if no activation return
-  [ -z "$win_activated" -a -z "$office_activated" ] && return
-  # get local mac address
-  local mac="$(linbo_mac | tr a-z A-Z)"
-  # do not save if no mac address is available
-  if [ -z "$mac" -o "$mac" = "OFFLINE" ]; then
-    echo "Cannot determine mac address."
-    return
-  fi
-  # get image name
-  [ -s  /mnt/.linbo ] && local image="$(cat /mnt/.linbo)"
-  # if an image is not yet created do nothing
-  if [ -z "$image" ]; then
-    echo "No image file found."
-    return
-  fi
-  echo -e "Saving activation tokens ... "
-  # archive name contains mac address and image name
-  local archive="/cache/$mac.$image.winact.tar.gz"
-  local tmparchive="/cache/tokens.tar.gz"
-  # generate tar command
-  local tarcmd="tar czf $tmparchive"
-  [ -n "$win_tokens" ] && tarcmd="$tarcmd $win_tokens"
-  [ -n "$office_tokens" ] && tarcmd="$tarcmd $office_tokens"
-  # create temporary archive
-  if ! $tarcmd; then
-    echo "Sorry. Error on creating $tmparchive."
-    return 1
-  else
-    echo "OK."
-  fi
-  # merge old and new if archive already exists
-  local RC=0
-  if [ -s "$archive" ]; then
-    echo -e "Updating $archive ... "
-    local tmpdir="/cache/tmp"
-    local curdir="$(pwd)"
-    [ -e "$tmpdir" ] && rm -rf "$tmpdir"
-    mkdir -p "$tmpdir"
-    tar xf "$archive" -C "$tmpdir" || RC="1"
-    tar xf "$tmparchive" -C "$tmpdir" || RC="1"
-    rm -f "$archive"
-    rm -f "$tmparchive"
-    cd "$tmpdir"
-    tar czf "$archive" * || RC="1"
-    cd "$curdir"
-    rm -rf "$tmpdir"
-  else # use temporary archive if it does not exist already
-    echo -e "Creating $archive ... "
-    rm -f "$archive"
-    mv "$tmparchive" "$archive" || RC="1"
-  fi
-  # if error occured
-  if [ "$RC" = "1" -o ! -s "$archive" ]; then
-    echo "Failed. Sorry."
-    return 1
-  else
-    echo "OK."
-  fi
-  # do not in offline mode
-  [ -z "$LINBOSERVER" ] && return
-  # trigger upload
-  echo "Starting upload of windows activation tokens."
-  rsync "$LINBOSERVER::linbo/winact/$(basename $archive).upload" /cache || true
-}
-
 # get and upload client's hardware info
 do_hwinfo(){
+  linbo_mountcache || return 1
   local hwinfo_gz="/cache/hwinfo.gz"
   local hwinfo_tmp="/tmp/hwinfo.gz"
   [ -s "$hwinfo_gz" ] && return 0
@@ -353,26 +245,6 @@ do_hwinfo(){
     rsync "$LINBOSERVER::linbo${hwinfo_tmp}" /tmp/dummy &> /dev/null || true
     rm -f "$hwinfo_tmp"
   fi
-}
-
-# save windows activation tokens
-do_housekeeping(){
-  local dev
-  if linbo_mountcache; then
-    do_hwinfo
-  else
-    echo "Housekeeping: Cannot mount cache partition."
-    return 1
-  fi
-  [ -s /start.conf ] || return 1
-  grep -iw ^root /start.conf | awk -F\= '{ print $2 }' | awk '{ print $1 }' | sort -u | while read device; do
-    [ -b "$dev" ] || continue
-    if linbo_mount "$dev" /mnt 2> /dev/null; then
-      # save windows activation files
-      ls /mnt/linuxmuster-win/*activation_status && save_winact
-      umount /mnt
-    fi
-  done
 }
 
 # update linbo and install it locally
@@ -538,8 +410,8 @@ network(){
     -r /etc/dropbear/dropbear_ecdsa_host_key \
     -r /etc/dropbear/dropbear_ed25519_host_key \
     -s -g -p 2222
-  # remove reboot flag, save windows activation
-  do_housekeeping
+  # collect hardware info and send it to server
+  do_hwinfo
   # done
   echo > /tmp/linbo-network.done
   print_status "Done."

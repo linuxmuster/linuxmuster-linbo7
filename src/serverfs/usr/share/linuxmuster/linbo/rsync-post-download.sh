@@ -2,7 +2,7 @@
 #
 # Post-Download script for rsync/LINBO
 # thomas@linuxmuster.net
-# 20250418
+# 20260518
 #
 
 # read in paedml specific environment
@@ -65,13 +65,6 @@ case "$EXT" in
   mpw)
     if [ -e "$FILE" ]; then
       echo "Removing machine password file $FILE."
-      rm -f "$FILE"
-    fi
-  ;;
-
-  winkey)
-    if [ -e "$FILE" ]; then
-      echo "Removing windows product key file $FILE."
       rm -f "$FILE"
     fi
   ;;

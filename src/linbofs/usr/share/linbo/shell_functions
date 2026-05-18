@@ -988,7 +988,7 @@ mk_boot(){
 #### start & sync ####
 
 
-# update linuxmuster-win scripts and install start tasks
+# update linuxmuster-win scripts
 # update_win partition
 # invoked by start() & syncl()
 update_win(){

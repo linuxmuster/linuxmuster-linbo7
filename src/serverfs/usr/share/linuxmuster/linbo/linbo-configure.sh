@@ -2,7 +2,7 @@
 #
 # configure script for linuxmuster-linbo7 package
 # thomas@linuxmuster.net
-# 20260517
+# 20260518
 #
 
 # read environment & setup values
@@ -10,8 +10,6 @@
 
 # config file backup dir
 mkdir -p "$LINBODIR/backup"
-# windows activation stuff
-mkdir -p "$LINBODIR/winact"
 # temp dir
 mkdir -p "$LINBODIR/tmp"
 

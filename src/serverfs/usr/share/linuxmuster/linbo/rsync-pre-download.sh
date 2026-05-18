@@ -2,7 +2,7 @@
 #
 # Pre-Download script for rsync/LINBO
 # thomas@linuxmuster.net
-# 20250418
+# 20260518
 #
 
 # read in linuxmuster specific environment
@@ -30,9 +30,6 @@ esac
 
 # fetch host & domainname
 do_rsync_hostname
-
-# recognize upload of windows activation tokens
-stringinstring "winact.tar.gz.upload" "$FILE" && EXT="winact-upload"
 
 # recognize download request of local grub.cfg
 stringinstring ".grub.cfg" "$FILE" && EXT="grub-local"
@@ -99,58 +96,6 @@ case $EXT in
     if ! grep -q "$search" "$FILE"; then
       sed -i "s|Domain\"=.*|$search|g" "$FILE"
     fi
-  ;;
-
-  # handle windows product key request
-  winkey)
-    # get key from workstations and write it to temporary file
-    if [ -n "$compname" ]; then
-      winkey="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print $2 " " $7 }' | grep -w $compname | awk '{ print $2 }' | tr a-z A-Z)"
-      officekey="$(grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print $2 " " $6 }' | grep -w $compname | awk '{ print $2 }' | tr a-z A-Z)"
-      [ -n "$winkey" ] && echo "winkey=$winkey" > "$FILE"
-      [ -n "$officekey" ] && echo "officekey=$officekey" >> "$FILE"
-    fi
-  ;;
-
-  # handle windows activation tokens archive
-  winact-upload)
-    RC=0
-    FILE="${FILE%.upload}"
-    # fetch archive from client
-    echo "Upload request for windows activation tokens archive."
-    linbo-scp "${RSYNC_HOST_ADDR}:/cache/$(basename $FILE)" "${FILE}.tmp" || RC="1"
-    # if archive file already exists try to merge old and new archives
-    if [ -s "$FILE" -a "$RC" = "0" ]; then
-      echo "Updating existing archive $FILE."
-      tmpdir="/var/tmp/winact-upload.$$"
-      curdir="$(pwd)"
-      mkdir -p "$tmpdir"
-      # extract old archive to tmpdir
-      tar xf "$FILE" -C "$tmpdir" || RC="1"
-      if [ "$RC" = "0" ]; then
-        # extract uploaded archive over old archive in tmpdir
-        tar xf "${FILE}.tmp" -C "$tmpdir" || RC="1"
-      fi
-      if [ "$RC" = "0" ]; then
-        rm -f "${FILE}.tmp"
-        cd "$tmpdir"
-        # pack content of tmpdir to temporary archive
-        tar czf "${FILE}.tmp" * || RC="1"
-        cd "$curdir"
-      fi
-      rm -rf "$tmpdir"
-    fi
-    # move uploaded file in place
-    if [ "$RC" = "0" ]; then
-      rm -f "$FILE"
-      mv "${FILE}.tmp" "$FILE" || RC="1"
-    fi
-    if [ "$RC" = "0" ]; then
-      echo "Upload of $FILE successfully finished."
-    else
-      echo "Sorry. Upload of $FILE failed."
-    fi
-    rm -f "$PIDFILE"
   ;;
 
   # prepare download of local grub.cfg

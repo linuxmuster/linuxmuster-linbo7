@@ -2,7 +2,7 @@
 #
 # linbo_sync
 # thomas@linuxmuster.net
-# 20251108
+# 20260518
 #
 
 
@@ -258,99 +258,6 @@ patch_fstab(){
 }
 
 
-# restore windows activation tokens
-restore_winact(){
-  # get image name
-  [ -s  /mnt/.linbo ] && local imagename="$(cat /mnt/.linbo)"
-  # if an image is not yet created do nothing
-  if [ -z "$imagename" ]; then
-    return
-  fi
-
-  local archive
-  local tarchive
-  local item
-
-  # without linbo server
-  if localmode || [ -z "$MACADDR" ] || [ "$MACADDR" = "OFFLINE" ]; then
-    tarchive="$(cd /cache && ls *.$imagename.winact.tar.gz 2> /dev/null)"
-    # get mac address from archive name
-    for item in $tarchive; do
-      MACADDR="$(echo $item | awk -F\. '{ print $1 }')"
-      if ifconfig -a | grep -q "$MACADDR"; then
-        archive="$item"
-        break
-      fi
-    done
-  else # with linbo server
-    archive="$MACADDR.$imagename.winact.tar.gz"
-    # get server ip address
-    echo -n "Request reactivation data from $LINBOSERVER ... "
-    # get token archive from linbo server
-     rsync --skip-compress="$RSYNC_SKIP_COMPRESS" "$LINBOSERVER"::linbo/winact/"$archive" /cache &> /dev/null
-    if [ -s "/cache/$archive" ]; then
-      echo "Ok!"
-    else
-      echo "Skipping reactivation, no data!"
-      return
-    fi
-
-    # request windows/office productkeys
-    local keyfile="$(ifconfig -a | md5sum | awk '{ print $1 }').winkey"
-     rsync --skip-compress="$RSYNC_SKIP_COMPRESS" "$LINBOSERVER"::linbo/winact/"$keyfile" /cache &> /dev/null
-    [ -s "/cache/$keyfile" ] && source "/cache/$keyfile"
-
-    # create windows key batchfile
-    local cache_batchfile="/cache/$imagename.winact.cmd"
-    # remove old batchfile
-    rm -f "$cache_batchfile"
-    # create new one if keys are provided
-    if [ -n "$winkey" ]; then
-      echo "cscript.exe %SystemRoot%\\System32\\slmgr.vbs -ipk $winkey" > "$cache_batchfile"
-    fi
-    # add office key handling to batchfile if office token is in archive
-    if gunzip -c "/cache/$archive" | tar -t | grep -qi office 2> /dev/null; then
-      if [ -n "$officekey" ]; then
-        # get path to ospp.vbs
-        local ospp="$(ls /mnt/[Pp][Rr][Oo][Gg][Rr][Aa][Mm]\ [Ff][Ii][Ll][Ee][Ss]*/[Mm][Ii][Cc][Rr][Oo][Ss][Oo][Ff][Tt]\ [Oo][Ff][Ff][Ii][Cc][Ee]/[Oo][Ff][Ff][Ii][Cc][Ee]*/[Oo][Ss][Pp][Pp].[Vv][Bb][Ss] 2> /dev/null)"
-        if [ -n "$ospp" ]; then
-          # compute windows path to office installation dir
-          local ospp_win_path="$(echo "$ospp" | sed 's|/mnt/|%SystemDrive%\\|' | sed 's|/|\\|g' )"
-          # write office activations commands to batchfile
-          echo "cscript.exe \"$ospp_win_path\" /inpkey:$officekey" >> "$cache_batchfile"
-          echo "cscript.exe \"$ospp_win_path\" /act" >> "$cache_batchfile"
-        fi
-      fi
-    fi
-    rm -f "$keyfile"
-  fi # localmode
-
-  # copy reactivation batchfile to windows partition
-  if [ -s "$cache_batchfile" ]; then
-    local win_batchfile="/mnt/linuxmuster-win/winact.cmd"
-    if [ -n "$winkey" -a -n "$officekey" ]; then
-      local keymsg="Windows- und Office-Keys"
-    elif [ -n "$winkey" ]; then
-      local keymsg="Windows-Key"
-    else
-      local keymsg="Office-Key"
-    fi
-    echo "Erstelle Reaktivierungskript mit $keymsg in $win_batchfile."
-    dos2unix "$cache_batchfile"
-    cp "$cache_batchfile" "$win_batchfile"
-  else # no keys, no batchfile
-    echo "Keine Produktkeys verfuegbar, erstelle kein Reaktivierungskript."
-  fi
-  if [ -n "$archive" -a -s "/cache/$archive" ]; then
-    echo "Stelle Windows-Aktivierungstokens wieder her."
-    if ! tar xf "/cache/$archive" -C /; then
-      echo "Fehler beim Entpacken von $archive!"
-      return 1
-    fi
-  fi
-}
-
-
 # restore imagefile targetdev [force]
 restore(){
   echo -n "restore " ;  printargs "$@"
@@ -562,12 +469,9 @@ syncl(){
       dd if="$ntfsid" of="$rootdev" bs=8 count=1 seek=9
     fi
 
-    # update linuxmuster-win scripts and restore windows activation
+    # update linuxmuster-win scripts
     if [ -d /cache/linuxmuster-win ]; then
       update_win "$rootdev" || RC="1"
-      if [ "$RC" = "0" ]; then
-        restore_winact || RC="1"
-      fi
     fi
 
   fi # windows stuff end
