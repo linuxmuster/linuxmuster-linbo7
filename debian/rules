@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 #
 # thomas@linuxmuster.net
-# 20260506
+# 20260517
 # GPL v3
 #
 
@@ -31,6 +31,9 @@ clean:
 	rm -f build-stamp configure-stamp
 	#rm -rf tmp
 	dh_clean -d
+
+	# reset root ownerships of files and directories created during the build process
+	build/bin/reset-root.sh	--exit-on-error 2>&1 | tee build.log
 
 install: build
 	dh_testdir
@@ -78,4 +81,5 @@ binary-arch: build install
 	dh_builddeb -- -Zgzip
 
 binary: binary-indep binary-arch
+
 .PHONY: build clean binary-indep binary-arch binary install configure
