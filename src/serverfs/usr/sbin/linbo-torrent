@@ -2,7 +2,7 @@
 #
 # starts tmux sessions for each valid torrent in LINBODIR
 # thomas@linuxmuster.net
-# 20250510
+# 20250517
 #
 
 # read environment
@@ -24,6 +24,7 @@ usage(){
   echo "Usage:"
   echo " linbo-torrent <start|stop|restart|reload|status|create|check> [image_name]"
   echo " linbo-torrent attach <image_name|session_name>"
+  echo " linbo-torrent update-otr"
   echo
   echo "Note:"
   echo " * Only qcow2 & qdiff image files located below $LINBOIMGDIR are processed."
@@ -40,8 +41,21 @@ usage(){
   echo "   session name must be given as parameter."
   echo "   Press [CTRL+B]+[D] to detach the session again."
   echo " * \"reload\" is the identical to \"restart\" and is there for backwards compatibility."
+  echo " * \"update-otr\" updates the opentracker whitelist $OTRWLIST."
   echo
   exit 1
+}
+
+# updates the opentracker whitelist
+update_otr(){
+  local torrent
+  echo "Updating opentracker torrent whitelist ..."
+  find "$LINBOIMGDIR" -maxdepth 2 -name "*.torrent" | while read -r torrent; do
+    btcheck -i "$torrent" -n | grep 'Torrent Hash' | awk '{print $4}'
+  done > "$OTRWLIST"
+  chown "$OTRUSER":"$OTRUSER" "$OTRWLIST"
+  chmod 640 "$OTRWLIST"
+  systemctl reload opentracker.service
 }
 
 # check torrent
@@ -190,7 +204,7 @@ if [ -n "$2" ] ; then
   esac
 else
   case "$1" in
-    stop|status) ;;
+    stop|status|update-otr) ;;
     attach|check|create) usage ;;
     *)
       IMGLIST="$(find_images)"
@@ -203,14 +217,18 @@ else
 fi
 
 case "$1" in
-  start) start ;;
+  start) start ; UPDATE_OTR="yes" ;;
   stop) stop ;;
-  restart|reload) stop ; start ;;
+  restart|reload) stop ; start ; UPDATE_OTR="yes" ;;
   status) status ;;
-  create) create ;;
+  create) create ; UPDATE_OTR="yes" ;;
   check) check ;;
   attach) attach ;;
+  update-otr) UPDATE_OTR="yes" ;;
   *) usage ;;
 esac
+
+# opentracker whitelist update
+[ -n "$UPDATE_OTR" ] && update_otr
 
 exit 0

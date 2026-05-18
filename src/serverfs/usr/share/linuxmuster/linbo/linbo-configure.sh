@@ -2,7 +2,7 @@
 #
 # configure script for linuxmuster-linbo7 package
 # thomas@linuxmuster.net
-# 20260510
+# 20260517
 #
 
 # read environment & setup values
@@ -24,7 +24,7 @@ for i in rsa ecdsa ed25519; do
   db_key="${SYSDIR}/linbo/dropbear_${i}_host_key"
   ssh_key="${SYSDIR}/linbo/ssh_host_${i}_key"
   if [ ! -s "$db_key" ]; then
-    rm -f "$ssh_key" "${ssh_key}.pub"
+    rm -f "$ssh_key" "${ssh_key}.pub"y
     ssh-keygen -m PEM -t "$i" -N "" -f "$ssh_key"
     /usr/lib/dropbear/dropbearconvert openssh dropbear "$ssh_key" "$db_key"
   fi
@@ -51,14 +51,9 @@ fi
 # create grub netboot directory
 "$LINBOSHAREDIR/mkgrubnetdir.sh"
 
-# remove deprecated linbo-bittorrent
-if [ -e /etc/init.d/linbo-bittorrent ]; then
-  systemctl stop linbo-bittorrent
-  systemctl disable linbo-bittorrent
-  pid="$(ps ax | grep bttrack | grep -v grep | awk '{print $1}')"
-  [ -n "$pid" ] && kill $pid
-  rm -f /etc/init.d/linbo-bittorrent
-fi
+# remove deprecated linbo-bittorrent stuff
+[ -e /etc/default/linbo-bittorrent ] && rm -f /etc/default/linbo-bittorrent
+[ -e /etc/default/bittorrent ] && rm -f /etc/default/bittorrent
 
 # remove outdated linbo-multicast start script
 if [ -e /etc/init.d/linbo-multicast ]; then
@@ -81,16 +76,25 @@ if [ -n "$RUNMCAST" ]; then
   systemctl restart linbo-multicast.service
 fi
 
-# check services
-for i in opentracker linbo-torrent linbo-multicast; do
-  if systemctl is-enabled $i.service &> /dev/null; then
-    if ! systemctl is-active $i.service &> /dev/null; then
-      systemctl start $i.service
-    fi
-  else
-    echo "$i.service is disabled. Consider to enable and start it via systemctl."
-  fi
+# check necessary services
+for i in opentracker linbo-torrent; do
+  systemctl is-enabled $i.service &> /dev/null || systemctl enable $i.service
+  systemctl is-active $i.service &> /dev/null || systemctl start $i.service
 done
+
+# check for linbo compliant opentracker config and create it if not
+tpl="$TPLDIR/opentracker.conf"
+conf="$(head -1 "$tpl" | awk '{print $2}')"
+if ! grep -q "$OTRDIR" "$conf" 2>/dev/null; then
+  mkdir -p "$(dirname "$conf")"
+  [ -e "$conf" ] && cp "$conf" "${conf}.dpkg-bak"
+  sed -e "s|@@otrdir@@|$OTRDIR|g
+          s|@@otrwlist@@|$OTRWLIST|g
+          s|@@serverip@@|$serverip|g" "$tpl" > "$conf"
+  mkdir -p "$OTRDIR"
+  chown "$OTRUSER":"$OTRUSER" "$OTRDIR" -R
+  linbo-torrent update-otr
+fi
 
 # repair ssh_config
 conf="$LINBOSYSDIR/ssh_config"
