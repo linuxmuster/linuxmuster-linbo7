@@ -6,7 +6,7 @@
 #
 # thomas@linuxmuster.net
 # GPL V3
-# 20260511
+# 20260517
 #
 
 # read linuxmuster environment
@@ -357,7 +357,7 @@ create_linbofs() {
 	local linbofs_size
 	linbofs_size=$(du -sb . | awk '{print $1}')
 	set -o pipefail
-	find . -print | cpio --quiet -o -H newc | pv -f -s "$linbofs_size" | xz -e --check=none -z -f -T 0 -c > "$linbofs_xz" ; RC="$?"
+	find . -print | cpio --quiet -o -H newc | pv -f -s "$linbofs_size" | xz -e --check=none -z -f -T 0 --block-size=4MiB -c > "$linbofs_xz" ; RC="$?"
 	set +o pipefail
   	[ $RC -ne 0 ] && bailout "failed!"
 
