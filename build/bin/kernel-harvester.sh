@@ -10,7 +10,7 @@
 # Optionally pass the kernel version as the first argument.
 #
 # thomas@linuxmuster.net
-# 20260506
+# 20260514
 # ------------------
 
 source build/config/build.env
@@ -75,6 +75,20 @@ sudo chown -R "$MYNAME:$MYGROUP" "$CACHE/lib" || { echo "Error setting ownership
 depmod -a -w -b "$CACHE" "$KERNELVER" || { echo "Error running depmod"; (( errors++ )); }
 
 echo "$KERNELVER" > "$CACHE/kversion"
+
+# save kernel-configuration for later use
+KCONFIG="/boot/config-$KERNELVER"
+DSTKCONFIG="$CACHE/config-$KERNELVER"
+rm -f "$CACHE/config-"*
+cp -f "$KCONFIG" "$DSTKCONFIG" || { echo "Error copying kernel config"; (( errors++ )); }
+ln -sf "$(basename "$DSTKCONFIG")" "$CACHE/kconfig"
+
+# save modules.dep
+MODDEP="/lib/modules/$KERNELVER/modules.dep"
+DSTMODDEP="$CACHE/modules.dep-$KERNELVER"
+rm -f "$CACHE/modules.dep-"*
+cp -f "$MODDEP" "$DSTMODDEP" || { echo "Error copying modules.dep"; (( errors++ )); }
+ln -sf "$(basename "$DSTMODDEP")" "$CACHE/modules.dep"
 
 if [[ $errors -gt 0 ]]; then
     echo "Completed with $errors error(s)."
