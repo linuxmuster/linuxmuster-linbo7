@@ -20,7 +20,6 @@ dpkg-buildpackage \
     -I".directory" \
     -I"*.debhelper*" \
     -Icache \
-    -Isrc \
     -Ibuild.log \
     -Itmp 2>&1 | tee ../build.log
 
