@@ -1,0 +1,56 @@
+#!/bin/sh
+#
+# linbo_kill_seeder
+# thomas@linuxmuster.net
+# 20260521
+#
+
+usage() {
+    cat <<EOF
+Usage: $0 [-h|--help] | <torrent|all>
+Kill torrent seeder sessions.
+
+Options:
+  -h, --help   Show this help message
+  all          Kill all seeder sessions
+  <torrent>    Kill seeder session for given torrent file name
+EOF
+    exit 1
+}
+
+case "$1" in -h|--help) usage ;; esac
+
+# check if argument is given
+[ -n "$1" ] || usage
+
+# kill session
+kill_session() {
+    local session="$1"
+    local RC=0
+    if tmux kill-session -t "$session"; then
+        echo "Killed seeder session: $session"
+    else
+        echo "Failed to kill seeder session: $session" >&2
+        RC=1
+    fi
+    return $RC
+}
+
+# handle "all" parameter
+if [ "$1" = "all" ]; then
+    tmux list-sessions -F "#{session_name}" 2>/dev/null | while read -r session; do
+        if [ -n "$session" ]; then
+            kill_session "$session" || exit 1
+        fi
+    done
+    exit 0
+fi
+
+torrent="$1"
+session="${torrent//./_}"
+
+# exit if torrent is not seeding
+tmux list-sessions | grep -q ^"$session" || exit 1
+
+# kill seeder
+kill_session "$session" || exit 1

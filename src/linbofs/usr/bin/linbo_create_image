@@ -2,7 +2,7 @@
 #
 # linbo_create_image
 # thomas@linuxmuster.net
-# 20251108
+# 20260518
 #
 
 
@@ -198,9 +198,8 @@ mk_qcow2(){
   local imageext="${imagefile/*.}"
   [ "$(pwd)" = "/cache" ] || cd /cache
   echo "## $(date) : Starting creation of $imagefile."
-  # kill torrent process for this image
-  local pid="$(ps w | grep ctorrent | grep "$imagefile.torrent" | grep -v grep | awk '{ print $1 }')"
-  [ -n "$pid" ] && kill "$pid"
+  # kill torrent seeder for this image
+  linbo_kill_seeder "$imagefile.torrent"
   # remove torrent files
   [ -e "/cache/$imagefile.torrent" ] && rm -f "/cache/$imagefile.torrent"
   [ -e "/cache/$imagefile.complete" ] && rm -f "/cache/$imagefile.complete"

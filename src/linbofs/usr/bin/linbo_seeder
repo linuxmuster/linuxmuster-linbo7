@@ -1,0 +1,88 @@
+#!/bin/sh
+#
+# linbo_seeder
+# thomas@linuxmuster.net
+# 20260520
+
+# no cache, do nothing
+[ -e /tmp/linbo-cache.done ] || exit 0
+
+# get environment
+source /usr/share/linbo/shell_functions
+
+usage(){
+  echo
+  echo "Starts a torrent seeding tmux session for a given torrent file or all torrent files in the cache."
+  echo
+  echo "Usage: linbo_seeder [--check] <torrent_file>"
+  echo "       linbo_seeder --help"
+  echo
+  echo "Options:"
+  echo "  --check, -c    Check the given torrent file with btcheck before seeding."
+  echo "  --help, -h     Show this help message"
+  echo
+  echo "Note:"
+  echo " * If torrent_file is ommitted, all cached torrent files are seeded."
+  echo " * The torrent file name is used as tmux session name. Dots are replaced by underscores."
+  echo " * Press [CTRL+B]+[D] to detach the session."
+  echo
+  exit 1
+}
+
+# do not seed in localmode
+localmode && exit 0
+
+# Initialize variables
+check=""
+torrent=""
+
+# Parse command-line options
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --check|-c)
+      check="yes"
+      shift
+      ;;
+    --help|-h)
+      usage
+      ;;
+    -*)
+      echo "Error: Unknown option: $1"
+      usage
+      ;;
+    *)
+      # First non-option argument is the torrent file
+      torrent="$1"
+      shift
+      ;;
+  esac
+done
+
+cd /cache
+
+# Validate torrent file if specified
+[ -n "$torrent" -a -s "$torrent" ] || exit 0
+if [ -n "$check" ]; then
+  btcheck "$torrent" || exit 1
+fi
+
+echo "### $timestamp $(basename "$0") ###"
+session="${torrent//./_}"
+
+# exit if torrent is already seeding
+if tmux list-sessions | grep -q ^"$session" &> /dev/null; then
+  echo "Torrent $torrent is already seeding."
+  exit 0
+fi
+
+# finally seed in tmux session
+tmux new -ds "$session" "aria2c -c -V --enable-dht=false --disable-ipv6=true --seed-ratio=0.0 $torrent ; exec $SHELL"
+
+# check success
+if tmux list-sessions | grep -q ^"$session"; then
+  echo "Started seeder for $torrent."
+  exit 0
+else
+  echo "Failed to start seeder for $torrent!"
+  exit 1
+fi
