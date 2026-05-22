@@ -2,7 +2,7 @@
 #
 # linbo_partition [-h|help|--help]
 # thomas@linuxmuster.net
-# 20250423
+# 20260522
 #
 
 
@@ -208,7 +208,8 @@ if ! ls /conf/part.* &> /dev/null; then
   exit 1
 fi
 
-killalltorrents
+# kill all seeding sessions
+linbo_kill_seeder all || exit 1
 
 cd /
 mount | grep -q ' /cache ' && umount /cache &> /dev/null && sleep 3

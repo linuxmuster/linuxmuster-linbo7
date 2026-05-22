@@ -1,7 +1,7 @@
 # common linbo shell functions
 #
 # thomas@linuxmuster.net
-# 20250808
+# 20260522
 #
 
 set -o pipefail
@@ -215,19 +215,6 @@ validhostname(){
 remote_cache(){
   case "$1" in *:*|*//*|*\\*|*\\\\*) return 0 ;; esac
   return 1
-}
-
-
-# kills all torrent processes
-killalltorrents(){
-  local WAIT=5
-  # check for running torrents and kill them if any
-  if ps w | grep -v grep | grep -q ctorrent; then
-    echo "Stopping torrents ..."
-    killall -9 ctorrent 2>/dev/null
-    sleep "$WAIT"
-    ps w | grep -v grep | grep -q ctorrent && sleep "$WAIT"
-  fi
 }
 
 
