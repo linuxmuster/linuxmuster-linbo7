@@ -1,10 +1,16 @@
 linuxmuster-linbo7 (7.4.0-0) lmn74; urgency=low
 
   * refactor kernel provisioning, switch to stock ubuntu kernel (#150).
-  * Refactor build process to use 100% Ubuntu components (#151).
-  * Equalise versioning to linuxmuster.net version.
+  * refactor build process to use 100% Ubuntu components (#151).
+  * switch to ubuntu's native opentracker (3d65c15).
+  * remove deprecated code for windows activation handling (d8e925b).
+  * equalise Linbo version to linuxmuster.net version.
+  * replace ctorrent with aria2c (#152).
+  * try to download qdiff image only if baseimage is qcow2 (aa2f853).
+  * update custom kernel example file (403fda2).
+  * add progress indicator in update-linbofs (8e7e0d3).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 13 May 2026 18:25:36 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 22 May 2026 17:41:08 +0200
 
 linuxmuster-linbo7 (4.3.33-0) lmn73; urgency=low
 
@@ -14,7 +20,7 @@ linuxmuster-linbo7 (4.3.33-0) lmn73; urgency=low
   * Merge pull request #149 from amolani/feature/treiberpostsync-support,
     feat: add .driverpostsync hook support (bc04d94).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 13 May 2026 18:25:36 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 22 May 2026 17:41:08 +0200
 
 linuxmuster-linbo7 (4.3.32-0) lmn73; urgency=low
 
@@ -22,13 +28,13 @@ linuxmuster-linbo7 (4.3.32-0) lmn73; urgency=low
   * kernel updates: 6.1.167, 6.12.78 & 6.19.10 (#134).
   * fix #148: Wifi Firmware could not be loaded anymore (6837d3d).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 13 May 2026 18:25:36 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 22 May 2026 17:41:08 +0200
 
 linuxmuster-linbo7 (4.3.31-0) lmn73; urgency=low
 
   * fix error handling in case of not existing firmware configuration and logs (2491143).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 13 May 2026 18:25:36 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 22 May 2026 17:41:08 +0200
 
 linuxmuster-linbo7 (4.3.30-0) lmn73; urgency=low
 
