@@ -1,7 +1,7 @@
 # applications which are taken from the ubuntu filesystem to be integrated into linbofs
 #
 # thomas@linuxmuster.net
-# 20260513
+# 20260518
 #
 
 # busybox
@@ -27,6 +27,12 @@
 
 # udp-receiver
 /usr/bin/udp-receiver
+
+# torrent related
+/etc/ssl/certs/ca-certificates.crt
+/usr/bin/aria2c
+/usr/bin/btcheck
+/usr/bin/buildtorrent
 
 # e2fsprogs
 /usr/sbin/e2fsck
@@ -115,9 +121,6 @@
 
 # uuidgen
 /usr/bin/uuidgen
-
-# ctorrent
-/usr/bin/ctorrent
 
 # pv
 /usr/bin/pv
