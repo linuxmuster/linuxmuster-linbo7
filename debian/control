@@ -2,13 +2,13 @@ Source: linuxmuster-linbo7
 Section: admin
 Priority: extra
 Maintainer: Thomas Schmitt <thomas@linuxmuster.net>
-Build-Depends: acl, argon2, bc, binutils, busybox, chntpw, ctorrent,
-  curl, cvs, debianutils, debhelper, dosfstools, dpkg-dev, dropbear-bin,
-  e2fsprogs, efibootmgr, ethtool, fakeroot, fdisk, fonts-ubuntu, gdisk,
-  gettext, git, gnupg, gpgv, grep, grub-common, grub-ipxe,
-  grub-efi-amd64-bin, grub2-common, grub-pc-bin, gzip, hdparm, hwinfo,
-  kexec-tools, kmod, linux-headers-generic, linux-image-generic,
-  ncurses-base, netpbm, ntfs-3g, parted, pciutils, perl,
+Build-Depends: acl, argon2, aria2, bc, binutils, btcheck, buildtorrent,
+  busybox, chntpw, curl, cvs, debianutils, debhelper, dosfstools,
+  dpkg-dev, dropbear-bin, e2fsprogs, efibootmgr, ethtool, fakeroot,
+  fdisk, fonts-ubuntu, gdisk, gettext, git, gnupg, gpgv, grep,
+  grub-common, grub-ipxe, grub-efi-amd64-bin, grub2-common, grub-pc-bin,
+  gzip, hdparm, hwinfo, kexec-tools, kmod, linux-headers-generic,
+  linux-image-generic, ncurses-base, netpbm, ntfs-3g, parted, pciutils,
   plymouth-label, plymouth-label-ft, pv, qemu-utils, r8125-dkms,
   r8168-dkms, rsync, systemd, sysvinit-utils, tar, tmux, udpcast, unzip,
   usbutils, util-linux, uuid-runtime, wget, wpasupplicant, x11vnc,
@@ -18,14 +18,14 @@ Package: linuxmuster-linbo7
 Architecture: all
 Breaks: linuxmuster-linbo-common7
 Conflicts: atftpd, bittorrent, linuxmuster-linbo, linuxmuster-linbo-common,
-  linuxmuster-linbo-common7, opentracker
+  linuxmuster-linbo-common7
 Recommends: linuxmuster-base7
 Pre-Depends: linuxmuster-common
-Depends: argon2, coreutils, cpio, ctorrent, dosfstools, dropbear-bin,
-  grub-common, grub-efi-amd64-bin, grub-ipxe, grub-pc-bin, isolinux,
-  libowfat0t64, linux-firmware, linuxmuster-linbo-gui7, mbr, python3, pv,
-  qemu-utils, rsync, sed, ssh, syslinux-common, syslinux-utils, tftpd-hpa,
-  tmux, udpcast, wakeonlan, xorriso, xz-utils, zip, zlib1g, zstd
+Depends: argon2, aria2, btcheck, buildtorrent, coreutils, cpio, dosfstools,
+  dropbear-bin, grub-common, grub-efi-amd64-bin, grub-ipxe, grub-pc-bin,
+  isolinux, linux-firmware, linuxmuster-linbo-gui7, mbr, opentracker,
+  python3, pv, qemu-utils, rsync, sed, ssh, syslinux-common, syslinux-utils,
+  tftpd-hpa, tmux, udpcast, wakeonlan, xorriso, xz-utils, zip, zlib1g, zstd
 Suggests: isc-dhcp-server | dhcp3-server
 Description: linuxmuster-linbo7
   This package contains kernel, initrd, scripts and pxe boot configuration for
