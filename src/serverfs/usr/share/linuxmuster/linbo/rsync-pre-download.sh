@@ -2,7 +2,7 @@
 #
 # Pre-Download script for rsync/LINBO
 # thomas@linuxmuster.net
-# 20260518
+# 20260520
 #
 
 # read in linuxmuster specific environment
@@ -22,11 +22,8 @@ echo "$FILE" > "$PIDFILE"
 BASENAME="$(basename "$FILE")"
 EXT="${BASENAME##*.}"
 BASE="$(echo "$BASENAME" | sed 's/\(.*\)\..*/\1/')"
-case "$EXT" in desc|info|macct|torrent) BASE="$(echo "$BASE" | sed 's/\(.*\)\..*/\1/')" ;; esac
-case "$FILE" in
-  *.cloop*) IMGDIR="$LINBODIR" ;;
-  *) IMGDIR="$LINBOIMGDIR/$BASE" ;;
-esac
+case "$EXT" in desc|info|macct|torrent|hash) BASE="$(echo "$BASE" | sed 's/\(.*\)\..*/\1/')" ;; esac
+IMGDIR="$LINBOIMGDIR/$BASE"
 
 # fetch host & domainname
 do_rsync_hostname

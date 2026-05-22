@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # thomas@linuxmuster.net
-# 20251104
+# 20260521
 #
 
 # read in linuxmuster specific environment
@@ -32,7 +32,7 @@ BACKUP="${FILE}.BAK"
 BASENAME="$(basename "$FILE")"
 EXT="${BASENAME##*.}"
 BASE="$(echo "$BASENAME" | sed 's/\(.*\)\..*/\1/')"
-case "$EXT" in desc|info|macct|torrent) BASE="$(echo "$BASE" | sed 's/\(.*\)\..*/\1/')" ;; esac
+case "$EXT" in desc|info|macct|torrent|hash) BASE="$(echo "$BASE" | sed 's/\(.*\)\..*/\1/')" ;; esac
 IMGDIR="$LINBOIMGDIR/$BASE"
 
 # fetch host & domainname
@@ -133,7 +133,7 @@ case "$EXT" in
   torrent)
     # restart torrent service if torrent file was uploaded.
     echo "Torrent file $BASENAME detected. Restarting linbo-torrent service." >&2
-    linbo-torrent restart $BASENAME >&2
+    linbo-torrent restart >&2
   ;;
 
   new)

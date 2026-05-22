@@ -2,7 +2,7 @@
 #
 # linbo_upload
 # thomas@linuxmuster.net
-# 20250423
+# 20260520
 #
 
 usage(){
@@ -53,7 +53,7 @@ if [ -e "$FILE" ]; then
   if [ "$ext" = "qcow2" -o "$ext" = "qdiff" ]; then
     imagebase="${FILE%.$ext}"
     subdir="images/$imagebase/"
-    for item in info desc torrent; do
+    for item in info desc hash torrent; do
       [ -s "${FILE}.${item}" ] && filelist="$filelist ${FILE}.${item}"
     done
   fi
