@@ -2,7 +2,7 @@
 #
 # starts tmux sessions for each valid torrent in LINBODIR
 # thomas@linuxmuster.net
-# 20250517
+# 20250520
 #
 
 # read environment
@@ -46,13 +46,24 @@ usage(){
   exit 1
 }
 
+# save torrent hash
+save_hash(){
+  local torrent="$1"
+  local hash="${torrent%.torrent}.hash"
+  echo "Saving hash of $(basename "$torrent") ..."
+  LANG=C btcheck -ni "$torrent" | grep ^'Torrent Hash' | awk '{print $4}' > "$hash" || echo "Failed to save torrent hash!"
+}
+
 # updates the opentracker whitelist
 update_otr(){
   local torrent
-  echo "Updating opentracker torrent whitelist ..."
+  local hash
+  # save missing torrent hashes
   find "$LINBOIMGDIR" -maxdepth 2 -name "*.torrent" | while read -r torrent; do
-    btcheck -i "$torrent" -n | grep 'Torrent Hash' | awk '{print $4}'
-  done > "$OTRWLIST"
+    [ -s "${torrent%.torrent}.hash" ] || save_hash "$torrent"
+  done
+  echo "Updating opentracker torrent whitelist ..."
+  cat "$LINBOIMGDIR"/*/*.hash 2> /dev/null | sort -u > "$OTRWLIST"
   chown "$OTRUSER":"$OTRUSER" "$OTRWLIST"
   chmod 640 "$OTRWLIST"
   systemctl reload opentracker.service
@@ -65,12 +76,7 @@ check(){
   local tdir="$(dirname "$IMGLIST")"
   cd "$tdir"
   echo "Checking $torrent ..."
-  if ctorrent -c "$torrent"; then
-    echo "Ok!"
-  else
-    echo "Failed!"
-    exit 1
-  fi
+  btcheck -v "$torrent" || exit 1
 }
 
 # creates torrent files
@@ -85,7 +91,9 @@ create(){
   echo "Creating $torrent ..."
   cd "$tdir"
   rm -f "$torrent"
-  if ctorrent -t -u "http://$serverip:6969/announce" $plopt -s "$torrent" "$image" ; then
+  if buildtorrent --announce http://$serverip:6969/announce "$image" "$torrent" ; then
+    # save torrent hash
+    save_hash "$torrent"
     [ "$START" = "no" ] || linbo-torrent start "$IMGLIST"
   else
     echo "Failed!"
