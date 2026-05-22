@@ -2,7 +2,7 @@
 #
 # linbo_mktorrent
 # thomas@linuxmuster.net
-# 20250423
+# 20260520
 #
 
 usage(){
@@ -28,7 +28,6 @@ echo "### linbo_mktorrent $1"
 
 linbo_mountcache &> /dev/null || exit 1
 
-curdir="$(pwd)"
 cd /cache
 
 [ -s "$1" ] || usage 1
@@ -36,8 +35,8 @@ cd /cache
 RC="0"
 echo "Creating $1.torrent ..."
 rm -f "$1".torrent
-ctorrent -t -u http://"$LINBOSERVER":6969/announce $plopt -s "$1".torrent "$1" || RC="1"
-
-cd "$curdir"
+buildtorrent --announce http://$LINBOSERVER:6969/announce "$1" "$1.torrent" || RC="1"
+# save torrent hash
+LANG=C btcheck -ni "$1".torrent | grep ^'Torrent Hash' | awk '{print $4}' > "$1".hash || RC="1"
 
 exit "$RC"
