@@ -2,7 +2,7 @@
 #
 # linbo_initcache [serverip] [cachedev] [downloadtype] | [-h|help|--help]
 # thomas@linuxmuster.net
-# 20250427
+# 20260521
 #
 
 usage(){
@@ -48,6 +48,9 @@ fi
 linbo_mountcache &> /dev/null "$cache" || exit 1
 cd /cache
 
+# kill all seeding sessions
+linbo_kill_seeder all || exit 1
+
 # clean up obsolete image files
 images="$(images_startconf)"
 for img in *.qcow2; do
@@ -69,7 +72,7 @@ done
 for img in $images; do
   if [ -n "$img" ]; then
     linbo_download_image "$img" "$downloadtype" || exit 1
-    linbo_download_image "${img/.qcow2/.qdiff}" "$downloadtype"
+    [ "${img#*.}" = "qcow2" ] && linbo_download_image "${img/.qcow2/.qdiff}" "$downloadtype"
   fi
 done
 
