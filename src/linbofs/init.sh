@@ -508,7 +508,14 @@ linbo_autoinitcache | while read line; do
 done
 
 # seed cached torrents
-linbo_seed
+cd /cache
+for torrent in *.torrent; do
+  linbo_seeder "$torrent" | while read -r line; do
+    line="${line/---/}"
+    print_status "$line"
+    echo "$line" >> /tmp/init.log
+  done
+done
 
 # collect firmware infos and send it
 fwinfo="$(dmesg | grep firmware)"
