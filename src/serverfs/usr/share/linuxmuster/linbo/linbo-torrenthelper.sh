@@ -2,29 +2,16 @@
 #
 # thomas@linuxmuster.net
 # GPL v3
-# 20220317
+# 20260518
 #
-# linbo ctorrent helper script, started in a screen session by init script
+# linbo aria2c torrent helper script, started in a tmux session
 #
 
 torrent="$1"
 [ -s "$torrent" ] || exit 1
 
-# get ctorrent options from file
-[ -e /etc/default/linbo-torrent ] && source /etc/default/linbo-torrent
-
-[ -n "$SEEDHOURS" ] &&  OPTIONS="$OPTIONS -e $SEEDHOURS"
-[ -n "$MAXPEERS" ] &&  OPTIONS="$OPTIONS -M $MAXPEERS"
-[ -n "$MINPEERS" ] &&  OPTIONS="$OPTIONS -m $MINPEERS"
-[ -n "$SLICESIZE" ] &&  OPTIONS="$OPTIONS -z $SLICESIZE"
-[ -n "$MAXDOWN" ] &&  OPTIONS="$OPTIONS -D $MAXDOWN"
-[ -n "$MAXUP" ] &&  OPTIONS="$OPTIONS -U $MAXUP"
-OPTIONS="$OPTIONS $torrent"
-
-[ -n "$CTUSER" ] && SUDO="/usr/bin/sudo -u $CTUSER"
+SUDO="/usr/bin/sudo -u nobody"
 
 while true; do
- $SUDO /usr/bin/ctorrent $OPTIONS || exit 1
- # hash check only on initial start, add -f parameter
- echo "$OPTIONS" | grep -q ^"-f " || OPTIONS="-f $OPTIONS"
+ $SUDO /usr/bin/aria2c -V --seed-ratio=0.0 --enable-dht=false --disable-ipv6=true $torrent || exit 1
 done
