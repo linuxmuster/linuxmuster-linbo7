@@ -2,7 +2,7 @@
 #
 # linbo_download_image
 # thomas@linuxmuster.net
-# 20250510
+# 20260520
 #
 
 
@@ -19,80 +19,18 @@ usage(){
 }
 
 
-# torrent_watchdog image timeout
-torrent_watchdog(){
-  local image="$1"
-  local complete="$image".complete
-  local torrent="$image".torrent
-  local logfile=/tmp/"$image".log
-  local timeout="$2"
-  local line=""
-  local line_old=""
-  local int=10
-  local RC=1
-  local c=0
-  while [ $c -lt $timeout ]; do
-    sleep $int
-    # check if torrent is complete
-    [ -e "$complete" ] && { RC=0; break; }
-    line="$(tail -1 "$logfile" | awk '{ print $3 }')"
-    [ -z "$line_old" ] && line_old="$line"
-    if [ "$line_old" = "$line" ]; then
-      [ $c -eq 0 ] || echo -e "\nTorrent watchdog: download of $image stalls since $c seconds." >&2
-      c=$(($c+$int))
-    else
-      line_old="$line"
-      c=0
-    fi
-  done
-  rm -f "$logfile"
-  echo
-  if [ "$RC" = "0" ]; then
-    echo "Image $image downloaded successfully."
-  else
-    ps w | grep -v grep | grep -q ctorrent && killall -9 ctorrent
-    echo "Cancelled download of $image because of timeout." >&2
-  fi
-  return "$RC"
-}
-
-
 # download_torrent imagefile
 download_torrent(){
   local imagefile="$1"
   local torrent="$imagefile".torrent
-  local complete="$imagefile".complete
-  local RC=1
-  [ -e "$torrent" ] || return "$RC"
-  [ -z "$IP" -o "$IP" = "OFFLINE" ] && return "$RC"
-  # default values
-  local SEEDHOURS=100000
-  local MAXPEERS=100
-  local MINPEERS=1
-  local MAXUP
-  local MAXDOWN
-  local SLICESIZE=128
-  local TIMEOUT=300
-  local OPTIONS
-  local pid="$(ps w | grep ctorrent | grep "$torrent" | grep -v grep | awk '{ print $1 }')"
-  [ -n "$pid" ] && kill "$pid"
-  local CTOPTS="-I $IP -m $MINPEERS -M $MAXPEERS -z $SLICESIZE"
-  [ -n "$OPTIONS" ] && CTOPTS="$CTOPTS $OPTIONS"
-  [ -n "$MAXUP" ] && CTOPTS="$CTOPTS -U $MAXUP"
-  [ -n "$MAXDOWN" ] && CTOPTS="$CTOPTS -D $MAXDOWN"
-  echo "Torrent options: $CTOPTS"
-  echo "Starting torrent service for $imagefile."
-  local logfile=/tmp/"$imagefile".log
-  if [ ! -e "$complete" ]; then
-    rm -f "$imagefile" "$torrent".bf
-    torrent_watchdog "$imagefile" "$TIMEOUT" &
-    interruptible ctorrent -e 0 $CTOPTS -X "touch $complete" "$torrent" | tee -a "$logfile"
-  fi
+  [ -e "$torrent" ] || return 1
+  # kill seeder if running
+  linbo_kill_seeder "$torrent"
+  rm -f "$imagefile"
+  echo "Starting torrent download for $imagefile."
+  interruptible aria2c -c -V --enable-dht=false --disable-ipv6=true --seed-time=0 "$torrent" ; RC="$?"
   # start seeder if download is complete
-  if [ -e "$complete" ]; then
-    RC=0
-    ctorrent -e $SEEDHOURS $CTOPTS -f -d "$torrent"
-  fi
+  [ "$RC" = "0" ] && linbo_seeder "$torrent"
   return "$RC"
 }
 
@@ -146,21 +84,32 @@ echo "### $(basename $0) $@"
 
 source /conf/linbo &> /dev/null || exit 1
 
-case "$downloadtype" in
-  multicast|rsync|torrent) ;;
-  *) downloadtype="rsync" ;;
-esac
-
 imagebase="$(basename "$FILE" | sed 's/\(.*\)\..*/\1/')"
 imagetype="${FILE##*.}"
 case "$imagetype" in
   qcow2|qdiff|iso) subdir="images/$imagebase/" ;;
   *) echo "Unknown image type $imagetype." ; exit 1 ;;
 esac
-infofile="${FILE}.info"
 
-# check server for changed files
-if [ -s "$infofile" -a -s "$FILE" ]; then
+infofile="${FILE}.info"
+hashfile="${FILE}.hash"
+torrentfile="${FILE}.torrent"
+
+case "$downloadtype" in
+  torrent) linbo_download "${subdir}${hashfile}" &> /dev/null ;;
+  multicast) ;;
+  *) downloadtype="rsync" ;;
+esac
+
+# check hash in case of torrent
+if [ -s "$hashfile" -a -s "$torrentfile" ]; then
+  serverhash="$(cat "$hashfile")"
+  localhash="$(LANG=C btcheck -ni "$torrentfile" | grep ^'Torrent Hash' | awk '{print $4}')"
+  [ "$serverhash" = "$localhash" ] || DOWNLOAD="yes"
+fi
+
+# check info file
+if [ -z "$DOWNLOAD" -a -s "$infofile" -a -s "$FILE" ]; then
   # move info file
   mv -f "$infofile" "${infofile}.bak"
   # download infofile, first try from subdir
@@ -183,7 +132,7 @@ else
   DOWNLOAD="yes"
 fi
 
-# check also FILE size to know whether image download is needed
+# check FILE size
 if [ -z "$DOWNLOAD" ]; then
   fs1="$(getinfo "$infofile" imagesize | sed 's|\"||g')"
   fs2="$(get_filesize "$FILE")"
@@ -216,22 +165,16 @@ if [ -n "$DOWNLOAD" ]; then
 else
   echo "$FILE has not changed, nothing to do."
   # in case of downloadtype torrent, start seeding
-  if [ "$downloadtype" = "torrent" ]; then
-    [ -s "${FILE}.torrent" ] || linbo_download "${subdir}${FILE}.torrent" &> /dev/null
-    download_torrent "$FILE"
-  fi
+  [ "$downloadtype" = "torrent" ] && linbo_seeder "$torrentfile"
   exit 0
 fi
 
 # download image file
 RC=0
-rm -f "${FILE}.complete"
 case "$downloadtype" in
   torrent)
-    # remove old image and torrents before download starts
-    rm -f "$FILE" "${FILE}.torrent.bf"
     # download torrent file
-    linbo_download "${subdir}${FILE}.torrent" important &> /dev/null || RC="1"
+    linbo_download "${subdir}$torrentfile" important &> /dev/null || RC="1"
     if [ "$RC" = "0" ]; then
       download_torrent "$FILE" || RC="1"
     fi
