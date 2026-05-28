@@ -1,0 +1,5 @@
+# Powercap management driver modules
+# thomas@linuxmuster.net
+# 20260528
+
+kernel/drivers/powercap/intel_rapl_common.ko.zst

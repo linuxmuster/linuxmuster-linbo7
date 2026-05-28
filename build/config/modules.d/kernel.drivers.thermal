@@ -1,5 +1,18 @@
 # Thermal management driver modules
 # thomas@linuxmuster.net
-# 20260504
+# 20260528
 
+kernel/drivers/thermal/intel/int340x_thermal/platform_temperature_control.ko.zst
+kernel/drivers/thermal/intel/int340x_thermal/processor_thermal_device_pci_legacy.ko.zst
+kernel/drivers/thermal/intel/int340x_thermal/processor_thermal_device.ko.zst
+kernel/drivers/thermal/intel/int340x_thermal/processor_thermal_mbox.ko.zst
+kernel/drivers/thermal/intel/int340x_thermal/processor_thermal_rapl.ko.zst
+kernel/drivers/thermal/intel/int340x_thermal/processor_thermal_rfim.ko.zst
+kernel/drivers/thermal/intel/int340x_thermal/processor_thermal_power_floor.ko.zst
+kernel/drivers/thermal/intel/int340x_thermal/processor_thermal_soc_slider.ko.zst
+kernel/drivers/thermal/intel/int340x_thermal/processor_thermal_wt_hint.ko.zst
+kernel/drivers/thermal/intel/int340x_thermal/processor_thermal_wt_req.ko.zst
+kernel/drivers/thermal/intel/int340x_thermal/int340x_thermal_zone.ko.zst
+kernel/drivers/thermal/intel/intel_soc_dts_iosf.ko.zst
 kernel/drivers/thermal/intel/x86_pkg_temp_thermal.ko.zst
+kernel/drivers/thermal/thermal-generic-adc.ko.zst

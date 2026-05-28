@@ -1,6 +1,6 @@
 # Platform and WMI driver modules
 # thomas@linuxmuster.net
-# 20260504
+# 20260528
 
 kernel/drivers/platform/wmi/wmi.ko.zst
 kernel/drivers/platform/x86/dell/alienware-wmi.ko.zst
@@ -19,8 +19,9 @@ kernel/drivers/platform/x86/dell/dell-wmi.ko.zst
 kernel/drivers/platform/x86/dell/dell-wmi-led.ko.zst
 kernel/drivers/platform/x86/dell/dell-wmi-sysman/dell-wmi-sysman.ko.zst
 kernel/drivers/platform/x86/firmware_attributes_class.ko.zst
+kernel/drivers/platform/x86/intel/wmi/intel-wmi-sbl-fw-update.ko.zst
+kernel/drivers/platform/x86/intel/wmi/intel-wmi-thunderbolt.ko.zst
 kernel/drivers/platform/x86/lenovo/ideapad-laptop.ko.zst
 kernel/drivers/platform/x86/lenovo/think-lmi.ko.zst
-kernel/drivers/platform/x86/lenovo/thinkpad_acpi.ko.zst
 kernel/drivers/platform/x86/mxm-wmi.ko.zst
 kernel/drivers/platform/x86/wmi-bmof.ko.zst

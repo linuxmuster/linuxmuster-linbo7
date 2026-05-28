@@ -1,6 +1,6 @@
 # I2C bus driver modules
 # thomas@linuxmuster.net
-# 20260504
+# 20260528
 
 kernel/drivers/i2c/algos/i2c-algo-bit.ko.zst
 kernel/drivers/i2c/busses/i2c-amd756.ko.zst
@@ -13,4 +13,5 @@ kernel/drivers/i2c/busses/i2c-i801.ko.zst
 kernel/drivers/i2c/busses/i2c-isch.ko.zst
 kernel/drivers/i2c/busses/i2c-ismt.ko.zst
 kernel/drivers/i2c/busses/i2c-piix4.ko.zst
+kernel/drivers/i2c/i2c-mux.ko.zst
 kernel/drivers/i2c/i2c-smbus.ko.zst

@@ -1,0 +1,5 @@
+# Thunderbolt net driver modules
+# thomas@linuxmuster.net
+# 20260528
+
+kernel/drivers/net/thunderbolt/thunderbolt_net.ko.zst

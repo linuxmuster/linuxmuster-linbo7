@@ -13,6 +13,7 @@ kernel/drivers/usb/host/r8a66597-hcd.ko.zst
 kernel/drivers/usb/host/sl811_cs.ko.zst
 kernel/drivers/usb/host/sl811-hcd.ko.zst
 kernel/drivers/usb/host/ssb-hcd.ko.zst
+kernel/drivers/usb/host/xhci-pci-renesas.ko.zst
 kernel/drivers/usb/host/xhci-plat-hcd.ko.zst
 kernel/drivers/usb/storage/uas.ko.zst
 kernel/drivers/usb/storage/ums-alauda.ko.zst

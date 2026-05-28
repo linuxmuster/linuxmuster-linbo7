@@ -1,5 +1,6 @@
 # Media device driver modules
 # thomas@linuxmuster.net
-# 20260504
+# 20260528
 
 kernel/drivers/media/cec/core/cec.ko.zst
+kernel/drivers/media/rc/rc-core.ko.zst

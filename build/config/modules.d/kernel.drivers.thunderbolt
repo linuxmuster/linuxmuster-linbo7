@@ -1,0 +1,5 @@
+# Thunderbolt driver modules
+# thomas@linuxmuster.net
+# 20260528
+
+kernel/drivers/thunderbolt/thunderbolt.ko.zst
