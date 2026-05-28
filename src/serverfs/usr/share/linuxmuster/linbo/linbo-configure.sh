@@ -2,7 +2,7 @@
 #
 # configure script for linuxmuster-linbo7 package
 # thomas@linuxmuster.net
-# 20260518
+# 20260528
 #
 
 # read environment & setup values
@@ -72,6 +72,15 @@ systemctl daemon-reload
 if [ -n "$RUNMCAST" ]; then
   systemctl enable linbo-multicast.service
   systemctl restart linbo-multicast.service
+fi
+
+# remove remnants of old opentracker service if it exists
+conf="/etc/systemd/system/opentracker.service"
+if [ -e "$conf" ]; then
+  systemctl stop opentracker
+  systemctl disable opentracker
+  rm -f "$conf"
+  systemctl daemon-reload
 fi
 
 # check necessary services
