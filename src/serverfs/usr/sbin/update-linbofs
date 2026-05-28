@@ -120,7 +120,7 @@ copy_locale() {
 	#chroot ./ /usr/sbin/locale-gen --lang "$LANG"
 	#rm -f usr/sbin/locale-gen usr/bin/localedef
 	# create keyboard map for console
-	busybox dumpkmap > etc/console.kmap
+	chroot ./ /usr/bin/busybox dumpkmap > /etc/console.kmap
 }
 
 
