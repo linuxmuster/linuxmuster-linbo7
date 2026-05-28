@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 #
 # thomas@linuxmuster.net
-# 20260517
+# 20260528
 # GPL v3
 #
 
@@ -33,7 +33,7 @@ clean:
 	dh_clean -d
 
 	# reset root ownerships of files and directories created during the build process
-	build/bin/reset-root.sh	--exit-on-error 2>&1 | tee build.log
+	build/bin/reset-root.sh	--exit-on-error 2>&1 | tee -a build.log
 
 install: build
 	dh_testdir
