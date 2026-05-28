@@ -1,3 +1,13 @@
+linuxmuster-linbo7 (7.4.1-0) lmn74; urgency=low
+
+  * linbofs modules update (#150, a012380).
+  * fix module list concenation in kernel-harvester.sh (#150, fb863aa).
+  * update-linbofs: invoke busybox dumpkmap chrooted (#151, ede4d57).
+  * remove remnants of old opentracker service (#151, ede4d57).
+  * update opentracker.conf (#151, cceaee3).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 28 May 2026 16:08:24 +0200
+
 linuxmuster-linbo7 (7.4.0-0) lmn74; urgency=low
 
   * refactor kernel provisioning, switch to stock ubuntu kernel (#150).
@@ -20,7 +30,7 @@ linuxmuster-linbo7 (4.3.33-0) lmn73; urgency=low
   * Merge pull request #149 from amolani/feature/treiberpostsync-support,
     feat: add .driverpostsync hook support (bc04d94).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 25 May 2026 13:27:23 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 28 Apr 2026 16:35:54 +0200
 
 linuxmuster-linbo7 (4.3.32-0) lmn73; urgency=low
 
@@ -28,13 +38,13 @@ linuxmuster-linbo7 (4.3.32-0) lmn73; urgency=low
   * kernel updates: 6.1.167, 6.12.78 & 6.19.10 (#134).
   * fix #148: Wifi Firmware could not be loaded anymore (6837d3d).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 25 May 2026 13:27:23 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 25 Mar 2026 20:22:21 +0100
 
 linuxmuster-linbo7 (4.3.31-0) lmn73; urgency=low
 
   * fix error handling in case of not existing firmware configuration and logs (2491143).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 25 May 2026 13:27:23 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 12 Jan 2026 15:53:10 +0100
 
 linuxmuster-linbo7 (4.3.30-0) lmn73; urgency=low
 
@@ -48,7 +58,7 @@ linuxmuster-linbo7 (4.3.30-0) lmn73; urgency=low
   * add zstd to package depends (53f6cc2).
   * firmware handling improvements in update-linbofs (a6b798d, 94fb4af, 6c47dfc).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 12 Jan 2026 15:29:43 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 10 Jan 2026 16:28:00 +0100
 
 linuxmuster-linbo7 (4.3.29-0) lmn73; urgency=low
 
