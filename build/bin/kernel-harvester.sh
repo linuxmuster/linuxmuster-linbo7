@@ -52,7 +52,7 @@ while IFS= read -r line; do
     fi
     install -D -m 644 "$src" "$dst" || { echo "Error copying: $src"; (( errors++ )); continue; }
     (( count++ ))
-done < <(cat "$MODLISTDIR"/*)
+done < <(for f in "$MODLISTDIR"/*; do cat "$f"; echo; done)
 
 
 echo "Copied $count module(s)."
