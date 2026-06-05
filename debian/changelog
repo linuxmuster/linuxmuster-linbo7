@@ -1,3 +1,12 @@
+linuxmuster-linbo7 (7.4.2-0) lmn74; urgency=low
+
+  * linbo_partition: fix unmounting cache (a9688d0).
+  * increase width of linbo client boot output to 64 chars (dc7f60e).
+  * improve aria2c's console output (64e84f6, #152).
+  * fix plymouth's boot output (6986444).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri,  5 Jun 2026 22:39:30 +0200
+
 linuxmuster-linbo7 (7.4.1-0) lmn74; urgency=low
 
   * linbofs modules update (#150, a012380).
