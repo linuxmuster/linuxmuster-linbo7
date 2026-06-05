@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20260518
+# 20260605
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -65,10 +65,12 @@ isinteger () {
 
 # print status message
 print_status(){
+  local line="$1"
   if [ -n "$SPLASH" ]; then
-    plymouth --update="$1"
+    [ "${line:0:1}" = "-" ] && return
+    plymouth --update="$line"
   else
-    echo "$1"
+    echo "$line"
   fi
 }
 
@@ -494,7 +496,6 @@ if [ -s /linbocmd ]; then
     print_status "$msg"
     echo "$msg" 2>&1
     /usr/bin/linbo_wrapper "$cmd" | while read line; do
-      line="${line/---/}"
       print_status "$line"
     done
   done
@@ -503,7 +504,6 @@ fi
 
 # autoinitcache in case of nogui
 linbo_autoinitcache | while read line; do
-  line="${line/---/}"
   print_status "$line"
 done
 
@@ -511,7 +511,6 @@ done
 cd /cache
 for torrent in *.torrent; do
   linbo_seeder "$torrent" | while read -r line; do
-    line="${line/---/}"
     print_status "$line"
     echo "$line" >> /tmp/init.log
   done
