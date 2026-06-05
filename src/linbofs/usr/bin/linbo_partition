@@ -2,7 +2,7 @@
 #
 # linbo_partition [-h|help|--help]
 # thomas@linuxmuster.net
-# 20260522
+# 20260605
 #
 
 
@@ -209,14 +209,13 @@ if ! ls /conf/part.* &> /dev/null; then
 fi
 
 # kill all seeding sessions
-linbo_kill_seeder all || exit 1
-
 cd /
-mount | grep -q ' /cache ' && umount /cache &> /dev/null && sleep 3
-if mount | grep -q ' /cache '; then
-  echo "Cannot unmount /cache." >&2
-  exit 1
-fi
+linbo_kill_seeder all || exit 1
+sleep 3
+
+# unmount cache, exit if unmounting failed
+umount /cache || umount -l /cache
+mount | grep -q ' /cache ' && exit 1
 
 # collect partition infos from start.conf and write them to table
 table="/tmp/partitions"
