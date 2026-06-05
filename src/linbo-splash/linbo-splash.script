@@ -80,7 +80,7 @@ Plymouth.SetMessageFunction(message_callback);
 #----------------------------------------- Scrolling Boot Messages --------------------------------
 
 NUM_SCROLL_LINES=3;
-LINE_WIDTH=55;
+LINE_WIDTH=64;
 
 // Initialising text images and their positions
 // 20 is the height (including line spacing) of each line
