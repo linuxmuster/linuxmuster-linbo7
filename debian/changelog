@@ -1,3 +1,15 @@
+linuxmuster-linbo7 (7.4.3-0) lmn74; urgency=low
+
+  * fix wifi issue 'key addition failed', add kernel module ccm.ko.zst to linbofs (#150, d6af8e2).
+  * fix obsole grub module efi_uga.mod (7f39461).
+  * disable P2P (Peer-to-Peer) interface creation in wpa_supplicant.conf.ex (9ef2cc5).
+  * add missing dependency to logrotate (8df3c21).
+  * improve torrent hash file handling in conjunction with image updates on the client (6dd7f6b).
+  * update-linbofs: fix busybox dumpkmap (#151).
+  * add missing hdparm to linbofs (#151, 11b4ff8).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon,  8 Jun 2026 17:36:20 +0200
+
 linuxmuster-linbo7 (7.4.2-0) lmn74; urgency=low
 
   * linbo_partition: fix unmounting cache (a9688d0).
