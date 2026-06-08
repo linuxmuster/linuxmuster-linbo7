@@ -3,8 +3,12 @@
 # Must be provided under /etc/linuxmuster/linbo/wpa_supplicant.conf.
 #
 # thomas@linuxmuster.net
-# 20231016
+# 20260608
 #
+
+# Disable P2P (Peer-to-Peer) interface creation to avoid "nl80211: Could not set interface 'p2p-dev-wlan0' UP" errors.
+# This is required for Ubuntu 26.04+ where some wireless drivers don't support P2P interfaces.
+p2p_disabled=1
 
 # wpa-psk secured
 network={
