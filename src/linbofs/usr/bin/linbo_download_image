@@ -2,7 +2,7 @@
 #
 # linbo_download_image
 # thomas@linuxmuster.net
-# 20260605
+# 20260606
 #
 
 
@@ -103,7 +103,8 @@ case "$downloadtype" in
 esac
 
 # check hash in case of torrent
-if [ -s "$hashfile" -a -s "$torrentfile" ]; then
+if [ -s "$torrentfile" ]; then
+  linbo_download "${subdir}${hashfile}" || exit 1
   serverhash="$(cat "$hashfile")"
   localhash="$(LANG=C btcheck -ni "$torrentfile" | grep ^'Torrent Hash' | awk '{print $4}')"
   [ "$serverhash" = "$localhash" ] || DOWNLOAD="yes"
