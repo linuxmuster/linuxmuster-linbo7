@@ -1,6 +1,7 @@
 # Cryptographic algorithm modules
 # thomas@linuxmuster.net
-# 20260513
+# 20260608
 
+kernel/crypto/ccm.ko.zst
 kernel/crypto/echainiv.ko.zst
 kernel/crypto/hkdf.ko.zst
