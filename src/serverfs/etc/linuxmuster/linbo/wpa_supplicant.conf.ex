@@ -6,8 +6,7 @@
 # 20260608
 #
 
-# Disable P2P (Peer-to-Peer) interface creation to avoid "nl80211: Could not set interface 'p2p-dev-wlan0' UP" errors.
-# This is required for Ubuntu 26.04+ where some wireless drivers don't support P2P interfaces.
+# disable P2P (Peer-to-Peer) interface creation, unecessary for Linbo
 p2p_disabled=1
 
 # wpa-psk secured
