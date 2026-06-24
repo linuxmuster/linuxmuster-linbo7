@@ -6,7 +6,7 @@
 #
 # thomas@linuxmuster.net
 # GPL V3
-# 20260608
+# 20260623
 #
 
 # read linuxmuster environment
@@ -95,7 +95,9 @@ exec_hooks() {
 
 # provide system locale in linbofs
 copy_locale() {
-	[ -z "$LANG" ] && return
+	[ -z "$LANG" -a -s "/etc/locale.conf" ] && source "/etc/locale.conf"
+	[ -z "$LANG" -a -s "/etc/default/locale" ] && source "/etc/default/locale"
+	[ -z "$LANG" ] && LANG="C.UTF-8"
 	cmap="${LANG#*.}"
 	echo "Copy locale $LANG ..."
 	mkdir -p usr/lib/locale
