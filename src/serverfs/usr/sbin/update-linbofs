@@ -6,7 +6,7 @@
 #
 # thomas@linuxmuster.net
 # GPL V3
-# 20260623
+# 20260624
 #
 
 # read linuxmuster environment
@@ -323,6 +323,9 @@ create_linbofs() {
 			[ -f "$i" ] && chmod 644 "$i"
 		fi
 	done
+
+	# copy linbo-torrent defaults
+	cp -f /etc/default/linbo-torrent etc/default
 
 	# copy default start.conf
 	cp -f $LINBODIR/start.conf .

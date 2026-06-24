@@ -2,7 +2,7 @@
 #
 # starts tmux sessions for each valid torrent in LINBODIR
 # thomas@linuxmuster.net
-# 20250520
+# 20260624
 #
 
 # read environment
@@ -44,6 +44,14 @@ usage(){
   echo " * \"update-otr\" updates the opentracker whitelist $OTRWLIST."
   echo
   exit 1
+}
+
+# update image permissions
+update_permissions(){
+  chown nobody:nogroup "$LINBOIMGDIR" -R
+  chown "$OTRUSER":"$OTRUSER" "$OTRDIR" -R
+  chown root:root "$LINBOIMGDIR"/*/*.macct
+  chmod 600 "$LINBOIMGDIR"/*/*.macct
 }
 
 # save torrent hash
@@ -223,6 +231,9 @@ else
       ;;
   esac
 fi
+
+# update image permissions
+update_permissions
 
 case "$1" in
   start) start ; UPDATE_OTR="yes" ;;

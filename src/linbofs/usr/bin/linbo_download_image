@@ -2,7 +2,7 @@
 #
 # linbo_download_image
 # thomas@linuxmuster.net
-# 20260606
+# 20260624
 #
 
 
@@ -24,12 +24,15 @@ download_torrent(){
   local imagefile="$1"
   local torrent="$imagefile".torrent
   [ -e "$torrent" ] || return 1
+  source /etc/default/linbo-torrent || return 1
   # kill seeder if running
   linbo_kill_seeder "$torrent"
   rm -f "$imagefile"
   echo "Starting torrent download for $imagefile."
-  aria2c -c --console-log-level=notice --show-console-readout=true --summary-interval=1 \
-    --enable-color=false --enable-dht=false --disable-ipv6=true --seed-time=0 "$torrent" ; RC="$?"
+  aria2c $ARIA2C_DWNLD_OPTS "$torrent" 2>&1 | awk '/^\[#/{print; fflush()}'
+  RC="$?"
+  #aria2c -c --console-log-level=notice --show-console-readout=true --summary-interval=1 \
+  #  --enable-color=false --enable-dht=false --disable-ipv6=true --seed-time=0 "$torrent" ; RC="$?"
   # start seeder if download is complete
   [ "$RC" = "0" ] && linbo_seeder "$torrent"
   return "$RC"
