@@ -2,7 +2,7 @@
 #
 # linbo_download_image
 # thomas@linuxmuster.net
-# 20260624
+# 20260625
 #
 
 
@@ -29,7 +29,7 @@ download_torrent(){
   linbo_kill_seeder "$torrent"
   rm -f "$imagefile"
   echo "Starting torrent download for $imagefile."
-  aria2c $ARIA2C_DWNLD_OPTS "$torrent" 2>&1 | awk '/^\[#/{print; fflush()}'
+  aria2c $ARIA2C_GLOBAL_OPTS $ARIA2C_DWNLD_OPTS "$torrent" 2>&1 | awk '/^\[#/{print; fflush()}'
   RC="$?"
   #aria2c -c --console-log-level=notice --show-console-readout=true --summary-interval=1 \
   #  --enable-color=false --enable-dht=false --disable-ipv6=true --seed-time=0 "$torrent" ; RC="$?"

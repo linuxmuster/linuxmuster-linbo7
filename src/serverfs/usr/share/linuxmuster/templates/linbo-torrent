@@ -1,0 +1,16 @@
+# /etc/default/linbo-torrent
+#
+# aria2c options, only change that if you know exactly what you're doing.
+#
+# thomas@linuxmuster.net
+# 20260625
+#
+
+# used for both purposes
+ARIA2C_GLOBAL_OPTS="--enable-color=false --enable-dht=false --disable-ipv6=true"
+
+# used for torrent downloads
+ARIA2C_DWNLD_OPTS="-c --console-log-level=notice --show-console-readout=true --summary-interval=3 --seed-time=0"
+
+# used to seed torrents
+ARIA2C_SEED_OPTS="-V --seed-ratio=0.0"

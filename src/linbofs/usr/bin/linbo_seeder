@@ -2,7 +2,7 @@
 #
 # linbo_seeder
 # thomas@linuxmuster.net
-# 20260520
+# 20260625
 
 # no cache, do nothing
 [ -e /tmp/linbo-cache.done ] || exit 0
@@ -79,7 +79,7 @@ if tmux list-sessions | grep -q ^"$session" &> /dev/null; then
 fi
 
 # finally seed in tmux session
-tmux new -ds "$session" "aria2c $ARIA2C_SEED_OPTS $torrent ; exec $SHELL"
+tmux new -ds "$session" "aria2c $ARIA2C_GLOBAL_OPTS $ARIA2C_SEED_OPTS $torrent ; exec $SHELL"
 
 # check success
 if tmux list-sessions | grep -q ^"$session"; then

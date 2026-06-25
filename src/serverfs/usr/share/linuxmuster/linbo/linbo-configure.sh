@@ -2,11 +2,11 @@
 #
 # configure script for linuxmuster-linbo7 package
 # thomas@linuxmuster.net
-# 20260528
+# 20260625
 #
 
 # read environment & setup values
-. /usr/share/linuxmuster/environment.sh
+. /usr/share/linuxmuster/helperfunctions.sh
 
 # config file backup dir
 mkdir -p "$LINBODIR/backup"
@@ -49,30 +49,11 @@ fi
 # create grub netboot directory
 "$LINBOSHAREDIR/mkgrubnetdir.sh"
 
-# remove deprecated linbo-bittorrent stuff
-[ -e /etc/default/linbo-bittorrent ] && rm -f /etc/default/linbo-bittorrent
-[ -e /etc/default/bittorrent ] && rm -f /etc/default/bittorrent
-
-# remove outdated linbo-multicast start script
-if [ -e /etc/init.d/linbo-multicast ]; then
-  # lookup for running udp-sender and save status
-  ps ax | grep -v grep | grep -q udp-sender && RUNMCAST="yes"
-  systemctl stop linbo-multicast
-  systemctl disable linbo-multicast
-  rm -f /etc/init.d/linbo-multicast
-fi
-
 # apply any systemd changes
 systemctl daemon-reload
 
 # do the rest only on configured systems
 [ -e "$SETUPINI" ] || exit 0
-
-# activate linbo-multicast service if it was running before migration
-if [ -n "$RUNMCAST" ]; then
-  systemctl enable linbo-multicast.service
-  systemctl restart linbo-multicast.service
-fi
 
 # remove remnants of old opentracker service if it exists
 conf="/etc/systemd/system/opentracker.service"
@@ -83,15 +64,45 @@ if [ -e "$conf" ]; then
   systemctl daemon-reload
 fi
 
-# check necessary services
-for i in opentracker linbo-torrent; do
-  systemctl is-enabled $i.service &> /dev/null || systemctl enable $i.service
-  systemctl is-active $i.service &> /dev/null || systemctl start $i.service
+# check linbo's multicast and torrent services
+for service in linbo-multicast linbo-torrent; do
+  tpl="$TPLDIR/$service"
+  conf="$(get_confpath "$tpl")"
+  changed=""
+  if [ ! -e "$conf" ]; then
+    # services should be restarted if config file was changed
+    changed="yes"
+    # copy missing config file from template
+    cp "$tpl" "$conf"
+  fi
+  # copy linbo-torrent config file if does not contain aria2c options
+  if [ "$service" = "linbo-torrent" -a -z "$(grep ^ARIA2C "$conf")" ]; then
+    changed="yes"
+    cp "$tpl" "$conf"
+  fi
+  # enable linbo-torrent service if necessary
+  [ "$service" = "linbo-torrent" -a "$(systemctl is-enabled "$service" 2>/dev/null)" = "disabled" ] && systemctl enable "$service"
+  # restart service if config file was changed
+  if [ -n "$changed" ]; then
+    case "$service" in
+      # restart linbo-multicast if config file was copied and service is enabled
+      linbo-multicast) systemctl is-enabled "$service" &> /dev/null && systemctl restart "$service" ;;
+      # restart linbo-torrent if config file was copied and enable service if necessary
+      *) systemctl restart "$service" ;;
+    esac
+  elif [ "$service" = "linbo-torrent" ]; then
+    # start linbo-torrent if not running and config file was not changed
+    systemctl is-active "$service" &> /dev/null || systemctl start "$service"
+  fi
 done
+
+# enable and start opentracker again
+systemctl is-enabled opentracker &> /dev/null || systemctl enable opentracker
+systemctl is-active opentracker &> /dev/null || systemctl start opentracker
 
 # check for linbo compliant opentracker config and create it if not
 tpl="$TPLDIR/opentracker.conf"
-conf="$(head -1 "$tpl" | awk '{print $2}')"
+conf="$(get_confpath "$tpl")"
 if ! grep -q "$OTRDIR" "$conf" 2>/dev/null; then
   mkdir -p "$(dirname "$conf")"
   [ -e "$conf" ] && cp "$conf" "${conf}.dpkg-bak"
@@ -114,7 +125,7 @@ fi
 
 # provide rsync service override
 tpl="$TPLDIR/rsync.override.conf"
-conf="$(head -1 "$tpl" | awk '{print $2}')"
+conf="$(get_confpath "$tpl")"
 if [ ! -s "$conf" ]; then
   mkdir -p "$(dirname "$conf")"
   cp -f "$tpl" "$conf"

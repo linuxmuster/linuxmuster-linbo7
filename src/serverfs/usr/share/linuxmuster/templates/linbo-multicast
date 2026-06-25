@@ -1,6 +1,9 @@
+# /etc/default/linbo-multicast
+#
 # default values for linbo multicast server
+#
 # thomas@linuxmuster.net
-# 20211012
+# 20260625
 #
 
 # variables for udpcast
