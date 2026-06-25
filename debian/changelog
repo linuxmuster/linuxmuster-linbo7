@@ -1,3 +1,12 @@
+linuxmuster-linbo7 (7.4.4) lmn74; urgency=low
+
+  * update-linbofs locale fix (cfb2040).
+  * make aria2c options configurable (#152, e13916e, a198007).
+  * improve handling of linbo-multicast config files (a198007).
+  * remove package revision no. from version.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 25 Jun 2026 10:47:36 +0200
+
 linuxmuster-linbo7 (7.4.3-0) lmn74; urgency=low
 
   * fix wifi issue 'key addition failed', add kernel module ccm.ko.zst to linbofs (#150, d6af8e2).
