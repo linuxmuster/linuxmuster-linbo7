@@ -2,7 +2,7 @@
 #
 # linbo_partition [-h|help|--help]
 # thomas@linuxmuster.net
-# 20260605
+# 20260703
 #
 
 
@@ -213,9 +213,17 @@ cd /
 linbo_kill_seeder all || exit 1
 sleep 3
 
-# unmount cache, exit if unmounting failed
-umount /cache || umount -l /cache
-mount | grep -q ' /cache ' && exit 1
+# Retry umount up to 10 times: linbo_gui periodically re-mounts /cache for
+# status polling, racing against a single umount attempt.
+for _ in 1 2 3 4 5 6 7 8 9 10; do
+  mount | grep -q ' /cache ' || break
+  umount /cache &> /dev/null
+  sleep 1
+done
+if mount | grep -q ' /cache '; then
+  echo "Cannot unmount /cache." >&2
+  exit 1
+fi
 
 # collect partition infos from start.conf and write them to table
 table="/tmp/partitions"
