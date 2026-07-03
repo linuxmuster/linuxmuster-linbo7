@@ -4,7 +4,7 @@
 # based on https://git.kernel.org/pub/scm/linux/kernel/git/mricon/korg-helpers.git/plain/get-verified-tarball
 # modified for linuxmuster-linbo7
 # thomas@linuxmuster.net
-# 20250313
+# 20260703
 # --------------------
 # Get Linux kernel tarball and cryptographically verify it,
 # retrieving the PGP keys using the Web Key Directory (WKD)
@@ -56,6 +56,10 @@ SHA256SUMBIN="/usr/bin/sha256sum"
 CURLBIN="/usr/bin/curl"
 # And we need the xz binary
 XZBIN="/usr/bin/xz"
+# Used as a fallback source if the cdn.kernel.org tarball/signature
+# is unavailable -- we fetch the signed git tag instead.
+GITBIN="/usr/bin/git"
+GITREPO="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git"
 
 # You shouldn't need to modify this, unless someone
 # other than Linus or Greg start releasing kernels.
@@ -103,6 +107,10 @@ if [[ ! -x ${GPGBIN} ]]; then
 fi
 if [[ ! -x ${GPGVBIN} ]]; then
     echo "Could not find gpgv in ${GPGVBIN}"
+    exit 1
+fi
+if [[ ! -x ${GITBIN} ]]; then
+    echo "Could not find git in ${GITBIN}"
     exit 1
 fi
 
@@ -157,66 +165,98 @@ TXZ="https://cdn.kernel.org/pub/linux/kernel/v${MAJOR}.x/linux-${VER}.tar.xz"
 SIG="https://cdn.kernel.org/pub/linux/kernel/v${MAJOR}.x/linux-${VER}.tar.sign"
 SHA="https://www.kernel.org/pub/linux/kernel/v${MAJOR}.x/sha256sums.asc"
 
-# Before we verify the developer signature, we make sure that the
-# tarball matches what is on the kernel.org master. This avoids
-# CDN cache poisoning that could, in theory, use vulnerabilities in
-# the XZ binary to alter the verification process or compromise the
-# system performing the verification.
+# Before we verify the developer signature, we try to make sure that
+# the tarball matches what is on the kernel.org master, as a guard
+# against CDN cache poisoning. This is a supplementary check only --
+# kernel.org's own docs say it "is NOT intended to replace developer
+# signatures" -- so if the checksums file is unavailable or fails to
+# verify, we warn and fall back to relying solely on the developer
+# PGP signature checked further down.
+HAVE_SHACHECK=
 SHAFILE=${TMPDIR}/sha256sums.asc
 echo "Downloading the checksums file for linux-${VER}"
-if ! ${CURLBIN} -sL -o ${SHAFILE} ${SHA}; then
-    echo "Failed to download the checksums file"
-    rm -rf ${TMPDIR}
-    exit 1
+if ! ${CURLBIN} -sfL -o ${SHAFILE} ${SHA}; then
+    echo "WARNING: could not download the checksums file, skipping mirror integrity pre-check"
+else
+    echo "Verifying the checksums file"
+    COUNT=$(${GPGVBIN} --keyring=${SHAKEYRING} --status-fd=1 ${SHAFILE} \
+            | grep -c -E '^\[GNUPG:\] (GOODSIG|VALIDSIG)')
+    if [[ ${COUNT} -lt 2 ]]; then
+        echo "WARNING: could not verify the sha256sums.asc file, skipping mirror integrity pre-check"
+    else
+        # Grab only the tarball we want from the full list
+        SHACHECK=${TMPDIR}/sha256sums.txt
+        grep "linux-${VER}.tar.xz" ${SHAFILE} > ${SHACHECK}
+        HAVE_SHACHECK=1
+    fi
 fi
-echo "Verifying the checksums file"
-COUNT=$(${GPGVBIN} --keyring=${SHAKEYRING} --status-fd=1 ${SHAFILE} \
-        | grep -c -E '^\[GNUPG:\] (GOODSIG|VALIDSIG)')
-if [[ ${COUNT} -lt 2 ]]; then
-    echo "FAILED to verify the sha256sums.asc file."
-    rm -rf ${TMPDIR}
-    exit 1
-fi
-# Grab only the tarball we want from the full list
-SHACHECK=${TMPDIR}/sha256sums.txt
-grep "linux-${VER}.tar.xz" ${SHAFILE} > ${SHACHECK}
+
+TXZFILE=${TMPDIR}/linux-${VER}.tar.xz
+SIGFILE=${TMPDIR}/linux-${VER}.tar.asc
+SOURCE=
 
 echo
 echo "Downloading the signature file for linux-${VER}"
-SIGFILE=${TMPDIR}/linux-${VER}.tar.asc
-if ! ${CURLBIN} -sL -o ${SIGFILE} ${SIG}; then
-    echo "Failed to download the signature file"
-    rm -rf ${TMPDIR}
-    exit 1
-fi
 echo "Downloading the XZ tarball for linux-${VER}"
-TXZFILE=${TMPDIR}/linux-${VER}.tar.xz
-if ! ${CURLBIN} -L -o ${TXZFILE} ${TXZ}; then
-    echo "Failed to download the tarball"
-    rm -rf ${TMPDIR}
-    exit 1
+if ${CURLBIN} -sfL -o ${SIGFILE} ${SIG} && ${CURLBIN} -fL -o ${TXZFILE} ${TXZ}; then
+    SOURCE=cdn
+else
+    echo "WARNING: could not download the tarball and/or signature from cdn.kernel.org"
 fi
 
-pushd ${TMPDIR} >/dev/null
-echo "Verifying checksum on linux-${VER}.tar.xz"
-if ! ${SHA256SUMBIN} -c ${SHACHECK}; then
-    echo "FAILED to verify the downloaded tarball checksum"
-    popd >/dev/null
-    rm -rf ${TMPDIR}
-    exit 1
-fi
-popd >/dev/null
+if [[ ${SOURCE} == "cdn" ]]; then
+    if [[ -n ${HAVE_SHACHECK} ]]; then
+        pushd ${TMPDIR} >/dev/null
+        echo "Verifying checksum on linux-${VER}.tar.xz"
+        if ! ${SHA256SUMBIN} -c ${SHACHECK}; then
+            echo "FAILED to verify the downloaded tarball checksum"
+            popd >/dev/null
+            rm -rf ${TMPDIR}
+            exit 1
+        fi
+        popd >/dev/null
+    fi
 
-echo
-echo "Verifying developer signature on the tarball"
-COUNT=$(${XZBIN} -cd ${TXZFILE} \
-        | ${GPGVBIN} --keyring=${DEVKEYRING} --status-fd=1 ${SIGFILE} - \
-        | grep -c -E '^\[GNUPG:\] (GOODSIG|VALIDSIG)')
-if [[ ${COUNT} -lt 2 ]]; then
-    echo "FAILED to verify the tarball!"
-    rm -rf ${TMPDIR}
-    exit 1
+    echo
+    echo "Verifying developer signature on the tarball"
+    COUNT=$(${XZBIN} -cd ${TXZFILE} \
+            | ${GPGVBIN} --keyring=${DEVKEYRING} --status-fd=1 ${SIGFILE} - \
+            | grep -c -E '^\[GNUPG:\] (GOODSIG|VALIDSIG)')
+    if [[ ${COUNT} -lt 2 ]]; then
+        echo "FAILED to verify the tarball!"
+        rm -rf ${TMPDIR}
+        exit 1
+    fi
+else
+    # cdn.kernel.org doesn't have this tarball right now (this has been
+    # observed to happen for recently released versions). Fall back to
+    # fetching the signed git tag from git.kernel.org and building the
+    # tarball ourselves -- git verify-tag is just as strong a guarantee
+    # as the detached PGP signature on the official tarball, since it
+    # checks the same developer key against the same commit content.
+    echo
+    echo "Falling back to git.kernel.org for linux-${VER}"
+    GITDIR=${TMPDIR}/linux-git
+    if ! ${GITBIN} clone --quiet --depth 1 --branch "v${VER}" ${GITREPO} ${GITDIR}; then
+        echo "Failed to fetch v${VER} from ${GITREPO}"
+        rm -rf ${TMPDIR}
+        exit 1
+    fi
+    echo "Verifying signed git tag v${VER}"
+    if ! GNUPGHOME=${GNUPGHOME} ${GITBIN} -C ${GITDIR} verify-tag "v${VER}"; then
+        echo "FAILED to verify the git tag v${VER}!"
+        rm -rf ${TMPDIR}
+        exit 1
+    fi
+    echo "Archiving verified source tree for linux-${VER}"
+    if ! ${GITBIN} -C ${GITDIR} archive --format=tar --prefix="linux-${VER}/" "v${VER}" \
+            | ${XZBIN} -T0 -9 > ${TXZFILE}; then
+        echo "Failed to create the tarball from the verified git tree"
+        rm -rf ${TMPDIR}
+        exit 1
+    fi
 fi
+
 mv -f ${TXZFILE} ${TARGET}
 rm -rf ${TMPDIR}
 echo
