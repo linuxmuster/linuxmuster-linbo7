@@ -6,7 +6,6 @@
     ],
     "deny": [
       "Read(cache/**)",
-      "Read(src/**)",
       "Read(cache/**)"
     ],
     "ask": []
