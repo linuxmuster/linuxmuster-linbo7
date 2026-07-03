@@ -1,3 +1,11 @@
+linuxmuster-linbo7 (4.3.34-0) lmn73; urgency=low
+
+  * fix(linbo_partition): retry umount /cache to survive concurrent re-mounts (#155, 2585d13).
+  * fix(get-verified-kernel): handle missing sha256sums.asc and CDN gaps (7761e10).
+  * kernel updates: 6.1.176, 6.12.94, 7.0.14 (#134, cefe9c1).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri,  3 Jul 2026 18:50:00 +0200
+
 linuxmuster-linbo7 (4.3.33-0) lmn73; urgency=low
 
   * kernel updates: 6.1.169, 6.12.84 & 6.19.14 (#134, f609324).
