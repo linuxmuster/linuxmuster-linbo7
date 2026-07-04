@@ -240,8 +240,7 @@ provide_firmware() {
 	# return if empty
 	[ -z "$fw_names" ] && return
 
-	# download firmware list from kernel.org
-	download_fwlist
+	mkdir -p "$FW_CACHE"
 
 	echo "Collecting firmware to cache:"
 	: > "$FW_MANIFEST"
@@ -253,6 +252,7 @@ provide_firmware() {
 	# copy firmware to cache (local & remote)
 	local fw_name
 	local paths
+	local fwlist_attempted
 	for fw_name in $fw_names; do
 		# regulatory.db is already copied to cache
 		stringinstring regulatory "$fw_name" && continue
@@ -261,6 +261,12 @@ provide_firmware() {
 			echo " - "$fw_name" (local)"
 			printf '%s\n' "$paths" >> "$FW_MANIFEST"
 			continue
+		fi
+		# download firmware list from kernel.org, but only once and only
+		# if firmware is actually missing locally
+		if [ -z "$fwlist_attempted" ]; then
+			fwlist_attempted=1
+			download_fwlist
 		fi
 		# download firmware not locally available
 		if [ -s "$FW_LIST_LOCAL" ] && paths="$(download_fw "$fw_name")"; then
