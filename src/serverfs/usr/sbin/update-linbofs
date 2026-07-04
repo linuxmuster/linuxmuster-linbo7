@@ -302,7 +302,7 @@ create_linbofs() {
 	case "$KTYPE" in
 		default)
 			echo "Extracting modules ..."
-			tar xf "$MODULESPATH" | exit 1
+			tar xf "$MODULESPATH" || bailout "Failed to extract modules!"
 			;;
 		*)
 			echo "Copying modules ..."
