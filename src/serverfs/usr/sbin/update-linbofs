@@ -116,7 +116,7 @@ copy_locale() {
 	cp /usr/share/i18n/locales/iso14651_t1* usr/share/i18n/locales
 	cp /usr/share/i18n/locales/translit_* usr/share/i18n/locales
 	cp "/usr/share/i18n/charmaps/$cmap.gz" usr/share/i18n/charmaps
-	rsync -a /usr/lib/locale/ usr/lib/locale/
+	rsync -a /usr/lib/locale/ usr/lib/locale/ || bailout "Failed to copy /usr/lib/locale!"
 	#cp /usr/sbin/locale-gen usr/sbin
 	#cp /usr/bin/localedef usr/bin
 	#cp /usr/bin/locale usr/bin
@@ -127,7 +127,7 @@ copy_locale() {
 	#chroot ./ /usr/sbin/locale-gen --lang "$LANG"
 	#rm -f usr/sbin/locale-gen usr/bin/localedef
 	# create keyboard map for console
-	busybox dumpkmap > etc/console.kmap
+	busybox dumpkmap > etc/console.kmap || bailout "Failed to create console keymap!"
 }
 
 
@@ -371,7 +371,7 @@ create_linbofs() {
 	done
 
 	# copy linbo-torrent defaults
-	cp -f /etc/default/linbo-torrent etc/default
+	cp -f /etc/default/linbo-torrent etc/default || bailout "Failed to copy linbo-torrent defaults!"
 
 	# copy default start.conf
 	cp -f "$LINBODIR"/start.conf . || bailout "Failed to copy start.conf!"
@@ -388,16 +388,16 @@ create_linbofs() {
 	# provide wpa_supplicant config
 	conf="$LINBOSYSDIR/wpa_supplicant.conf"
 	if [ -s "$conf" ]; then
-		echo "Copying $(basename $conf) ..."
-		cp "$conf" etc
+		echo "Copying $(basename "$conf") ..."
+		cp "$conf" etc || bailout "Failed to copy $(basename "$conf")!"
 	fi
 
 	# provide additional inittab entries
 	conf="$LINBOSYSDIR/inittab"
 	if [ -s "$conf" ]; then
-		echo "Adding custom $(basename $conf) entries ..."
-		echo "# custom entries" >> "etc/$(basename $conf)"
-		grep -v ^# "$conf" | grep -v '^$' >> "etc/$(basename $conf)"
+		echo "Adding custom $(basename "$conf") entries ..."
+		echo "# custom entries" >> "etc/$(basename "$conf")" || bailout "Failed to add custom $(basename "$conf") entries!"
+		grep -v ^# "$conf" | grep -v '^$' >> "etc/$(basename "$conf")"
 	fi
 
 	# execute pre hook scripts
