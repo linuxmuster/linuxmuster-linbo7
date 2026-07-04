@@ -6,7 +6,7 @@
 #
 # thomas@linuxmuster.net
 # GPL V3
-# 20260624
+# 20260704
 #
 
 # read linuxmuster environment
@@ -35,6 +35,7 @@ FW_SYSTEM="/lib/firmware"
 FW_CACHE="$LINBOCACHEDIR/firmware"
 FW_LIST_LOCAL="$FW_CACHE/.fw_list"
 FW_LIST_REMOTE="WHENCE"
+FW_MANIFEST="$FW_CACHE/.fw_manifest"
 FW_URL="https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git/plain"
 
 
@@ -168,7 +169,11 @@ download_fw() {
 		if wget -q "$FW_URL/$item" -O "$tmp_file"; then
 			mv "$tmp_file" "$local_file"
 			# compress downloaded firmware file
-			zstd -qf --adapt --rm "$local_file" || RC=1
+			if zstd -qf --adapt --rm "$local_file"; then
+				echo "${item}.zst"
+			else
+				RC=1
+			fi
 		else
 			rm -f "$tmp_file"
 			RC=1
@@ -210,12 +215,14 @@ copy_fw() {
 		local fw_target="${fw_dir/$FW_SYSTEM/$FW_CACHE}"
 		mkdir -p "$fw_target"
 		cp -L "$fw_src" "$fw_target" || return 1
+		echo "${fw_src#$FW_SYSTEM/}"
 		return
 	fi
 	# get firmware directory from local system
 	fw_src="$(find "$FW_SYSTEM" -name "$fw_name" -type d -print -quit)"
 	[ -d "$fw_src" ] || return 1
-	cp -r "$fw_src" "$FW_CACHE"
+	cp -r "$fw_src" "$FW_CACHE" || return 1
+	echo "$(basename "$fw_src")"
 }
 
 
@@ -237,23 +244,35 @@ provide_firmware() {
 	download_fwlist
 
 	echo "Collecting firmware to cache:"
+	: > "$FW_MANIFEST"
 	# use local copy of regulatory.db
-	rsync "$FW_SYSTEM"/regulatory.db* "$FW_CACHE" && echo " - regulatory.db (local)"
+	if rsync "$FW_SYSTEM"/regulatory.db* "$FW_CACHE"; then
+		echo " - regulatory.db (local)"
+		find "$FW_CACHE" -maxdepth 1 -name 'regulatory.db*' -printf '%f\n' >> "$FW_MANIFEST"
+	fi
 	# copy firmware to cache (local & remote)
 	local fw_name
+	local paths
 	for fw_name in $fw_names; do
 		# regulatory.db is already copied to cache
 		stringinstring regulatory "$fw_name" && continue
 		# copy firmware locally available
-		copy_fw "$fw_name" && echo " - "$fw_name" (local)" && continue
+		if paths="$(copy_fw "$fw_name")"; then
+			echo " - "$fw_name" (local)"
+			printf '%s\n' "$paths" >> "$FW_MANIFEST"
+			continue
+		fi
 		# download firmware not locally available
-		[ -s "$FW_LIST_LOCAL" ] && download_fw "$fw_name" && echo " - "$fw_name" (remote)"
+		if [ -s "$FW_LIST_LOCAL" ] && paths="$(download_fw "$fw_name")"; then
+			echo " - "$fw_name" (remote)"
+			printf '%s\n' "$paths" >> "$FW_MANIFEST"
+		fi
 	done
 
 	echo "Copying all cached firmware to linbofs:"
 	local fw_target="${FW_SYSTEM/\/}"
-	local fw_list="$(basename "$FW_LIST_LOCAL")"
-	rsync -rv --exclude="$fw_list" "$FW_CACHE/" "$fw_target/"
+	rsync -rv --files-from="$FW_MANIFEST" "$FW_CACHE/" "$fw_target/"
+	rm -f "$FW_MANIFEST"
 }
 
 
