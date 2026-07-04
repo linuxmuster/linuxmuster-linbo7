@@ -333,9 +333,9 @@ create_linbofs() {
 			;;
 		*)
 			echo "Copying modules ..."
-			cp -r "$MODULESPATH" lib/modules
+			cp -r "$MODULESPATH" lib/modules || bailout "Failed to copy modules!"
 			echo "Generating modules.dep and map files ..."
-			depmod -a -b . "$KVERS"
+			depmod -a -b . "$KVERS" || bailout "Failed to generate module dependencies!"
 			;;
 	esac
 
@@ -349,11 +349,11 @@ create_linbofs() {
 
 	# provide dropbear ssh host key
 	mkdir -p etc/dropbear
-	cp $LINBOSYSDIR/dropbear_*_host_key etc/dropbear
+	cp $LINBOSYSDIR/dropbear_*_host_key etc/dropbear || bailout "Failed to copy dropbear host keys!"
 	mkdir -p etc/ssh
-	cp $LINBOSYSDIR/ssh_host_*_key* etc/ssh
+	cp $LINBOSYSDIR/ssh_host_*_key* etc/ssh || bailout "Failed to copy ssh host keys!"
 	mkdir -p .ssh
-	cat /root/.ssh/id_*.pub > .ssh/authorized_keys
+	cat /root/.ssh/id_*.pub > .ssh/authorized_keys || bailout "Failed to write authorized_keys!"
 	# supplemental authorized_keys
 	[ -s /root/.ssh/authorized_keys ] && cat /root/.ssh/authorized_keys >> .ssh/authorized_keys
 	mkdir -p var/log
@@ -374,10 +374,10 @@ create_linbofs() {
 	cp -f /etc/default/linbo-torrent etc/default
 
 	# copy default start.conf
-	cp -f $LINBODIR/start.conf .
+	cp -f $LINBODIR/start.conf . || bailout "Failed to copy start.conf!"
 
 	# copy efi pxe devicenames
-	cp "$LINBOSHAREDIR/efipxe" usr/share/linbo
+	cp "$LINBOSHAREDIR/efipxe" usr/share/linbo || bailout "Failed to copy efipxe!"
 
 	# locale
 	copy_locale
