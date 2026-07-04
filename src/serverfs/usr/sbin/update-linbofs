@@ -85,7 +85,7 @@ exec_hooks() {
 		*) return ;;
 	esac
     local hookdir="$HOOKSDIR/update-linbofs.$1.d"
-	[ -d "$hookdir" ] || mkdir -p $hookdir
+	[ -d "$hookdir" ] || mkdir -p "$hookdir"
     local hook_files=$(find "$hookdir" -xtype f -executable)
 	[ -z "$hook_files" ] && return
 	local file
@@ -349,9 +349,9 @@ create_linbofs() {
 
 	# provide dropbear ssh host key
 	mkdir -p etc/dropbear
-	cp $LINBOSYSDIR/dropbear_*_host_key etc/dropbear || bailout "Failed to copy dropbear host keys!"
+	cp "$LINBOSYSDIR"/dropbear_*_host_key etc/dropbear || bailout "Failed to copy dropbear host keys!"
 	mkdir -p etc/ssh
-	cp $LINBOSYSDIR/ssh_host_*_key* etc/ssh || bailout "Failed to copy ssh host keys!"
+	cp "$LINBOSYSDIR"/ssh_host_*_key* etc/ssh || bailout "Failed to copy ssh host keys!"
 	mkdir -p .ssh
 	cat /root/.ssh/id_*.pub > .ssh/authorized_keys || bailout "Failed to write authorized_keys!"
 	# supplemental authorized_keys
@@ -374,7 +374,7 @@ create_linbofs() {
 	cp -f /etc/default/linbo-torrent etc/default
 
 	# copy default start.conf
-	cp -f $LINBODIR/start.conf . || bailout "Failed to copy start.conf!"
+	cp -f "$LINBODIR"/start.conf . || bailout "Failed to copy start.conf!"
 
 	# copy efi pxe devicenames
 	cp "$LINBOSHAREDIR/efipxe" usr/share/linbo || bailout "Failed to copy efipxe!"
