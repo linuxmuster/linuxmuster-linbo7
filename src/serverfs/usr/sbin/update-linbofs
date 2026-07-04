@@ -37,6 +37,10 @@ FW_LIST_LOCAL="$FW_CACHE/.fw_list"
 FW_LIST_REMOTE="WHENCE"
 FW_MANIFEST="$FW_CACHE/.fw_manifest"
 FW_URL="https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git/plain"
+# one-time index of $FW_SYSTEM, built lazily by build_fw_index()
+FW_INDEXED=""
+FW_FILE_INDEX=""
+FW_DIR_INDEX=""
 
 
 # get kernel image, modules and version
@@ -203,14 +207,31 @@ parse_firmware_logs(){
 }
 
 
+# build a one-time index of $FW_SYSTEM so copy_fw() doesn't have to walk the
+# whole tree again for every firmware name
+build_fw_index() {
+	[ -n "$FW_INDEXED" ] && return
+	FW_FILE_INDEX="$(find "$FW_SYSTEM" -type f,l -printf '%f\t%p\n')"
+	FW_DIR_INDEX="$(find "$FW_SYSTEM" -mindepth 1 -type d -printf '%f\t%p\n')"
+	FW_INDEXED=1
+}
+
+
+# look up a basename in a "name<TAB>path" index built by build_fw_index()
+lookup_fw_index() {
+	awk -F'\t' -v name="$2" '$1 == name { print $2; exit }' <<< "$1"
+}
+
+
 # copy local firmware to cache
 copy_fw() {
 	local fw_name="$(basename "$1")"
 	local fw_zst="${fw_name}.zst"
+	build_fw_index
 	# get firmware file from local system
-	local fw_src="$(find "$FW_SYSTEM" -name "$fw_name" -type f,l -print -quit)"
-	[ -e "$fw_src" ] || fw_src="$(find "$FW_SYSTEM" -name "$fw_zst" -type f,l -print -quit)"
-	if [ -e "$fw_src" ]; then
+	local fw_src="$(lookup_fw_index "$FW_FILE_INDEX" "$fw_name")"
+	[ -n "$fw_src" ] || fw_src="$(lookup_fw_index "$FW_FILE_INDEX" "$fw_zst")"
+	if [ -n "$fw_src" ]; then
 		local fw_dir="$(dirname "$fw_src")"
 		local fw_target="${fw_dir/$FW_SYSTEM/$FW_CACHE}"
 		mkdir -p "$fw_target"
@@ -219,8 +240,8 @@ copy_fw() {
 		return
 	fi
 	# get firmware directory from local system
-	fw_src="$(find "$FW_SYSTEM" -name "$fw_name" -type d -print -quit)"
-	[ -d "$fw_src" ] || return 1
+	fw_src="$(lookup_fw_index "$FW_DIR_INDEX" "$fw_name")"
+	[ -n "$fw_src" ] || return 1
 	cp -r "$fw_src" "$FW_CACHE" || return 1
 	echo "$(basename "$fw_src")"
 }
