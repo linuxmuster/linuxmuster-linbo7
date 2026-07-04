@@ -1,3 +1,10 @@
+linuxmuster-linbo7 (7.4.5) lmn74; urgency=low
+
+  * fix(linbo_partition): retry umount /cache to survive concurrent re-mounts (#155, e827d88).
+  * update-linbofs: only copy currently needed firmware into linbofs (#153, e92d42e).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri,  3 Jul 2026 20:26:37 +0200
+
 linuxmuster-linbo7 (7.4.4) lmn74; urgency=low
 
   * update-linbofs locale fix (cfb2040).
