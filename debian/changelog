@@ -7,8 +7,9 @@ linuxmuster-linbo7 (7.4.5) lmn74; urgency=low
   * update-linbofs: speed up firmware lookup via a one-time index (8801dda).
   * update-linbofs: bail out instead of silently building a broken linbofs on copy/setup failures (8e01bfe, 5e991cb).
   * update-linbofs: quote variables in path expressions (c278695).
+  * update-linbofs: detect missing firmware directly from generic kernel message (#154, ab41c6e).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Sun,  5 Jul 2026 14:28:48 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sun,  5 Jul 2026 15:28:18 +0200
 
 linuxmuster-linbo7 (7.4.4) lmn74; urgency=low
 
