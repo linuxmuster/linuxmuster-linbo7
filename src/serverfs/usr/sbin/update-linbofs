@@ -242,6 +242,18 @@ copy_fw() {
 }
 
 
+# look up a firmware name already downloaded to $FW_CACHE in a previous run,
+# so it doesn't get re-fetched from kernel.org on every invocation
+cached_fw() {
+	local fw_name="$(basename "$1")"
+	local fw_path
+	fw_path="$(find "$FW_CACHE" -type f -name "${fw_name}.zst" 2>/dev/null | head -n1)"
+	[ -n "$fw_path" ] || fw_path="$(find "$FW_CACHE" -type f -name "$fw_name" 2>/dev/null | head -n1)"
+	[ -n "$fw_path" ] || return 1
+	echo "${fw_path#$FW_CACHE/}"
+}
+
+
 # provide firmare defined in LINBOSYSDIR/firmware or found in LINBOLOGDIR/*_linbo.log
 provide_firmware() {
 	local fw_conf="$LINBOSYSDIR/firmware"
@@ -278,8 +290,14 @@ provide_firmware() {
 			printf '%s\n' "$paths" >> "$FW_MANIFEST"
 			continue
 		fi
+		# reuse firmware already downloaded to cache in a previous run
+		if paths="$(cached_fw "$fw_name")"; then
+			echo " - "$fw_name" (cached)"
+			printf '%s\n' "$paths" >> "$FW_MANIFEST"
+			continue
+		fi
 		# download firmware list from kernel.org, but only once and only
-		# if firmware is actually missing locally
+		# if firmware is actually missing locally and not cached
 		if [ -z "$fwlist_attempted" ]; then
 			fwlist_attempted=1
 			download_fwlist
