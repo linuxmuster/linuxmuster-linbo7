@@ -191,19 +191,14 @@ download_fw() {
 parse_firmware_logs(){
 	# return if no log file exists
 	[ -z "$(find $LINBOLOGDIR -name \*_linbo.log)" ] && return
-	# get pci ids of devices with failed firmware load
-	local pci_ids="$(grep firmware $LINBOLOGDIR/*_linbo.log | grep -i failed \
-		| grep -o "00:[0-9a-f][0-9a-f].[0-9a-f]:" | sort -u)"
-	[ -z "$pci_ids" ] && return
-	# extract firmware names with pci ids of devices with failed firmware load
-	local pci_id
-	for pci_id in $pci_ids; do
-		grep "$pci_id" $LINBOLOGDIR/*_linbo.log |\
-		grep -o "for .* failed" |\
-		sed 's|for ||' |\
-		sed 's| failed||' |\
-		sort -u
-	done | xargs
+	# the kernel's firmware loader emits this generic message for every failed
+	# firmware request, regardless of driver or bus type (pci, usb, ...), so
+	# extract the firmware name directly instead of correlating via pci id
+	# (which misses non-"00:xx.x" buses and breaks on truncated log lines)
+	grep -ho "Direct firmware load for .* failed" $LINBOLOGDIR/*_linbo.log |\
+	sed 's|Direct firmware load for ||;s| failed$||' |\
+	sort -u |\
+	xargs
 }
 
 
