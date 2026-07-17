@@ -1,3 +1,9 @@
+linuxmuster-linbo7 (7.4.6) lmn74; urgency=low
+
+  * fix #156, update-linbofs: preserve symlinks when copying cached firmware (636dc17).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 17 Jul 2026 15:34:21 +0200
+
 linuxmuster-linbo7 (7.4.5) lmn74; urgency=low
 
   * fix(linbo_partition): retry umount /cache to survive concurrent re-mounts (#155, e827d88).
