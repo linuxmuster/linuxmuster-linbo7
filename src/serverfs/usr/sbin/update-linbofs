@@ -311,7 +311,7 @@ provide_firmware() {
 
 	echo "Copying all cached firmware to linbofs:"
 	local fw_target="${FW_SYSTEM/\/}"
-	rsync -rv --files-from="$FW_MANIFEST" "$FW_CACHE/" "$fw_target/"
+	rsync -rlv --files-from="$FW_MANIFEST" "$FW_CACHE/" "$fw_target/"
 	rm -f "$FW_MANIFEST"
 }
 
