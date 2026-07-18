@@ -1,0 +1,617 @@
+#!/bin/sh
+#
+# linbo_driverpostsync
+# Deploys image-assigned Windows driver profiles selected by client DMI.
+# ahmed.alani@netzint.de
+# 20260718
+#
+
+
+#### functions begin ####
+
+usage(){
+  local RC="$1"
+  echo
+  echo "Deploys matching Windows driver profiles after image synchronization."
+  echo
+  echo "Usage: linbo_driverpostsync <image> [<profile> ...]"
+  echo
+  echo "Calling the command without profiles removes its managed driver state."
+  echo
+  exit "$RC"
+}
+
+
+persist_driver_log(){
+  cp "$DRIVERPOSTSYNC_LOG" /cache/linbo-driverpostsync.log 2>/dev/null
+}
+
+
+driver_log(){
+  echo "$*" | tee -a "$DRIVERPOSTSYNC_LOG"
+}
+
+
+request_registry_action(){
+  local action="$1"
+  local inf_count="$2"
+
+  case "$action" in
+    task)
+      cat > "$DRIVERPOSTSYNC_REGISTRY_FILE" << 'REG'
+Windows Registry Editor Version 5.00
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce]
+"LinboDriverInstall"=-
+"!LinboDriverInstall"=-
+REG
+      driver_log "SYSTEM startup task detected; legacy RunOnce values will be removed."
+      ;;
+    fallback)
+      cat > "$DRIVERPOSTSYNC_REGISTRY_FILE" << 'REG'
+Windows Registry Editor Version 5.00
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce]
+"LinboDriverInstall"=-
+"!LinboDriverInstall"="cmd.exe /d /s /c C:\\Drivers\\LINBO\\pnputil-install.cmd"
+REG
+      driver_log "Warning: SYSTEM startup task missing; !LinboDriverInstall fallback requires an administrator logon."
+      ;;
+    remove)
+      cat > "$DRIVERPOSTSYNC_REGISTRY_FILE" << 'REG'
+Windows Registry Editor Version 5.00
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce]
+"LinboDriverInstall"=-
+"!LinboDriverInstall"=-
+REG
+      ;;
+    *)
+      driver_log "Invalid registry action: $action"
+      return 1
+      ;;
+  esac
+
+  linbo_patch_registry "$DRIVERPOSTSYNC_REGISTRY_FILE" > "$DRIVERPOSTSYNC_REGISTRY_LOG" 2>&1
+  DRIVERPOSTSYNC_REGISTRY_RC=$?
+  tee -a "$DRIVERPOSTSYNC_LOG" < "$DRIVERPOSTSYNC_REGISTRY_LOG"
+  if [ "$DRIVERPOSTSYNC_REGISTRY_RC" = "0" ]; then
+    case "$action" in
+      task)
+        driver_log "Driver auto-install: $inf_count INF files, persistent SYSTEM startup task ready"
+        ;;
+      fallback)
+        driver_log "RunOnce fallback registered for $inf_count INF files; administrator logon required"
+        ;;
+      remove)
+        if [ "$DRIVERPOSTSYNC_CLEANUP" = "1" ]; then
+          driver_log "Removed stale LinboDriverInstall RunOnce values."
+        else
+          driver_log "Removed stale LinboDriverInstall RunOnce values"
+        fi
+        ;;
+    esac
+  else
+    if [ "$action" = "remove" ] && [ "$DRIVERPOSTSYNC_CLEANUP" = "1" ]; then
+      driver_log "Warning: linbo_patch_registry returned $DRIVERPOSTSYNC_REGISTRY_RC while removing RunOnce; some LINBO 7.4 releases do not provide a reliable exit status, inspect helper output."
+    else
+      driver_log "Warning: linbo_patch_registry returned $DRIVERPOSTSYNC_REGISTRY_RC while requesting RunOnce $action; some LINBO 7.4 releases do not provide a reliable exit status, inspect helper output."
+    fi
+  fi
+  rm -f "$DRIVERPOSTSYNC_REGISTRY_FILE" "$DRIVERPOSTSYNC_REGISTRY_LOG"
+  return 0
+}
+
+
+valid_image_name(){
+  local value="$1"
+  local length
+
+  case "$value" in
+    ""|*[!a-zA-Z0-9_-]*) return 1 ;;
+  esac
+  length=$(printf '%s' "$value" | wc -c)
+  [ "$length" -le 100 ]
+}
+
+
+valid_profile_name(){
+  local value="$1"
+  local length
+  local stem
+
+  case "$value" in
+    [a-zA-Z0-9]*) ;;
+    *) return 1 ;;
+  esac
+  case "$value" in
+    *[!a-zA-Z0-9._-]*) return 1 ;;
+  esac
+  length=$(printf '%s' "$value" | wc -c)
+  [ "$length" -le 100 ] || return 1
+  case "$value" in
+    *.) return 1 ;;
+  esac
+  stem=$(printf '%s' "$value" | sed 's/\..*$//' | tr A-Z a-z)
+  case "$stem" in
+    aux|con|nul|prn|com[1-9]|lpt[1-9]) return 1 ;;
+  esac
+  [ "$(printf '%s' "$value" | tr A-Z a-z)" != "pnputil-install.cmd" ]
+}
+
+
+windows_target_present(){
+  [ -d "$DRIVERPOSTSYNC_WINDOWS_ROOT/Windows/System32/config" ] ||
+    [ -d "$DRIVERPOSTSYNC_WINDOWS_ROOT/WINDOWS/System32/config" ] ||
+    [ -d "$DRIVERPOSTSYNC_WINDOWS_ROOT/windows/System32/config" ]
+}
+
+
+cleanup_managed_state(){
+  driver_log "No driver profiles assigned; clearing managed target and image cache."
+  if ! rm -rf "$DRIVERPOSTSYNC_TARGET" "$DRIVERPOSTSYNC_CACHE"; then
+    driver_log "Failed to clear managed target or image cache."
+    DRIVERPOSTSYNC_RC=1
+  fi
+  request_registry_action remove 0
+}
+
+
+detect_system_task(){
+  local WINDOWS_DIR
+  local PROGRAMDATA_DIR
+  local TASK_CANDIDATE
+  local MARKER_CANDIDATE
+
+  DRIVERPOSTSYNC_TASK_READY=0
+
+  # Prefer the canonical native task. Task and marker are checked as a pair so
+  # a partial migration cannot be mistaken for a ready SYSTEM installation.
+  for WINDOWS_DIR in Windows WINDOWS windows; do
+    TASK_CANDIDATE="$DRIVERPOSTSYNC_WINDOWS_ROOT/$WINDOWS_DIR/System32/Tasks/LINBO-Driver-Install"
+    [ -f "$TASK_CANDIDATE" ] || continue
+    for PROGRAMDATA_DIR in ProgramData PROGRAMDATA programdata; do
+      MARKER_CANDIDATE="$DRIVERPOSTSYNC_WINDOWS_ROOT/$PROGRAMDATA_DIR/LINBO/Drivers/startup-task-ready"
+      if [ -f "$MARKER_CANDIDATE" ] &&
+         [ "$(cat "$MARKER_CANDIDATE" 2>/dev/null)" = "LINBO SYSTEM driver startup task v1" ]; then
+        DRIVERPOSTSYNC_TASK_READY=1
+        return 0
+      fi
+    done
+  done
+
+  # Existing golden images keep working during migration. Legacy names are
+  # read-only compatibility inputs.
+  for WINDOWS_DIR in Windows WINDOWS windows; do
+    TASK_CANDIDATE="$DRIVERPOSTSYNC_WINDOWS_ROOT/$WINDOWS_DIR/System32/Tasks/LINBO-Patchless-Driver-Install"
+    [ -f "$TASK_CANDIDATE" ] || continue
+    for PROGRAMDATA_DIR in ProgramData PROGRAMDATA programdata; do
+      MARKER_CANDIDATE="$DRIVERPOSTSYNC_WINDOWS_ROOT/$PROGRAMDATA_DIR/LINBO-Patchless/startup-task-ready"
+      if [ -f "$MARKER_CANDIDATE" ] &&
+         [ "$(cat "$MARKER_CANDIDATE" 2>/dev/null)" = "LINBO-Patchless SYSTEM startup task v1" ]; then
+        DRIVERPOSTSYNC_TASK_READY=1
+        return 0
+      fi
+    done
+  done
+
+  return 1
+}
+
+#### functions end ####
+
+
+[ "$#" -ge 1 ] || usage 1
+
+# get environment
+source /usr/share/linbo/shell_functions
+echo "### $timestamp $(basename "$0") $@ ###"
+
+DRIVERPOSTSYNC_IMAGE="$1"
+shift
+
+if ! valid_image_name "$DRIVERPOSTSYNC_IMAGE"; then
+  echo "Invalid LINBO driver image name: $DRIVERPOSTSYNC_IMAGE" >&2
+  exit 1
+fi
+
+DRIVERPOSTSYNC_PROFILE_KEYS="|"
+for FOLDER in "$@"; do
+  if ! valid_profile_name "$FOLDER"; then
+    echo "Invalid LINBO driver profile name: $FOLDER" >&2
+    exit 1
+  fi
+  PROFILE_KEY=$(printf '%s' "$FOLDER" | tr A-Z a-z)
+  case "$DRIVERPOSTSYNC_PROFILE_KEYS" in
+    *"|$PROFILE_KEY|"*)
+      echo "Duplicate or case-colliding LINBO driver profile name: $FOLDER" >&2
+      exit 1
+      ;;
+  esac
+  DRIVERPOSTSYNC_PROFILE_KEYS="$DRIVERPOSTSYNC_PROFILE_KEYS$PROFILE_KEY|"
+done
+unset DRIVERPOSTSYNC_PROFILE_KEYS PROFILE_KEY
+
+DRIVERPOSTSYNC_RC=0
+DRIVERPOSTSYNC_LOG="/tmp/linbo-driverpostsync.log"
+DRIVERPOSTSYNC_RSYNC_LOG="/tmp/linbo-driverpostsync-rsync.$$"
+DRIVERPOSTSYNC_CACHE="/cache/linbo-driverprofiles/$DRIVERPOSTSYNC_IMAGE"
+DRIVERPOSTSYNC_MATCH_CACHE="$DRIVERPOSTSYNC_CACHE/.match"
+DRIVERPOSTSYNC_WINDOWS_ROOT="/mnt"
+DRIVERPOSTSYNC_TARGET="$DRIVERPOSTSYNC_WINDOWS_ROOT/Drivers/LINBO"
+DRIVERPOSTSYNC_BATCH_FILE="$DRIVERPOSTSYNC_TARGET/pnputil-install.cmd"
+DRIVERPOSTSYNC_BATCH_TEMP=""
+DRIVERPOSTSYNC_REGISTRY_FILE="/tmp/linbo-driver-install.$$.reg"
+DRIVERPOSTSYNC_REGISTRY_LOG="/tmp/linbo-driverpostsync-registry.$$"
+DRIVERPOSTSYNC_CLEANUP=0
+
+if [ "$#" -eq 0 ]; then
+  DRIVERPOSTSYNC_CLEANUP=1
+  echo "=== LINBO Driver Postsync tombstone for $DRIVERPOSTSYNC_IMAGE $(date) ===" > "$DRIVERPOSTSYNC_LOG"
+else
+  echo "=== LINBO Driver Postsync for $DRIVERPOSTSYNC_IMAGE $(date) ===" > "$DRIVERPOSTSYNC_LOG"
+fi
+
+if ! windows_target_present; then
+  if [ "$DRIVERPOSTSYNC_CLEANUP" = "1" ]; then
+    driver_log "Non-Windows target detected; cleanup tombstone skipped."
+  else
+    driver_log "Non-Windows target detected; driver integration skipped."
+  fi
+  persist_driver_log
+  exit 0
+fi
+
+# An invocation without profile arguments is the explicit cleanup tombstone.
+if [ "$#" -eq 0 ]; then
+  cleanup_managed_state
+  persist_driver_log
+  exit "$DRIVERPOSTSYNC_RC"
+fi
+
+if ! mkdir -p "$DRIVERPOSTSYNC_CACHE" "$DRIVERPOSTSYNC_MATCH_CACHE"; then
+  driver_log "Failed to create the driver profile cache."
+  persist_driver_log
+  exit 1
+fi
+
+# Read client DMI before downloading any large driver payload. Every assigned
+# profile contributes only its small match.conf first.
+SYS_VENDOR=$(cat /sys/class/dmi/id/sys_vendor 2>/dev/null | tr -d '\n\r' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+PRODUCT_NAME=$(cat /sys/class/dmi/id/product_name 2>/dev/null | tr -d '\n\r' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+driver_log "DMI: vendor='$SYS_VENDOR' product='$PRODUCT_NAME'"
+
+MATCHED_FOLDERS=""
+rm -f "$DRIVERPOSTSYNC_MATCH_CACHE/.staging-"*.conf
+
+driver_log "Syncing match metadata for image-assigned profiles..."
+for FOLDER in "$@"; do
+  ACTIVE_CONF="$DRIVERPOSTSYNC_MATCH_CACHE/$FOLDER.conf"
+  STAGING_CONF="$DRIVERPOSTSYNC_MATCH_CACHE/.staging-$FOLDER-$$.conf"
+  rm -f "$STAGING_CONF"
+
+  if rsync -a --timeout=120 "$LINBOSERVER::linbo/drivers/$FOLDER/match.conf" "$STAGING_CONF" > "$DRIVERPOSTSYNC_RSYNC_LOG" 2>&1 &&
+     [ -f "$STAGING_CONF" ] && [ -s "$STAGING_CONF" ]; then
+    tee -a "$DRIVERPOSTSYNC_LOG" < "$DRIVERPOSTSYNC_RSYNC_LOG"
+    if mv "$STAGING_CONF" "$ACTIVE_CONF"; then
+      driver_log "  Synced match metadata: $FOLDER"
+    else
+      rm -f "$STAGING_CONF"
+      driver_log "  Failed to activate match metadata: $FOLDER; using cached metadata when available"
+      DRIVERPOSTSYNC_RC=1
+    fi
+  else
+    tee -a "$DRIVERPOSTSYNC_LOG" < "$DRIVERPOSTSYNC_RSYNC_LOG"
+    rm -f "$STAGING_CONF"
+    driver_log "  Failed to sync match metadata: $FOLDER; using cached metadata when available"
+    DRIVERPOSTSYNC_RC=1
+  fi
+
+  CONF="$ACTIVE_CONF"
+  [ -f "$CONF" ] || continue
+
+  # Parse the canonical match.conf format.
+  CONF_VENDOR=""
+  CONF_PRODUCTS=""
+  IN_MATCH=0
+  FOUND_MATCH_SECTION=0
+  FOUND_VENDOR=0
+  FOUND_PRODUCT=0
+  INVALID_MATCH_ENTRY=0
+  while IFS= read -r line || [ -n "$line" ]; do
+    line=$(printf '%s\n' "$line" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+    case "$line" in
+      \#*|\;*|"") continue ;;
+      \[*\])
+        SECTION_NAME=$(printf '%s\n' "$line" | sed 's/^\[//;s/\]$//')
+        case "$SECTION_NAME" in
+          ""|*[!a-zA-Z0-9_.-]*)
+            INVALID_MATCH_ENTRY=1
+            IN_MATCH=0
+            continue
+            ;;
+        esac
+        case "$SECTION_NAME" in
+          [mM][aA][tT][cC][hH])
+            if [ "$FOUND_MATCH_SECTION" = "1" ]; then
+              INVALID_MATCH_ENTRY=1
+              IN_MATCH=0
+            else
+              IN_MATCH=1
+              FOUND_MATCH_SECTION=1
+            fi
+            ;;
+          *) IN_MATCH=0 ;;
+        esac
+        continue
+        ;;
+      \[*)
+        INVALID_MATCH_ENTRY=1
+        IN_MATCH=0
+        continue
+        ;;
+    esac
+    [ "$IN_MATCH" = "0" ] && continue
+
+    case "$line" in
+      *=*) ;;
+      *) INVALID_MATCH_ENTRY=1; continue ;;
+    esac
+
+    key=$(printf '%s\n' "$line" | sed 's/[[:space:]]*=.*//;s/[[:space:]]*$//' | tr '[:upper:]' '[:lower:]')
+    value=$(printf '%s\n' "$line" | sed 's/^[^=]*=[[:space:]]*//;s/[[:space:]]*$//')
+
+    case "$value" in
+      "") INVALID_MATCH_ENTRY=1; continue ;;
+      "*") ;;
+      *[!a-zA-Z0-9\ .,\(\)/_+#-]*) INVALID_MATCH_ENTRY=1; continue ;;
+    esac
+
+    case "$key" in
+      vendor)
+        if [ "$FOUND_VENDOR" = "1" ]; then
+          INVALID_MATCH_ENTRY=1
+          continue
+        fi
+        CONF_VENDOR="$value"
+        FOUND_VENDOR=1
+        ;;
+      product)
+        CONF_PRODUCTS="$CONF_PRODUCTS|$value"
+        FOUND_PRODUCT=1
+        ;;
+      *) INVALID_MATCH_ENTRY=1 ;;
+    esac
+  done < "$CONF"
+
+  if [ "$FOUND_MATCH_SECTION" != "1" ] || [ "$FOUND_VENDOR" != "1" ] ||
+     [ "$FOUND_PRODUCT" != "1" ] || [ -z "$CONF_VENDOR" ] ||
+     [ "$INVALID_MATCH_ENTRY" != "0" ]; then
+    driver_log "  $FOLDER: invalid match.conf (explicit [match], one vendor, and at least one non-empty product are required; use product = * as wildcard), skipping"
+    DRIVERPOSTSYNC_RC=1
+    continue
+  fi
+
+  # Vendor matching is exact unless an explicit wildcard is configured.
+  if [ "$CONF_VENDOR" != "*" ] && [ "$CONF_VENDOR" != "$SYS_VENDOR" ]; then
+    continue
+  fi
+
+  # Product values are case-sensitive substrings or an explicit wildcard.
+  PRODUCTS_LEFT=${CONF_PRODUCTS#|}
+  while [ -n "$PRODUCTS_LEFT" ]; do
+    case "$PRODUCTS_LEFT" in
+      *"|"*)
+        pat=${PRODUCTS_LEFT%%|*}
+        PRODUCTS_LEFT=${PRODUCTS_LEFT#*|}
+        ;;
+      *)
+        pat="$PRODUCTS_LEFT"
+        PRODUCTS_LEFT=""
+        ;;
+    esac
+    [ -z "$pat" ] && continue
+    if [ "$pat" = "*" ]; then
+      driver_log "  $FOLDER: vendor criteria matched, wildcard product"
+      MATCHED_FOLDERS="$MATCHED_FOLDERS $FOLDER"
+      break
+    fi
+    case "$PRODUCT_NAME" in
+      *"$pat"*)
+        driver_log "  $FOLDER: matched (product contains '$pat')"
+        MATCHED_FOLDERS="$MATCHED_FOLDERS $FOLDER"
+        break
+        ;;
+    esac
+  done
+done
+
+# Drop metadata for profiles no longer assigned to this image.
+for CACHED_CONF in "$DRIVERPOSTSYNC_MATCH_CACHE"/*.conf; do
+  [ -f "$CACHED_CONF" ] || continue
+  CACHED_FILE=$(basename "$CACHED_CONF")
+  CACHED_NAME=$(printf '%s\n' "$CACHED_FILE" | sed 's/\.conf$//')
+  KEEP=0
+  for FOLDER in "$@"; do
+    [ "$CACHED_NAME" = "$FOLDER" ] && KEEP=1 && break
+  done
+  [ "$KEEP" = "1" ] || rm -f "$CACHED_CONF"
+done
+rm -f "$DRIVERPOSTSYNC_RSYNC_LOG"
+
+driver_log "Matched folders: $MATCHED_FOLDERS"
+
+driver_log "Syncing full payload for matched profiles only..."
+for FOLDER in $MATCHED_FOLDERS; do
+  ACTIVE_PROFILE="$DRIVERPOSTSYNC_CACHE/$FOLDER"
+  STAGING_PROFILE="$DRIVERPOSTSYNC_CACHE/.staging-$FOLDER-$$"
+  PREVIOUS_PROFILE="$DRIVERPOSTSYNC_CACHE/.previous-$FOLDER-$$"
+
+  # Recover last-known-good state after an interrupted cache swap.
+  for CRASH_BACKUP in "$DRIVERPOSTSYNC_CACHE/.previous-$FOLDER-"*; do
+    [ -d "$CRASH_BACKUP" ] || continue
+    if [ ! -d "$ACTIVE_PROFILE" ]; then
+      if mv "$CRASH_BACKUP" "$ACTIVE_PROFILE"; then
+        driver_log "  Recovered last-known-good cache: $FOLDER"
+      else
+        driver_log "  Failed to recover cached profile: $FOLDER"
+        DRIVERPOSTSYNC_RC=1
+      fi
+    else
+      rm -rf "$CRASH_BACKUP"
+    fi
+  done
+  rm -rf "$DRIVERPOSTSYNC_CACHE/.staging-$FOLDER-"* "$STAGING_PROFILE" "$PREVIOUS_PROFILE"
+
+  if ! mkdir -p "$STAGING_PROFILE"; then
+    driver_log "  Failed to create staging cache: $FOLDER"
+    DRIVERPOSTSYNC_RC=1
+    continue
+  fi
+
+  if rsync -a --delete --timeout=120 "$LINBOSERVER::linbo/drivers/$FOLDER/" "$STAGING_PROFILE/" > "$DRIVERPOSTSYNC_RSYNC_LOG" 2>&1; then
+    tee -a "$DRIVERPOSTSYNC_LOG" < "$DRIVERPOSTSYNC_RSYNC_LOG"
+    SWAP_OK=1
+    if [ -d "$ACTIVE_PROFILE" ] && ! mv "$ACTIVE_PROFILE" "$PREVIOUS_PROFILE"; then
+      driver_log "  Failed to stage previous cache: $FOLDER"
+      SWAP_OK=0
+    fi
+    if [ "$SWAP_OK" = "1" ] && mv "$STAGING_PROFILE" "$ACTIVE_PROFILE"; then
+      rm -rf "$PREVIOUS_PROFILE"
+      driver_log "  Synced matched profile: $FOLDER"
+    else
+      rm -rf "$STAGING_PROFILE"
+      if [ -d "$PREVIOUS_PROFILE" ] && [ ! -d "$ACTIVE_PROFILE" ]; then
+        if ! mv "$PREVIOUS_PROFILE" "$ACTIVE_PROFILE"; then
+          driver_log "  Failed to restore last-known-good cache: $FOLDER"
+        fi
+      fi
+      driver_log "  Failed to activate synced profile: $FOLDER; keeping last-known-good cache"
+      DRIVERPOSTSYNC_RC=1
+    fi
+  else
+    tee -a "$DRIVERPOSTSYNC_LOG" < "$DRIVERPOSTSYNC_RSYNC_LOG"
+    rm -rf "$STAGING_PROFILE"
+    driver_log "  Failed to sync matched profile: $FOLDER; keeping last-known-good cache"
+    DRIVERPOSTSYNC_RC=1
+  fi
+done
+rm -f "$DRIVERPOSTSYNC_RSYNC_LOG"
+
+# Retain payloads for this client's current hardware matches only.
+for CACHED_DIR in "$DRIVERPOSTSYNC_CACHE"/*; do
+  [ -d "$CACHED_DIR" ] || continue
+  CACHED_NAME=$(basename "$CACHED_DIR")
+  KEEP=0
+  for FOLDER in $MATCHED_FOLDERS; do
+    [ "$CACHED_NAME" = "$FOLDER" ] && KEEP=1 && break
+  done
+  [ "$KEEP" = "1" ] || rm -rf "$CACHED_DIR"
+done
+
+# Recreate the managed Windows driver target.
+DRIVERPOSTSYNC_INSTALL_READY=1
+if ! rm -rf "$DRIVERPOSTSYNC_TARGET"; then
+  driver_log "Failed to clear managed Windows driver target; installation disabled."
+  DRIVERPOSTSYNC_INSTALL_READY=0
+  DRIVERPOSTSYNC_RC=1
+elif ! mkdir -p "$DRIVERPOSTSYNC_TARGET"; then
+  driver_log "Failed to create managed Windows driver target; installation disabled."
+  DRIVERPOSTSYNC_INSTALL_READY=0
+  DRIVERPOSTSYNC_RC=1
+fi
+
+if [ "$DRIVERPOSTSYNC_INSTALL_READY" = "1" ]; then
+  for FOLDER in $MATCHED_FOLDERS; do
+    SRC="$DRIVERPOSTSYNC_CACHE/$FOLDER"
+    if [ -d "$SRC" ]; then
+      FILE_COUNT=$(find "$SRC" -type f ! -name "match.conf" ! -name "image.conf" ! -name "driver-map.json" ! -name "driver-manifest.json" ! -name ".extracting" 2>/dev/null | wc -l)
+      if [ "$FILE_COUNT" -gt 0 ]; then
+        driver_log "  Copying drivers from: $FOLDER ($FILE_COUNT files)"
+        DEST="$DRIVERPOSTSYNC_TARGET/$FOLDER"
+        if mkdir -p "$DEST" &&
+           cp -R "$SRC/." "$DEST/" &&
+           rm -f "$DEST/match.conf" "$DEST/image.conf" "$DEST/driver-map.json" "$DEST/driver-manifest.json" "$DEST/.extracting"; then
+          driver_log "  Copied driver payload: $FOLDER"
+        else
+          driver_log "  Failed to copy driver payload: $FOLDER; installation disabled"
+          rm -rf "$DEST"
+          DRIVERPOSTSYNC_INSTALL_READY=0
+          DRIVERPOSTSYNC_RC=1
+          break
+        fi
+      else
+        driver_log "  $FOLDER: no driver files, skipping copy"
+      fi
+    fi
+  done
+fi
+
+if [ "$DRIVERPOSTSYNC_INSTALL_READY" != "1" ]; then
+  if ! rm -f "$DRIVERPOSTSYNC_BATCH_FILE"; then
+    driver_log "Warning: could not remove stale pnputil-install.cmd."
+  fi
+fi
+
+# Publish a retryable installer only after the complete payload is ready.
+INF_COUNT=0
+if [ "$DRIVERPOSTSYNC_INSTALL_READY" = "1" ]; then
+  INF_COUNT=$(find "$DRIVERPOSTSYNC_TARGET" -iname '*.inf' 2>/dev/null | wc -l)
+fi
+
+DRIVERPOSTSYNC_BATCH_READY=0
+if [ "$INF_COUNT" -gt 0 ]; then
+  DRIVERPOSTSYNC_BATCH_TEMP=$(mktemp "$DRIVERPOSTSYNC_TARGET/.pnputil-install.cmd.tmp.XXXXXX" 2>/dev/null)
+  if [ -n "$DRIVERPOSTSYNC_BATCH_TEMP" ] &&
+     printf '@echo off\r\n' > "$DRIVERPOSTSYNC_BATCH_TEMP" &&
+     printf 'setlocal EnableExtensions\r\n' >> "$DRIVERPOSTSYNC_BATCH_TEMP" &&
+     printf 'set "LINBO_LOG_DIR=%%ProgramData%%\\LINBO\\Drivers"\r\n' >> "$DRIVERPOSTSYNC_BATCH_TEMP" &&
+     printf 'if not exist "%%LINBO_LOG_DIR%%" mkdir "%%LINBO_LOG_DIR%%"\r\n' >> "$DRIVERPOSTSYNC_BATCH_TEMP" &&
+     printf 'set "LINBO_LOG=%%LINBO_LOG_DIR%%\\driver-install.log"\r\n' >> "$DRIVERPOSTSYNC_BATCH_TEMP" &&
+     printf '>>"%%LINBO_LOG%%" echo [%%DATE%% %%TIME%%] Starting LINBO driver installation.\r\n' >> "$DRIVERPOSTSYNC_BATCH_TEMP" &&
+     printf '"%%SystemRoot%%\\System32\\pnputil.exe" /add-driver C:\\Drivers\\LINBO\\*.inf /subdirs /install >>"%%LINBO_LOG%%" 2>&1\r\n' >> "$DRIVERPOSTSYNC_BATCH_TEMP" &&
+     printf 'set "LINBO_RC=%%ERRORLEVEL%%"\r\n' >> "$DRIVERPOSTSYNC_BATCH_TEMP" &&
+     printf 'if "%%LINBO_RC%%"=="0" goto success\r\n' >> "$DRIVERPOSTSYNC_BATCH_TEMP" &&
+     printf 'if "%%LINBO_RC%%"=="259" goto no_action\r\n' >> "$DRIVERPOSTSYNC_BATCH_TEMP" &&
+     printf 'if "%%LINBO_RC%%"=="1641" goto success\r\n' >> "$DRIVERPOSTSYNC_BATCH_TEMP" &&
+     printf 'if "%%LINBO_RC%%"=="3010" goto success\r\n' >> "$DRIVERPOSTSYNC_BATCH_TEMP" &&
+     printf '>>"%%LINBO_LOG%%" echo [%%DATE%% %%TIME%%] pnputil failed with exit code %%LINBO_RC%%; installer retained for retry.\r\n' >> "$DRIVERPOSTSYNC_BATCH_TEMP" &&
+     printf 'exit /b %%LINBO_RC%%\r\n' >> "$DRIVERPOSTSYNC_BATCH_TEMP" &&
+     printf ':no_action\r\n' >> "$DRIVERPOSTSYNC_BATCH_TEMP" &&
+     printf '>>"%%LINBO_LOG%%" echo [%%DATE%% %%TIME%%] pnputil completed with exit code 259: no matching device or a better/newer driver is already active.\r\n' >> "$DRIVERPOSTSYNC_BATCH_TEMP" &&
+     printf 'goto cleanup\r\n' >> "$DRIVERPOSTSYNC_BATCH_TEMP" &&
+     printf ':success\r\n' >> "$DRIVERPOSTSYNC_BATCH_TEMP" &&
+     printf '>>"%%LINBO_LOG%%" echo [%%DATE%% %%TIME%%] Driver installation succeeded with exit code %%LINBO_RC%%.\r\n' >> "$DRIVERPOSTSYNC_BATCH_TEMP" &&
+     printf ':cleanup\r\n' >> "$DRIVERPOSTSYNC_BATCH_TEMP" &&
+     printf 'del "%%~f0" >>"%%LINBO_LOG%%" 2>&1\r\n' >> "$DRIVERPOSTSYNC_BATCH_TEMP" &&
+     printf 'if exist "%%~f0" exit /b 1\r\n' >> "$DRIVERPOSTSYNC_BATCH_TEMP" &&
+     printf 'exit /b 0\r\n' >> "$DRIVERPOSTSYNC_BATCH_TEMP" &&
+     mv "$DRIVERPOSTSYNC_BATCH_TEMP" "$DRIVERPOSTSYNC_BATCH_FILE"; then
+    DRIVERPOSTSYNC_BATCH_TEMP=""
+    DRIVERPOSTSYNC_BATCH_READY=1
+  else
+    driver_log "Failed to create pnputil-install.cmd; installation disabled."
+    [ -z "$DRIVERPOSTSYNC_BATCH_TEMP" ] || rm -f "$DRIVERPOSTSYNC_BATCH_TEMP"
+    rm -f "$DRIVERPOSTSYNC_BATCH_FILE"
+    DRIVERPOSTSYNC_INSTALL_READY=0
+    DRIVERPOSTSYNC_RC=1
+  fi
+fi
+
+detect_system_task
+
+if [ "$DRIVERPOSTSYNC_BATCH_READY" = "1" ] && [ "$DRIVERPOSTSYNC_TASK_READY" = "1" ]; then
+  request_registry_action task "$INF_COUNT"
+elif [ "$DRIVERPOSTSYNC_BATCH_READY" = "1" ]; then
+  request_registry_action fallback "$INF_COUNT"
+else
+  if [ "$DRIVERPOSTSYNC_INSTALL_READY" != "1" ]; then
+    driver_log "Driver payload unavailable — clearing RunOnce fallbacks."
+  else
+    driver_log "No INF files found — clearing RunOnce fallbacks."
+  fi
+  request_registry_action remove 0
+fi
+
+persist_driver_log
+exit "$DRIVERPOSTSYNC_RC"
