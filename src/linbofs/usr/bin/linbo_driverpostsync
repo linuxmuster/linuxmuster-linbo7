@@ -140,6 +140,18 @@ valid_profile_name(){
 }
 
 
+sync_profile_payload(){
+  rsync \
+    --exclude="/match.conf" \
+    --exclude="/image.conf" \
+    --exclude="/.match.conf.bak.*" \
+    --exclude="/.image.conf.bak.*" \
+    --exclude="/.match.conf.*.tmp" \
+    --exclude="/.image.conf.*.tmp" \
+    "$@"
+}
+
+
 windows_target_present(){
   [ -d "$DRIVERPOSTSYNC_WINDOWS_ROOT/Windows/System32/config" ] ||
     [ -d "$DRIVERPOSTSYNC_WINDOWS_ROOT/WINDOWS/System32/config" ] ||
@@ -469,7 +481,7 @@ for FOLDER in $MATCHED_FOLDERS; do
     continue
   fi
 
-  if rsync -a --delete --timeout=120 "$LINBOSERVER::linbo/drivers/$FOLDER/" "$STAGING_PROFILE/" > "$DRIVERPOSTSYNC_RSYNC_LOG" 2>&1; then
+  if sync_profile_payload -a --delete --timeout=120 "$LINBOSERVER::linbo/drivers/$FOLDER/" "$STAGING_PROFILE/" > "$DRIVERPOSTSYNC_RSYNC_LOG" 2>&1; then
     tee -a "$DRIVERPOSTSYNC_LOG" < "$DRIVERPOSTSYNC_RSYNC_LOG"
     SWAP_OK=1
     if [ -d "$ACTIVE_PROFILE" ] && ! mv "$ACTIVE_PROFILE" "$PREVIOUS_PROFILE"; then
@@ -525,13 +537,23 @@ if [ "$DRIVERPOSTSYNC_INSTALL_READY" = "1" ]; then
   for FOLDER in $MATCHED_FOLDERS; do
     SRC="$DRIVERPOSTSYNC_CACHE/$FOLDER"
     if [ -d "$SRC" ]; then
-      FILE_COUNT=$(find "$SRC" -type f ! -name "match.conf" ! -name "image.conf" ! -name "driver-map.json" ! -name "driver-manifest.json" ! -name ".extracting" 2>/dev/null | wc -l)
+      FILE_COUNT=$(find "$SRC" -type f \
+        ! -path "$SRC/match.conf" \
+        ! -path "$SRC/image.conf" \
+        ! -path "$SRC/.match.conf.bak.*" \
+        ! -path "$SRC/.image.conf.bak.*" \
+        ! -path "$SRC/.match.conf.*.tmp" \
+        ! -path "$SRC/.image.conf.*.tmp" \
+        ! -path "$SRC/driver-map.json" \
+        ! -path "$SRC/driver-manifest.json" \
+        ! -path "$SRC/.extracting" \
+        2>/dev/null | wc -l)
       if [ "$FILE_COUNT" -gt 0 ]; then
         driver_log "  Copying drivers from: $FOLDER ($FILE_COUNT files)"
         DEST="$DRIVERPOSTSYNC_TARGET/$FOLDER"
         if mkdir -p "$DEST" &&
-           cp -R "$SRC/." "$DEST/" &&
-           rm -f "$DEST/match.conf" "$DEST/image.conf" "$DEST/driver-map.json" "$DEST/driver-manifest.json" "$DEST/.extracting"; then
+           sync_profile_payload -r "$SRC/" "$DEST/" &&
+           rm -f "$DEST/match.conf" "$DEST/image.conf" "$DEST"/.match.conf.bak.* "$DEST"/.image.conf.bak.* "$DEST"/.match.conf.*.tmp "$DEST"/.image.conf.*.tmp "$DEST/driver-map.json" "$DEST/driver-manifest.json" "$DEST/.extracting"; then
           driver_log "  Copied driver payload: $FOLDER"
         else
           driver_log "  Failed to copy driver payload: $FOLDER; installation disabled"
