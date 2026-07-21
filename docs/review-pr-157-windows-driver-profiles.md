@@ -1,0 +1,35 @@
+# Review: PR #157 — Add native Windows driver profile support
+
+## Overview
+
+Adds one new file to `linbofs`: `src/linbofs/usr/bin/linbo_driverpostsync` (639 lines, POSIX/busybox `ash`), plus a very thorough design document (`docs/linbofs-windows-driver-profiles.md`, 588 lines). No existing files are touched — `linbo_sync` and `linbo_download_image` already have the download/source hooks this relies on (confirmed at `linbo_sync:541-542` and `linbo_download_image:148`), so the PR is additive and backward compatible by construction.
+
+The feature: a per-image `.driverpostsync` companion (today a big generated hook, eventually a tiny dispatcher rendered by `linuxmuster-tools7`) sources into `linbo_sync`, then invokes this new executable with `<image> [<profile>...]`. The script reads client DMI (`sys_vendor`/`product_name`), downloads only the small `match.conf` for each assigned profile, matches locally, pulls full payloads only for matches, stages them into `/mnt/Drivers/LINBO`, generates a `pnputil-install.cmd`, and arms either a SYSTEM-task-ready path or an administrative `RunOnce` fallback via `linbo_patch_registry`.
+
+Notably, the author explicitly frames this as a workbench/RFC PR — the doc lists 6 open "Decisions required before upstream release" (contract naming, test location, failure-semantics for `linbo_sync`, release guard mechanism, fleet-readiness gate, SYSTEM-task packaging). This is not presented as a final, mergeable state.
+
+## Code quality and style
+
+- Matches existing conventions well: shebang/header/author/date block, `usage()` pattern, `source /usr/share/linbo/shell_functions`, `echo "### $timestamp ..."` banner, `local` usage — all consistent with `linbo_patch_registry` and siblings.
+- Defensive by default: strict whitelisting of image/profile names (`valid_image_name`, `valid_profile_name`) blocks path traversal (`..`, `/`, glob metacharacters) before any value touches an rsync path or filesystem path. Windows reserved device names (`aux`, `con`, `nul`, `com1-9`, `lpt1-9`) and the literal `pnputil-install.cmd` are also rejected as profile names.
+- `match.conf` parsing is fail-closed: single `[match]` section required, exactly one `vendor`, at least one non-empty `product`, unknown keys/values invalidate the whole file.
+- Staging + atomic swap pattern (`.staging-*` → `mv` → active, with `.previous-*` last-known-good) is used consistently for both metadata and payload syncs, with crash recovery on next run.
+- One deviation from repo convention worth flagging: other rsync-using scripts (`linbo_download`, `linbo_update`, `linbo_upload`) wrap calls in `interruptible` and pass `--skip-compress="$RSYNC_SKIP_COMPRESS"`; this script uses plain `rsync --timeout=120`. The doc acknowledges this explicitly as preserved-but-deferred behavior ("preserve for the extraction; evaluate `interruptible` separately"), so it's a documented tradeoff, not an oversight — but it does mean a client can't cleanly Ctrl-C out of a driver sync the way it can for image syncs.
+
+## Potential issues / risks
+
+- **Known cache leak (self-documented):** the "retain only current matches" cleanup loops (`for CACHED_DIR in "$DRIVERPOSTSYNC_CACHE"/*` and the equivalent for `.match`) use a bare `*` glob, which does not match dotfiles in POSIX shell. Hidden `.staging-*` / `.previous-*` directories left behind for profiles that become unassigned or stop matching will never be swept by that generic cleanup — only a full tombstone (`cleanup_managed_state`, via `rm -rf` on the whole cache dir) clears them. This is explicitly called out in the doc as an accepted, deferred hardening item, but it's a real and slightly unusual leak pattern worth double-checking isn't hiding a bigger issue than described (e.g. do these leaked dirs ever get counted toward `FILE_COUNT`/copied into `/mnt/Drivers/LINBO`? They shouldn't, since the copy loop only iterates `$MATCHED_FOLDERS`, so the blast radius is disk space only, not incorrect driver installation).
+- **No test coverage in this repo.** The PR states a 91-assertion BusyBox/`ash` behavior matrix was run in the workbench, but none of it ships with the PR, and the doc itself notes "this repository currently has no general shell-test harness" as an open decision. For a script this size and this security-sensitive (writes to a mounted Windows partition, arms registry `RunOnce`), landing with zero regression tests in-repo is a real gap even if pragmatically understandable given tooling constraints.
+- **Cross-repo coupling risk.** The compatibility matrix correctly identifies "Old LINBO client + new small dispatcher" as an unsupported combination that must be prevented by rollout order rather than by code in this PR. That's a sound design call, but it means this PR's safety depends entirely on a manual/process gate in a different repository (`linuxmuster-tools7`) that doesn't exist yet — worth the maintainer confirming there's an actual mechanism (not just documentation) before that second PR ships.
+- **`usage()` doesn't handle a `help` argument** the way `linbo_patch_registry` does (`[ -z "$1" -o "$1" = "help" ] && usage 0`). Minor, but `linbo_driverpostsync help` would currently be interpreted as image name `"help"` rather than printing usage, since `valid_image_name` happily accepts it.
+
+## Security considerations
+
+- Argument handling is fail-closed and traversal-safe (see whitelisting above) — this is the most important property given the script writes into a mounted Windows partition and can arm `RunOnce`/SYSTEM-task registry values.
+- `match.conf` payloads and driver payloads are pulled from the same trusted internal LINBO rsync server as every other LINBO asset (`$LINBOSERVER::linbo/drivers/...`) — no new trust boundary is introduced, so this doesn't materially expand the attack surface beyond what already exists for image distribution.
+- Registry patching uses a quoted heredoc (`<<'REG'`) with a hardcoded fallback command string, avoiding injection via `$FOLDER`/`$DRIVERPOSTSYNC_IMAGE` into the `.reg` payload.
+- `pnputil-install.cmd` generation correctly maps `pnputil` exit codes `0/1641/3010` (success) and `259` (no-op) to self-deletion, while other codes retain the batch for retry — verified by tracing the generated batch's control flow, matches the documented behavior.
+
+## Recommendation
+
+Solid, carefully-reasoned extraction with strong input validation and honest, extensive self-documentation of what's deferred. The main things I'd want resolved before merge: (1) confirm the hidden-dotfile cache leak is truly cosmetic (disk space only) and not a vector for stale payloads reappearing on a matching profile later, (2) get at least minimal test coverage landed alongside the script rather than only in the author's private workbench, and (3) treat the "6 decisions required before upstream release" list in the doc as literal merge blockers, not just discussion points — several (failure-semantics for `linbo_sync`, release guard, fleet-readiness gate) affect production safety, not just code style.
