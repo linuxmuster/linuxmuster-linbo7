@@ -4,8 +4,10 @@ linuxmuster-linbo7 (7.4.7) lmn74; urgency=low
     with multiple dots (cece349).
   * fix #159, linbo-torrent: set pipefail to surface btcheck failures
     (b44367b).
+  * fix #160, linbo-torrent: skip redundant recursive chown on nested
+    self-invocations (3704576).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 21 Jul 2026 23:15:00 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 21 Jul 2026 23:30:00 +0200
 
 linuxmuster-linbo7 (7.4.6) lmn74; urgency=low
 
