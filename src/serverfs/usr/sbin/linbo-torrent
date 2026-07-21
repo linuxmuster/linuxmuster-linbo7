@@ -2,11 +2,14 @@
 #
 # starts tmux sessions for each valid torrent in LINBODIR
 # thomas@linuxmuster.net
-# 20260624
+# 20260721
 #
 
 # read environment
 . /usr/share/linuxmuster/helperfunctions.sh || exit 1
+
+set -o pipefail
+
 THELPER=$LINBOSHAREDIR/linbo-torrenthelper.sh
 LINBOIMGEXT="qcow2 qdiff iso"
 
