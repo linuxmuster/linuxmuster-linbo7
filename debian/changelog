@@ -6,8 +6,11 @@ linuxmuster-linbo7 (7.4.7) lmn74; urgency=low
     (b44367b).
   * fix #160, linbo-torrent: skip redundant recursive chown on nested
     self-invocations (3704576).
+  * fix #161, 3_linbofs-apps: use rsync -a instead of a bare glob for
+    directory entries, fixing silently missing /etc/udev/{hwdb.d,rules.d}
+    and /usr/lib/grub/x86_64-efi/monolithic (65a56ca).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 21 Jul 2026 23:30:00 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 21 Jul 2026 23:45:00 +0200
 
 linuxmuster-linbo7 (7.4.6) lmn74; urgency=low
 
