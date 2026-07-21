@@ -2,7 +2,7 @@
 #
 # linbo_seeder
 # thomas@linuxmuster.net
-# 20260625
+# 20260721
 
 # no cache, do nothing
 [ -e /tmp/linbo-cache.done ] || exit 0
@@ -12,7 +12,7 @@ source /usr/share/linbo/shell_functions
 
 usage(){
   echo
-  echo "Starts a torrent seeding tmux session for a given torrent file or all torrent files in the cache."
+  echo "Starts a torrent seeding tmux session for a given torrent file."
   echo
   echo "Usage: linbo_seeder [--check] <torrent_file>"
   echo "       linbo_seeder --help"
@@ -22,7 +22,8 @@ usage(){
   echo "  --help, -h     Show this help message"
   echo
   echo "Note:"
-  echo " * If torrent_file is ommitted, all cached torrent files are seeded."
+  echo " * torrent_file is mandatory; without it, this does nothing. To seed all"
+  echo "   cached torrent files, call this once per file (see init.sh)."
   echo " * The torrent file name is used as tmux session name. Dots are replaced by underscores."
   echo " * Press [CTRL+B]+[D] to detach the session."
   echo
