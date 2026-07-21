@@ -1,3 +1,10 @@
+linuxmuster-linbo7 (7.4.7) lmn74; urgency=low
+
+  * fix #158, linbo_initcache: fix diff-image detection for image names
+    with multiple dots (cece349).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 21 Jul 2026 23:00:00 +0200
+
 linuxmuster-linbo7 (7.4.6) lmn74; urgency=low
 
   * fix #156, update-linbofs: preserve symlinks when copying cached firmware (636dc17).
