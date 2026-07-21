@@ -11,8 +11,10 @@ linuxmuster-linbo7 (7.4.7) lmn74; urgency=low
     and /usr/lib/grub/x86_64-efi/monolithic (65a56ca).
   * fix #162, kernel-harvester.sh: recompute module/kernel paths after
     KERNELVER override (ce90379).
+  * fix #163, linbo_seeder: correct usage text to match actual behavior
+    (90424a5).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 21 Jul 2026 23:59:00 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 21 Jul 2026 23:59:59 +0200
 
 linuxmuster-linbo7 (7.4.6) lmn74; urgency=low
 
