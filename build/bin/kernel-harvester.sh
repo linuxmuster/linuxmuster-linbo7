@@ -10,13 +10,20 @@
 # Optionally pass the kernel version as the first argument.
 #
 # thomas@linuxmuster.net
-# 20260514
+# 20260721
 # ------------------
 
 source build/config/build.env
 
 # use kernel version from argument if provided
-[[ -n "$1" ]] && KERNELVER="$1"
+if [[ -n "$1" ]]; then
+    KERNELVER="$1"
+    # recompute paths derived from KERNELVER in build.env, which were
+    # calculated for the auto-detected version before the override
+    SRCMODDIR="/lib/modules/$KERNELVER"
+    DSTMODDIR="$CACHE/lib/modules/$KERNELVER"
+    INITRDFSRC="/boot/initrd.img-$KERNELVER"
+fi
 
 if [[ ! -d "$MODLISTDIR" || -z "$(ls -A "$MODLISTDIR")" ]]; then
     echo "Error: modules list directory not found or empty: $MODLISTDIR"
