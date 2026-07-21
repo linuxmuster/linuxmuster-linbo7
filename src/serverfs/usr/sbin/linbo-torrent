@@ -235,8 +235,13 @@ else
   esac
 fi
 
-# update image permissions
-update_permissions
+# update image permissions (only once per outermost invocation - nested
+# self-invocations from start()/stop()/create() would otherwise repeat
+# the recursive chown for every image)
+if [ -z "$SKIP_CHOWN" ]; then
+  update_permissions
+  export SKIP_CHOWN=1
+fi
 
 case "$1" in
   start) start ; UPDATE_OTR="yes" ;;
