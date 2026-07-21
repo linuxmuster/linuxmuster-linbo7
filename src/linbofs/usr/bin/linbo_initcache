@@ -2,7 +2,7 @@
 #
 # linbo_initcache [serverip] [cachedev] [downloadtype] | [-h|help|--help]
 # thomas@linuxmuster.net
-# 20260521
+# 20260721
 #
 
 usage(){
@@ -72,7 +72,7 @@ done
 for img in $images; do
   if [ -n "$img" ]; then
     linbo_download_image "$img" "$downloadtype" || exit 1
-    [ "${img#*.}" = "qcow2" ] && linbo_download_image "${img/.qcow2/.qdiff}" "$downloadtype"
+    [ "${img##*.}" = "qcow2" ] && linbo_download_image "${img/.qcow2/.qdiff}" "$downloadtype"
   fi
 done
 
