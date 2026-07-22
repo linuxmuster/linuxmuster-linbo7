@@ -2,7 +2,7 @@
 #
 # linbo_partition [-h|help|--help]
 # thomas@linuxmuster.net
-# 20260703
+# 20260722
 #
 
 
@@ -21,7 +21,7 @@ usage(){
 # convert all units to MiB and ensure partability by 2048
 convert_size(){
   local unit="$(echo $1 | sed 's|[^a-zA-Z]*||g')"
-  local size="$(echo ${1/$unit} | awk -F\[,.] '{ print $1 }')"
+  local size="${1%%[!0-9]*}"
   local unit="$(echo $unit | tr A-Z a-z | head -c1)"
   case "$unit" in
     k) size=$(( $size / 2048 * 2 )) ;;
