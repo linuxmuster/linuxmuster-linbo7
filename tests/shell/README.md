@@ -4,11 +4,12 @@ Lightweight unit tests for individual functions inside `src/linbofs/usr/bin/`
 scripts, using [shunit2](https://github.com/kward/shunit2) (vendored as a
 single file in `shunit2`, no external dependency).
 
-linbofs scripts run under busybox `ash` on real clients, and this repo has no
-general shell-test harness (see `docs/proposal-shell-test-harness.de.md` for
-the full design rationale). Tests run under both `dash` (`/bin/sh` in the
-`lmndev-runner` build container) and `busybox ash`, since those are the two
-shells linbofs code actually has to work under.
+linbofs scripts run under busybox `ash` on real clients. This directory
+provides the repository's general shell-test harness (see
+`docs/proposal-shell-test-harness.de.md` for the full design rationale). Tests
+run under both `dash` (`/bin/sh` in the `lmndev-runner` build container) and
+`busybox ash`, since those are the two shells linbofs code actually has to
+work under.
 
 ## Running the tests locally
 
@@ -99,6 +100,8 @@ only because it's already used in production.
 today without stubs:
 
 - `convert_size()` (`linbo_partition`) - covered by `test_linbo_partition.sh`.
+- `valid_image_name()` and `valid_profile_name()` (`linbo_driverpostsync`) -
+  covered by `test_linbo_driverpostsync.sh`.
 
 **Wave 2** - functions that need stubs or fixtures before they're unit-testable;
 tracked here rather than forced or used as an excuse to refactor the code
@@ -108,6 +111,11 @@ first:
   from `shell_functions`, which read real `start.conf` files and sometimes
   block devices. Needs those helpers stubbed, or a fixture variant of
   `shell_functions`.
+- The inline `match.conf` parsing and DMI matching in
+  `linbo_driverpostsync` combines downloaded or cached metadata, file reads
+  and local sysfs data. It needs fixtures and stubs before it can be
+  unit-tested; extracting it into a separate function is intentionally
+  outside this behavior-preserving runtime move.
 - `findcache()` (`linbo_mountcache`) - iterates `/dev/disk/by-id/*part*` and
   mounts real partitions. Not sensibly unit-testable without abstracting the
   device enumeration (e.g. an overridable variable instead of a hardcoded

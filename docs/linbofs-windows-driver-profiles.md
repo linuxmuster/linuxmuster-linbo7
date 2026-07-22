@@ -1,8 +1,8 @@
 # Native Windows driver profiles for LINBO
 
 - Status: implementation workbench; first reference-server end-to-end test passed
-- Target branch: `main`
-- Planning base: `e17d008` (`main` and `7.4`, `linuxmuster-linbo7` 7.4.6)
+- Target branch: `7.4`
+- Planning base: `3b3c3f4` (`7.4`, `linuxmuster-linbo7` 7.4.8)
 - Related components: `linuxmuster-tools7`, `linuxmuster-api7`
 
 ## Decision
@@ -367,9 +367,13 @@ Scope:
 - add the static runtime under `src/linbofs/usr/bin`;
 - preserve the current generated-hook behavior exactly;
 - verify it is executable and included in the built linbofs template;
-- define portable behavior cases derived from the current Tools runtime tests
-  and run them in the development workbench; do not add a new LINBO test
-  framework without maintainer agreement;
+- cover the pure image and profile name validators with the existing
+  `tests/shell` harness under both `dash` and BusyBox `ash`;
+- keep the inline `match.conf` parser as a documented Wave 2 test candidate;
+  isolating its rsync, cache and filesystem dependencies requires dedicated
+  stubs or fixtures and is not part of this behavior-preserving extraction;
+- continue to run the remaining portable behavior cases derived from the
+  current Tools runtime tests in the development workbench;
 - document the runtime command contract;
 - do not change profile storage, API behavior or Windows bootstrap delivery.
 
@@ -466,6 +470,13 @@ implicitly by the runtime extraction.
 - no new network service or listening port.
 
 ### Portable runtime behavior cases
+
+The in-repository Wave 1 tests use `tests/shell/test_linbo_driverpostsync.sh`
+to extract `valid_image_name()` and `valid_profile_name()` without executing
+the runtime's top-level filesystem and network operations. The inline
+`match.conf` parser and the following end-to-end behavior cases remain Wave 2
+because they require controlled rsync, cache, filesystem and registry stubs or
+integration fixtures:
 
 - case-sensitive exact vendor match with case-sensitive product substring;
 - multiple products and the existing explicit wildcard behavior;
@@ -569,20 +580,18 @@ last-known-good cache scenario.
 - no change to the image-name-with-dots limitation in this refactoring;
 - no automatic invention of a Windows scheduled task;
 - no unrelated LINBO sync, image or firmware fixes;
-- no 7.3 backport in the `main` PR.
+- no 7.3 backport in this PR.
 
 ## Decisions required before upstream release
 
 1. Confirm the executable name and positional argument contract with the
    LINBO maintainer.
-2. Decide the accepted location for focused runtime tests because this
-   repository currently has no general shell-test harness.
-3. Decide separately whether a driver-runtime failure should set the overall
+2. Decide separately whether a driver-runtime failure should set the overall
    `linbo_sync` return code.
-4. Agree on the release guard with the maintainers; only if it is a package
+3. Agree on the release guard with the maintainers; only if it is a package
    relationship, record the real released LINBO version before changing it.
-5. Define how fleet readiness is established before Tools publishes thin
+4. Define how fleet readiness is established before Tools publishes thin
    dispatchers to clients that may still be running an old `linbofs`.
-6. Confirm the packaging and merge order for the Windows golden-image SYSTEM
+5. Confirm the packaging and merge order for the Windows golden-image SYSTEM
    task; it remains outside this LINBO runtime PR and is not present in LINBO
    7.4.6.
