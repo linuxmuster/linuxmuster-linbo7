@@ -5,7 +5,7 @@
 # License: GPL V2
 #
 # thomas@linuxmuster.net
-# 20260605
+# 20260722
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -442,6 +442,9 @@ hwsetup(){
 
   # link blockdevices
   linbo_link_blkdev
+
+  # start qemu guest agent if running in qemu
+  dmidecode -s system-manufacturer | grep -q QEMU && qemu-ga -d
 
   touch /tmp/linbo-cache.done
 }

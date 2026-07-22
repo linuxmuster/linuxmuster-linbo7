@@ -1,7 +1,7 @@
 # applications which are taken from the ubuntu filesystem to be integrated into linbofs
 #
 # thomas@linuxmuster.net
-# 20260608
+# 20260722
 #
 
 # busybox
@@ -116,6 +116,8 @@
 # qemu utils
 /usr/bin/qemu-img
 /usr/bin/qemu-nbd
+/usr/sbin/qemu-ga
+/usr/sbin/dmidecode
 
 # time
 /usr/lib/systemd/systemd-timesyncd
