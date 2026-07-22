@@ -20,6 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/linuxmuster/lmndev-runner:latest
+      options: --user root
     strategy:
       matrix:
         shell: [sh, busybox_ash]
