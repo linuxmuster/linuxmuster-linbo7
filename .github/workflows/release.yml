@@ -40,8 +40,11 @@ jobs:
             echo "image=ghcr.io/linuxmuster/lmndev-runner:24.04" >> "$GITHUB_OUTPUT"
           fi
 
+  test:
+    uses: ./.github/workflows/shell-tests.yml
+
   build:
-    needs: resolve
+    needs: [resolve, test]
     runs-on: ubuntu-latest
     container:
       image: ${{ needs.resolve.outputs.image }}

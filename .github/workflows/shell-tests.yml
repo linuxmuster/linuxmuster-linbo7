@@ -1,0 +1,34 @@
+# Shell test harness for linbofs scripts (tests/shell/)
+#
+# Runs under both dash (/bin/sh) and busybox ash, the two shells linbofs
+# scripts actually have to work under. See tests/shell/README.md.
+#
+# Informational only for now: not a required status check in branch
+# protection, and not (yet) a hard gate for regular pushes/PRs - only the
+# release workflow treats it as a gate (see release.yml). See
+# docs/proposal-shell-test-harness.de.md, "Entscheidungen" #2.
+#
+# thomas@linuxmuster.net
+# 20260722
+
+name: Shell tests
+
+on: [push, pull_request, workflow_dispatch, workflow_call]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/linuxmuster/lmndev-runner:latest
+    strategy:
+      matrix:
+        shell: [sh, busybox_ash]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run shell tests
+        run: |
+          if [ "${{ matrix.shell }}" = "busybox_ash" ]; then
+            busybox ash tests/shell/run.sh
+          else
+            sh tests/shell/run.sh
+          fi
