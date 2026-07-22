@@ -1,3 +1,10 @@
+linuxmuster-linbo7 (7.4.8) lmn74; urgency=low
+
+  * linbo_partition: Make convert_size() portable to POSIX sh, not just busybox ash
+    (cf170d6).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 22 Jul 2026 13:33:59 +0200
+
 linuxmuster-linbo7 (7.4.7) lmn74; urgency=low
 
   * fix #158, linbo_initcache: fix diff-image detection for image names
