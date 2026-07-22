@@ -2,8 +2,9 @@ linuxmuster-linbo7 (7.4.8) lmn74; urgency=low
 
   * linbo_partition: Make convert_size() portable to POSIX sh, not just busybox ash
     (cf170d6).
+  * linbofs: fix missing qemu-guest-agent in 7.4 (#130, ff46029).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 22 Jul 2026 13:33:59 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 22 Jul 2026 20:49:28 +0200
 
 linuxmuster-linbo7 (7.4.7) lmn74; urgency=low
 
