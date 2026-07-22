@@ -57,6 +57,35 @@ sets `SHUNIT_PARENT` to the test file's own path before sourcing it - shunit2
 uses `$0` to find `test_*` functions to run, which would otherwise still point
 at `run.sh` since sourcing doesn't change `$0`.
 
+### Extracting more than one function
+
+`extract_function` takes any number of function names and concatenates them,
+in order, to stdout - useful when the functions under test call each other or
+you just want them in one file:
+
+```sh
+oneTimeSetUp() {
+  . "$(dirname "$0")/lib/extract_function.sh"
+  extract_function "$SCRIPT" valid_image_name valid_profile_name \
+    > "$SHUNIT_TMPDIR/functions.sh"
+  . "$SHUNIT_TMPDIR/functions.sh"
+}
+```
+
+### Gotcha: "works under ash" is not the same as "POSIX-portable"
+
+busybox `ash` supports some bash-style extensions that plain `dash` doesn't,
+e.g. `${var/pattern/replacement}` substitution. Code that only gets tried
+against a real LINBO client (which runs busybox `ash`) can look portable
+while actually relying on such an extension - it'll fail under `dash` with
+"Bad substitution" the first time it's tested there.
+
+This actually happened during Phase 1: `convert_size()`'s original
+`${1/$unit}` passed under `ash` and failed under `dash`; fixed to the POSIX
+suffix-removal form `${1%%[!0-9]*}`. Since the harness runs both shells, this
+kind of thing surfaces on its own - just don't assume a function is portable
+only because it's already used in production.
+
 ## Adding a new test
 
 1. Pick a function that's pure enough to test today (see "Wave 1 vs. Wave 2"
