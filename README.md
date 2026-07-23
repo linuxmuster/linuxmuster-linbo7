@@ -6,24 +6,14 @@
  is the free and opensource imaging solution for linuxmuster.net 7. It handles Windows 10 (TM) and Linux 64bit operating systems. Via TFTP and Grub's PXE implementation it boots a small linux system (linbofs) with a [gui](https://github.com/linuxmuster/linuxmuster-linbo-gui), which can manage all the imaging tasks on the client. Console tools are also available to manage clients and imaging remotely via the server.
 
  ## Features
- * Different kernel versions available (6.1.\*, 6.12.\* & 6.16.\*).
+ * Uses stock ubuntu kernel (7.0.0).
  * qcow2 image format.
  * Differential images.
  * Complete [refactoring of linbo_cmd](https://github.com/linuxmuster/linuxmuster-linbo7/issues/72).
- * switch to new ntfs3 kernel driver, allows file sync for ntfs partitions.
+ * Uses ntfs3 kernel driver, allows file sync for ntfs partitions.
 
-## Important notices:
-* Currently the code in this repo is not for production use. For the currently stable version go to [branch 4.0](https://github.com/linuxmuster/linuxmuster-linbo7/tree/4.0).
-* The [README](https://github.com/linuxmuster/linuxmuster-linbo7/tree/4.0#readme) for the stable version is still valid.
-* Packages were published in the [lmn72 testing repository](https://github.com/linuxmuster/deb).
-
-## Migration from linuxmuster.net 7.1
-* Perform a two step upgrade of the server from Ubuntu 18.04 to 20.04 and finally to 22.04 using `do-release-upgrade`.
-* Reconfigure the linuxmuster packages:
-  `dpkg-reconfigure sophomorix-samba linuxmuster-base7 linuxmuster-webui7`
-* Reactivate the lmn71 repo `/etc/apt/sources-list.d/lmn71.list.distUpgrade`.
-* Add the lmn72 repo according to this [instruction](https://github.com/linuxmuster/deb/blob/main/README.md#setup).
-* Perform a dist-upgrade subsequently.
+## Migration from linuxmuster.net 7.3
+* Perform a distribution upgrade of the server from Ubuntu 24.04 to 26.04 using `linuxmuster-release-upgrade`.
 
 ## Differential imaging
 * Differential imagefile uses the qcow2 baseimage as so called *backingstore*.
@@ -97,9 +87,7 @@ Parameter  |  Description
 `splash`  |  Displays graphical splash screen at boot time. Without this parameter, only text is displayed on the console at boot time.
 `vncserver`  |  Starts the LINBO builtin framebuffer vnc server on boot. The service listens on port 9999 and allows access only from the linuxmuster server ip. So if you want to access the vnc server from your pc or laptop you have to create a ssh tunnel (`ssh -L 9999:<linbo client lan address>:9999 root@<serverip>`). Then you are able to access the LINBO gui with a vncviewer (`vncviewer localhost:9999`).
 
-## Improved LINBO server scripts
-
-For background jobs `screen` is replaced by [`tmux`](https://manpages.ubuntu.com/manpages/jammy/man1/tmux.1.html). Note: To detach a tmux session you have to use the key combination [CTRL-D] + [B].
+## LINBO server scripts
 
 ### linbo-remote
 * There are two new commands `create_qdiff` and `upload_qdiff` for differential imaging.
@@ -163,6 +151,7 @@ sync:<#>                 : Syncs the operating system on position nr <#>.
 postsync:<#>             : Invokes postsync script of the os on position nr <#>.
 new:<#>                  : Clean sync of the operating system on position nr <#>
                            (formats the according partition before).
+nogui                    : Do not start the LINBO Gui (see below).
 start:<#>                : Starts the operating system on pos. nr <#>.
 prestart:<#>             : Invokes prestart script of the os on position nr <#>.
 create_image:<#>:<"msg"> : Creates a full image from operating system nr <#>.
@@ -183,8 +172,8 @@ create_* and upload_* commands cannot be used with hostlists, -r and -g options.
 * The new command `attach` attaches a torrent's tmux session.
 * The `status` command lists all running tmux sessions of the torrents.
   ```
-  ubuntu2004_qcow2_torrent: 1 windows (created Fri Jan 27 14:40:01 2023)
-  ubuntu2004_qdiff_torrent: 1 windows (created Fri Jan 27 14:40:03 2023)
+  ubuntu_qcow2_torrent: 1 windows (created Fri Jan 27 14:40:01 2023)
+  ubuntu_qdiff_torrent: 1 windows (created Fri Jan 27 14:40:03 2023)
   win10-efi_qcow2_torrent: 1 windows (created Fri Jan 27 14:40:02 2023)
   win10-efi_qdiff_torrent: 1 windows (created Fri Jan 27 14:40:04 2023)
   ```
@@ -217,8 +206,8 @@ Note:
 ### linbo-multicast
 * The `status` command lists all running multicast tmux sessions.
   ```
-  ubuntu2004_qcow2_mcast: 1 windows (created Sat Jan 28 14:05:44 2023)
-  ubuntu2004_qdiff_mcast: 1 windows (created Sat Jan 28 14:05:43 2023)
+  ubuntu_qcow2_mcast: 1 windows (created Sat Jan 28 14:05:44 2023)
+  ubuntu_qdiff_mcast: 1 windows (created Sat Jan 28 14:05:43 2023)
   win10-efi_qcow2_mcast: 1 windows (created Sat Jan 28 14:05:45 2023)
   win10-efi_qdiff_mcast: 1 windows (created Sat Jan 28 14:05:46 2023)
   ```
@@ -236,23 +225,23 @@ Note:
  * Creates an ISO file under `/srv/linbo/linbo.iso` that allows you to create a bootable Linbo USB stick.
  * Allows to trigger custom actions on the server after `update-linbofs` has done it's job. Therefore you place a corresponding script in the directory `/var/lib/linuxmuster/hooks/update-linbofs.post.d`. Don't forget to make the script executable.
 
-## Improved LINBO client
+## LINBO client
 
 ### The shell
 
 The improved client shell not only presents a new login prompt
 ```
 Welcome to
- _      _____ _   _ ____   ____
-| |    |_   _| \ | |  _ \ / __ \
-| |      | | |  \| | |_) | |  | |
-| |      | | | . ` |  _ <| |  | |
-| |____ _| |_| |\  | |_) | |__| |
-|______|_____|_| \_|____/ \____/
+  _      _____ _   _ ____   ____
+ | |    |_   _| \ | |  _ \ / __ \
+ | |      | | |  \| | |_) | |  | |
+ | |      | | | . ` |  _ <| |  | |
+ | |____ _| |_| |\  | |_) | |__| |
+ |______|_____|_| \_|____/ \____/
 
-LINBO 4.1.18-0: One Step Beyond | IP: 10.0.100.1 | MAC: 95:6a:45:12:67:d5
+ LINBO 7.4.8: Smells Like Teen Spirit | IP: 10.0.100.1 | MAC: 52:54:00:70:af:79 
 
-Linux 6.1.8 #1 SMP PREEMPT_DYNAMIC Thu Jan 26 22:13:55 UTC 2023 x86_64 GNU/Linux
+ Linux 7.0.0-28-generic #28-Ubuntu SMP PREEMPT_DYNAMIC Sun Jun 21 01:01:36 UTC 2026 x86_64 GNU/Linux
 
 linboclient-01: ~ #
 ```
@@ -303,7 +292,6 @@ linboclient-01: ~ # ls -1 /conf/*
 ```
 ```
 linboclient-01: ~ # cat /conf/linbo 
-server="10.0.0.1"
 group="tuxwin"
 cache="/dev/sda5"
 roottimeout="600"
@@ -456,14 +444,7 @@ KERNELPATH="/path/to/my/kernelimage"
 # path to the corresponding modules directory
 MODULESPATH="/path/to/my/lib/modules/n.n.n"
 ```
-If you want to use the legacy (5.15.\*) or longterm (6.1.\*) kernels shipped with Linbo you have to make simply the following entries:
-```
-# use Linbo's alternative legacy kernel
-KERNELPATH="legacy"
 
-# use Linbo's alternative longterm kernel
-KERNELPATH="longterm"
-```
 To apply your changes you have to execute `update-linbofs`. The example above points to the alternative Linbo legacy kernel image and modules. But you can use any other kernel, kernels delivered with the server or other distros or even one compiled on another machine and copied to the server. You only have to provide the paths to the kernel image and the modules directory. Note that your own kernel will be a much larger than the included linbo kernels and that you have to test it if it fits to your client hardware. With self-compiled Linbo kernels, art is to omit unneededed modules to optimize size. A starting point can be the [configuration file of the supplied kernel](https://github.com/linuxmuster/linuxmuster-linbo7/blob/main/build/config/kernel).
 
 ## Build environment
@@ -481,7 +462,7 @@ To apply your changes you have to execute `update-linbofs`. The example above po
 * serverfs: files, which are installed to the server root file system.
 
 ### Build instructions:
-* Install Ubuntu 22.04
+* Install Ubuntu 26.04
 * If you are using Ubuntu server or minimal:
   `sudo apt install dpkg-dev`
 * Install build depends (uses sudo):
@@ -489,6 +470,4 @@ To apply your changes you have to execute `update-linbofs`. The example above po
 * Build package:
   `./buildpackage.sh`
 
-Or for better convenience use the new [linbo-build-docker](https://github.com/linuxmuster/linbo-build-docker) environment.
-
-Further infos see [README](https://github.com/linuxmuster/linuxmuster-linbo7/tree/4.0#readme) of stable branch.
+Or for better convenience use the new [lmndev-runner](https://github.com/linuxmuster/lmndev-runner) environment.
