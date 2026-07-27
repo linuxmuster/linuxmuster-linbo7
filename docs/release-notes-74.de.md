@@ -222,3 +222,8 @@ Das Ziel-Repository für Pakete dieser Version ist `lmn74`.
 - Das `src/`-Verzeichnis im Repository enthält jetzt alle Build-Quellen und ist Teil des Quellpakets (`debian/rules` wurde entsprechend angepasst).
 - Wer bisher eine eigene Build-Umgebung hatte, sollte die neue Struktur unter `build/` und `src/` sichten.
 - Der Wechsel vom lmn73- auf das lmn74-Repository erfordert eine Anpassung der APT-Quellen gemäß der [Setup-Dokumentation](https://github.com/linuxmuster/deb/blob/main/README.md#setup).
+
+---
+
+Author: Thomas Schmitt
+Co-Author: Claude
