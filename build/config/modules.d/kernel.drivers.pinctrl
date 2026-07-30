@@ -1,0 +1,24 @@
+# Intel platform pin control driver modules
+# needed for correct ACPI-controlled power sequencing of on-SoC devices
+# (e.g. NVMe controller resets on Meteor Lake)
+# thomas@linuxmuster.net
+# 20260730
+
+kernel/drivers/pinctrl/intel/pinctrl-alderlake.ko.zst
+kernel/drivers/pinctrl/intel/pinctrl-broxton.ko.zst
+kernel/drivers/pinctrl/intel/pinctrl-cannonlake.ko.zst
+kernel/drivers/pinctrl/intel/pinctrl-cedarfork.ko.zst
+kernel/drivers/pinctrl/intel/pinctrl-denverton.ko.zst
+kernel/drivers/pinctrl/intel/pinctrl-elkhartlake.ko.zst
+kernel/drivers/pinctrl/intel/pinctrl-emmitsburg.ko.zst
+kernel/drivers/pinctrl/intel/pinctrl-geminilake.ko.zst
+kernel/drivers/pinctrl/intel/pinctrl-icelake.ko.zst
+kernel/drivers/pinctrl/intel/pinctrl-intel-platform.ko.zst
+kernel/drivers/pinctrl/intel/pinctrl-jasperlake.ko.zst
+kernel/drivers/pinctrl/intel/pinctrl-lakefield.ko.zst
+kernel/drivers/pinctrl/intel/pinctrl-lewisburg.ko.zst
+kernel/drivers/pinctrl/intel/pinctrl-lynxpoint.ko.zst
+kernel/drivers/pinctrl/intel/pinctrl-meteorlake.ko.zst
+kernel/drivers/pinctrl/intel/pinctrl-meteorpoint.ko.zst
+kernel/drivers/pinctrl/intel/pinctrl-sunrisepoint.ko.zst
+kernel/drivers/pinctrl/intel/pinctrl-tigerlake.ko.zst
