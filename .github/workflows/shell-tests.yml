@@ -9,7 +9,7 @@
 # docs/proposal-shell-test-harness.de.md, "Entscheidungen" #2.
 #
 # thomas@linuxmuster.net
-# 20260722
+# 20260730
 
 name: Shell tests
 
@@ -25,7 +25,7 @@ jobs:
       matrix:
         shell: [sh, busybox_ash]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Run shell tests
         run: |
           if [ "${{ matrix.shell }}" = "busybox_ash" ]; then

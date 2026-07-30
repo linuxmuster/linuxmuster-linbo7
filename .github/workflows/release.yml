@@ -11,7 +11,7 @@
 #   REPO_SSH_KEY    GitHub SSH key for the linuxmuster/deb repository
 #
 # thomas@linuxmuster.net
-# 20260427
+# 20260730
 
 name: Release
 
@@ -28,7 +28,7 @@ jobs:
       image: ${{ steps.image.outputs.image }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Select runner image
         id: image
         run: |
@@ -56,7 +56,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           path: build
 
@@ -73,7 +73,7 @@ jobs:
           OUTPUT_DIR: ${{ github.workspace }}/output
 
       - name: Upload packages as artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: packages
           path: output/
@@ -86,13 +86,13 @@ jobs:
 
     steps:
       - name: Download packages
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: packages
           path: packages/
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ needs.build.outputs.version }}
           files: packages/*.deb
@@ -104,13 +104,13 @@ jobs:
 
     steps:
       - name: Download packages
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: packages
           path: packages/
 
       - name: Clone archive repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: linuxmuster/deb
           ssh-key: ${{ secrets.REPO_SSH_KEY }}
