@@ -2,7 +2,7 @@
 #
 # starts tmux sessions for each valid torrent in LINBODIR
 # thomas@linuxmuster.net
-# 20250510
+# 20260730
 #
 
 # read environment
@@ -120,12 +120,22 @@ start(){
 }
 
 stop(){
+  local current
+  current="$(tmux display-message -p '#S' 2>/dev/null)"
   if [ -n "$SESSION" ]; then
     linbo-torrent status | grep -qw ^"$SESSION" || return
+    if [ -n "$current" ] && [ "$SESSION" = "$current" ]; then
+      echo "Refusing to stop $SESSION: you are currently attached to it. Detach first with [CTRL+B]+[D]."
+      return 1
+    fi
     tmux kill-session -t "$SESSION"
   else
     local item
     linbo-torrent status | awk -F\: '{print $1}' | while read item; do
+      if [ -n "$current" ] && [ "$item" = "$current" ]; then
+        echo "Skipping $item: you are currently attached to it. Detach first with [CTRL+B]+[D] to stop it too."
+        continue
+      fi
       tmux kill-session -t "$item"
     done
   fi
