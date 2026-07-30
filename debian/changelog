@@ -1,3 +1,11 @@
+linuxmuster-linbo7 (7.4.9) lmn74; urgency=low
+
+  * linbofs: add missing Intel platform power-management modules
+    (pinctrl, PMC/telemetry, idma64), fixing NVMe controller resets on
+    Meteor Lake laptops (#165, 8ce8f70).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 30 Jul 2026 12:58:43 +0200
+
 linuxmuster-linbo7 (7.4.8) lmn74; urgency=low
 
   * linbo_partition: Make convert_size() portable to POSIX sh, not just busybox ash
