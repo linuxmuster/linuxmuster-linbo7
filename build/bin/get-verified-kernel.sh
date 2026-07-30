@@ -4,7 +4,7 @@
 # based on https://git.kernel.org/pub/scm/linux/kernel/git/mricon/korg-helpers.git/plain/get-verified-tarball
 # modified for linuxmuster-linbo7
 # thomas@linuxmuster.net
-# 20260703
+# 20260730
 # --------------------
 # Get Linux kernel tarball and cryptographically verify it,
 # retrieving the PGP keys using the Web Key Directory (WKD)
@@ -187,7 +187,11 @@ else
         # Grab only the tarball we want from the full list
         SHACHECK=${TMPDIR}/sha256sums.txt
         grep "linux-${VER}.tar.xz" ${SHAFILE} > ${SHACHECK}
-        HAVE_SHACHECK=1
+        if [[ -s ${SHACHECK} ]]; then
+            HAVE_SHACHECK=1
+        else
+            echo "WARNING: linux-${VER}.tar.xz not yet listed in sha256sums.asc, skipping mirror integrity pre-check"
+        fi
     fi
 fi
 
