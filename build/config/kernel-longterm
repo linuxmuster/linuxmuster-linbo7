@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/x86 6.12.94 Kernel Configuration
+# Linux/x86 6.12.100 Kernel Configuration
 #
 CONFIG_CC_VERSION_TEXT="gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0"
 CONFIG_CC_IS_GCC=y
@@ -5419,6 +5419,7 @@ CONFIG_HAVE_KCSAN_COMPILER=y
 # CONFIG_NET_DEV_REFCNT_TRACKER is not set
 # CONFIG_NET_NS_REFCNT_TRACKER is not set
 # CONFIG_DEBUG_NET is not set
+# CONFIG_DEBUG_NET_SMALL_RTNL is not set
 # end of Networking Debugging
 
 #
