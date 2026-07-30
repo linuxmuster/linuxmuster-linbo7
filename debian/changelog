@@ -1,8 +1,14 @@
+linuxmuster-linbo7 (4.3.37-0) lmn73; urgency=low
+
+  * kernel updates: 6.1.180, 6.12.100, 7.1.5 (#134, 126de37).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 30 Jul 2026 21:44:00 +0200
+
 linuxmuster-linbo7 (4.3.36-0) lmn73; urgency=low
 
   * fix(linbo-torrent): don't kill the tmux session stop was invoked from (#166, dd2f941).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 30 Jul 2026 16:26:14 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 30 Jul 2026 21:05:25 +0200
 
 linuxmuster-linbo7 (4.3.35-0) lmn73; urgency=low
 
