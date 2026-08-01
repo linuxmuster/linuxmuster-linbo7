@@ -2,7 +2,7 @@
 #
 # linbo_partition [-h|help|--help]
 # thomas@linuxmuster.net
-# 20260722
+# 20260801
 #
 
 
@@ -23,6 +23,9 @@ convert_size(){
   local unit="$(echo $1 | sed 's|[^a-zA-Z]*||g')"
   local size="${1%%[!0-9]*}"
   local unit="$(echo $unit | tr A-Z a-z | head -c1)"
+  # no leading digit (e.g. "M"): size is empty, which would crash the
+  # arithmetic below with "expecting primary" instead of a clean failure
+  [ -z "$size" ] && return 1
   case "$unit" in
     k) size=$(( $size / 2048 * 2 )) ;;
     m) size=$(( $size / 2 * 2 )) ;;

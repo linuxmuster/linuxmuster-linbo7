@@ -2,7 +2,7 @@
 #
 # test_linbo_partition.sh
 # thomas@linuxmuster.net
-# 20260722
+# 20260801
 #
 # Wave 1 pilot test: convert_size() from linbo_partition.
 # Pure string/arithmetic conversion, no filesystem/device/network access.
@@ -38,6 +38,37 @@ test_convert_size_unit_is_case_insensitive() {
 
 test_convert_size_rejects_unknown_unit() {
   convert_size 10X
+  assertEquals 1 $?
+}
+
+test_convert_size_megabyte_rounds_down_to_even() {
+  # 513 / 2 = 256 (integer division), * 2 = 512
+  assertEquals "512" "$(convert_size 513M)"
+}
+
+test_convert_size_small_kilobyte_rounds_to_zero() {
+  # below the 2048 KiB (= 2 MiB) threshold, integer division floors to 0
+  assertEquals "0" "$(convert_size 1K)"
+  assertEquals "0" "$(convert_size 2047K)"
+}
+
+test_convert_size_accepts_multi_letter_unit_suffix() {
+  # only the unit's first letter is significant, so "GB", "Gib" etc. all
+  # behave like a plain "G"
+  assertEquals "10240" "$(convert_size 10GB)"
+}
+
+test_convert_size_truncates_fractional_input() {
+  # digit-extraction stops at the first non-digit character, so the
+  # fractional part is silently dropped rather than rounded - this test
+  # documents that behavior rather than endorsing it
+  assertEquals "1024" "$(convert_size 1.5G)"
+}
+
+test_convert_size_rejects_missing_leading_digit() {
+  # a unit with no leading digit (e.g. a malformed start.conf entry) must
+  # fail cleanly instead of crashing the arithmetic expansion below it
+  convert_size M
   assertEquals 1 $?
 }
 
