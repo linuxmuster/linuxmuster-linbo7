@@ -102,6 +102,14 @@ today without stubs:
 - `convert_size()` (`linbo_partition`) - covered by `test_linbo_partition.sh`.
 - `valid_image_name()` and `valid_profile_name()` (`linbo_driverpostsync`) -
   covered by `test_linbo_driverpostsync.sh`.
+- `isinteger()`, `stringinstring()`, `remote_cache()`, `validip()` and
+  `validhostname()` (`shell_functions`, the shared library sourced by nearly
+  every linbofs script) - covered by `test_shell_functions.sh`. Testing
+  `validip()`/`validhostname()` surfaced a real bug: both used `&>` to
+  redirect `expr match`, a bashism dash parses as background (`&`) plus a
+  bare `> /dev/null` (a no-op that always succeeds) - so under dash they
+  validated any input at all as valid. Fixed to the POSIX
+  `> /dev/null 2>&1` form.
 
 **Wave 2** - functions that need stubs or fixtures before they're unit-testable;
 tracked here rather than forced or used as an excuse to refactor the code
