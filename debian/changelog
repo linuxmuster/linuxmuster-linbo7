@@ -1,8 +1,10 @@
 linuxmuster-linbo7 (7.4.10) lmn74; urgency=low
 
   * fix(linbo-torrent): don't kill the tmux session stop was invoked from (#166, 8dca29b).
+  * fix(update-linbofs): reproduce firmware symlinks instead of flattening them,
+    fixing missing WLAN firmware (e.g. Intel iwlwifi) at LINBO boot (#164, 55d0365).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 30 Jul 2026 17:16:59 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 01 Aug 2026 14:21:42 +0200
 
 linuxmuster-linbo7 (7.4.9) lmn74; urgency=low
 
