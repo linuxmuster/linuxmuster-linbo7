@@ -4,8 +4,10 @@ linuxmuster-linbo7 (7.4.10) lmn74; urgency=low
   * fix(update-linbofs): reproduce firmware symlinks instead of flattening them,
     fixing missing WLAN firmware (e.g. Intel iwlwifi) at LINBO boot (#164, 55d0365).
   * fix(linbo_partition): convert_size() fails cleanly on missing leading digit (1eff1f2).
+  * fix(shell_functions): validip()/validhostname() used a bashism ("&>") that made them
+    validate any input as valid under dash; fixed to POSIX "> /dev/null 2>&1" (bd24dce).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 01 Aug 2026 14:21:42 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 01 Aug 2026 14:52:50 +0200
 
 linuxmuster-linbo7 (7.4.9) lmn74; urgency=low
 
