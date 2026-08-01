@@ -6,7 +6,7 @@
 #
 # thomas@linuxmuster.net
 # GPL V3
-# 20260704
+# 20260801
 #
 
 # read linuxmuster environment
@@ -153,7 +153,29 @@ download_fwlist() {
 }
 
 
-# download firmware from kernel.org to cache
+# echo "<link path>\t<link target>" for every WHENCE "Link:" entry that
+# resolves (relative to the link's own directory) to the given File: path,
+# e.g. for "intel/iwlwifi/iwlwifi-8265-36.ucode" this finds
+# "Link: iwlwifi-8265-36.ucode -> intel/iwlwifi/iwlwifi-8265-36.ucode"
+find_fw_links() {
+	local target_item="$1"
+	local link_path link_target link_dir resolved
+	while read -r _ link_path _ link_target; do
+		[ -z "$link_path" ] && continue
+		link_dir="$(dirname "$link_path")"
+		[ "$link_dir" = "." ] && link_dir=""
+		# normalize lexically only (no filesystem access) under a fixed
+		# anchor, so a "../" in the link target can't escape the comparison
+		resolved="$(realpath -sm "/__ANCHOR__/${link_dir:+$link_dir/}$link_target")"
+		resolved="${resolved#/__ANCHOR__/}"
+		[ "$resolved" = "$target_item" ] && printf '%s\t%s\n' "$link_path" "$link_target"
+	done < <(grep '^Link:' "$FW_LIST_LOCAL")
+}
+
+
+# download firmware from kernel.org to cache; also recreates any compat
+# symlink WHENCE documents for the downloaded file (see find_fw_links()),
+# matching how copy_fw() handles firmware that is symlinked under $FW_SYSTEM
 download_fw() {
 	local fw_name="$1"
 	# get remote firmware path(s) from downloaded firmware filelist
@@ -164,6 +186,8 @@ download_fw() {
 	local local_file
 	local fw_dir
 	local item
+	local link_path
+	local link_target
 	local RC=0
 	for item in $remote_files; do
 		fw_dir="$(dirname "$item")"
@@ -175,6 +199,11 @@ download_fw() {
 			# compress downloaded firmware file
 			if zstd -qf --adapt --rm "$local_file"; then
 				echo "${item}.zst"
+				while IFS=$'\t' read -r link_path link_target; do
+					mkdir -p "$FW_CACHE/$(dirname "$link_path")"
+					ln -sf "${link_target}.zst" "$FW_CACHE/${link_path}.zst"
+					echo "${link_path}.zst"
+				done < <(find_fw_links "$item")
 			else
 				RC=1
 			fi
@@ -218,23 +247,59 @@ lookup_fw_index() {
 }
 
 
-# copy local firmware to cache
+# copy local firmware to cache; if the resolved file is itself a symlink
+# (e.g. iwlwifi-*.ucode files, which live in a subdirectory of $FW_SYSTEM
+# but are symlinked at its top level, exactly where the kernel's firmware
+# loader looks for them), reproduce both the symlink and the file it
+# points to, each at their original path relative to $FW_SYSTEM
 copy_fw() {
 	local fw_name="$(basename "$1")"
 	local fw_zst="${fw_name}.zst"
-	build_fw_index
-	# get firmware file from local system
-	local fw_src="$(lookup_fw_index "$FW_FILE_INDEX" "$fw_name")"
-	[ -n "$fw_src" ] || fw_src="$(lookup_fw_index "$FW_FILE_INDEX" "$fw_zst")"
-	if [ -n "$fw_src" ]; then
+	# many firmware files live in a subdirectory of $FW_SYSTEM but are
+	# additionally symlinked directly at its top level, which is where the
+	# kernel's firmware loader actually looks for them; check that exact
+	# spot first so we always resolve to it deterministically instead of a
+	# basename search below matching the subdirectory copy instead
+	local fw_src="$FW_SYSTEM/$fw_name"
+	[ -e "$fw_src" ] || fw_src="$FW_SYSTEM/$fw_zst"
+	if [ ! -e "$fw_src" ]; then
+		build_fw_index
+		# get firmware file from local system
+		fw_src="$(lookup_fw_index "$FW_FILE_INDEX" "$fw_name")"
+		[ -n "$fw_src" ] || fw_src="$(lookup_fw_index "$FW_FILE_INDEX" "$fw_zst")"
+	fi
+	if [ -n "$fw_src" ] && [ -e "$fw_src" ]; then
 		local fw_dir="$(dirname "$fw_src")"
 		local fw_target="${fw_dir/$FW_SYSTEM/$FW_CACHE}"
 		mkdir -p "$fw_target"
-		cp -L "$fw_src" "$fw_target" || return 1
-		echo "${fw_src#$FW_SYSTEM/}"
+		if [ -L "$fw_src" ]; then
+			# preserve the symlink itself ...
+			cp -P "$fw_src" "$fw_target" || return 1
+			# ... and additionally place the file it points to at its own path;
+			# resolve only this symlink (readlink), not the full path, since
+			# realpath/readlink -f would also resolve unrelated symlinks along
+			# the way (e.g. the /lib -> /usr/lib usrmerge link) and thereby
+			# escape the $FW_SYSTEM prefix this function relies on throughout
+			local link_target fw_real fw_real_dir fw_real_target
+			link_target="$(readlink "$fw_src")"
+			case "$link_target" in
+				/*) fw_real="$(realpath -sm "$link_target")" ;;
+				*) fw_real="$(realpath -sm "$fw_dir/$link_target")" ;;
+			esac
+			[ -e "$fw_real" ] || return 1
+			fw_real_dir="$(dirname "$fw_real")"
+			fw_real_target="${fw_real_dir/$FW_SYSTEM/$FW_CACHE}"
+			mkdir -p "$fw_real_target"
+			cp "$fw_real" "$fw_real_target" || return 1
+			printf '%s\n%s\n' "${fw_src#$FW_SYSTEM/}" "${fw_real#$FW_SYSTEM/}"
+		else
+			cp "$fw_src" "$fw_target" || return 1
+			echo "${fw_src#$FW_SYSTEM/}"
+		fi
 		return
 	fi
 	# get firmware directory from local system
+	build_fw_index
 	fw_src="$(lookup_fw_index "$FW_DIR_INDEX" "$fw_name")"
 	[ -n "$fw_src" ] || return 1
 	cp -r "$fw_src" "$FW_CACHE" || return 1
