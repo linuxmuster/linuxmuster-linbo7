@@ -4,6 +4,8 @@
 
 | Version | Datum | Ziel-Repository |
 |---------|-------|-----------------|
+| 7.4.10 | 01.08.2026 | lmn74 |
+| 7.4.9 | 30.07.2026 | lmn74 |
 | 7.4.8 | 23.07.2026 | lmn74 |
 | 7.4.7 | 21.07.2026 | lmn74 |
 | 7.4.6 | 17.07.2026 | lmn74 |
@@ -134,7 +136,7 @@ Zusätzlich wurde ein erster Shell-Test-Harness für linbofs-Skripte eingeführt
 
 ---
 
-## Weitere Fehlerbehebungen und Verbesserungen (7.4.2 – 7.4.8)
+## Weitere Fehlerbehebungen und Verbesserungen (7.4.2 – 7.4.10)
 
 ### Partitionierung & Cache
 
@@ -161,6 +163,13 @@ Zusätzlich wurde ein erster Shell-Test-Harness für linbofs-Skripte eingeführt
   Lauf erneut heruntergeladen zu werden (7.4.5).
 - Symlinks bleiben beim Kopieren zwischengespeicherter Firmware jetzt erhalten
   (#156, 7.4.6).
+- Firmware, die unter einem Herstellerunterverzeichnis von `/lib/firmware`
+  liegt und zusätzlich als Symlink am Top-Level existiert (z. B.
+  Intel-`iwlwifi`-WLAN-Firmware), wurde teils nur ins Unterverzeichnis statt
+  an den vom Kernel erwarteten Top-Level-Pfad kopiert – das WLAN-Firmware-Laden
+  beim LINBO-Boot schlug dadurch fehl. Symlink und Zieldatei werden jetzt
+  beide 1:1 abgebildet, sowohl bei lokal vorhandener als auch bei von
+  kernel.org nachgeladener Firmware (#164, 7.4.10).
 - `busybox dumpkmap`-Fix (#151, 7.4.3).
 - Locale-Fix (7.4.4).
 - Fehlendes `qemu-guest-agent` in 7.4 ergänzt (#130, 7.4.8).
@@ -172,6 +181,9 @@ Zusätzlich wurde ein erster Shell-Test-Harness für linbofs-Skripte eingeführt
   `/usr/lib/grub/x86_64-efi/monolithic` (#161, 7.4.7).
 - `kernel-harvester.sh`: Modul-/Kernel-Pfade werden nach einem
   `KERNELVER`-Override jetzt neu berechnet (#162, 7.4.7).
+- Fehlende Intel-Power-Management-Kernelmodule (`pinctrl`, PMC/Telemetrie,
+  `idma64`) ergänzt; behebt NVMe-Controller-Resets auf Meteor-Lake-Laptops
+  (#165, 7.4.9).
 
 ### Torrent / aria2c
 
@@ -188,6 +200,8 @@ Zusätzlich wurde ein erster Shell-Test-Harness für linbofs-Skripte eingeführt
   entspricht (#163, 7.4.7).
 - `linbo_initcache`: Diff-Image-Erkennung für Image-Namen mit mehreren Punkten
   korrigiert (#158, 7.4.7).
+- `linbo-torrent`: Killt nicht mehr die tmux-Session, aus der `stop` heraus
+  aufgerufen wurde (#166, 7.4.10).
 
 ### Netzwerk / WLAN
 
