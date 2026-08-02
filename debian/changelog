@@ -1,3 +1,9 @@
+linuxmuster-linbo7 (7.4.11) lmn74; urgency=low
+
+  * fix(update-linbofs): copy_fw() no longer chokes on bare directory firmware entries (#164, 93b9dd4).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sun,  2 Aug 2026 16:40:48 +0200
+
 linuxmuster-linbo7 (7.4.10) lmn74; urgency=low
 
   * fix(linbo-torrent): don't kill the tmux session stop was invoked from (#166, 8dca29b).
