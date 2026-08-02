@@ -259,16 +259,20 @@ copy_fw() {
 	# additionally symlinked directly at its top level, which is where the
 	# kernel's firmware loader actually looks for them; check that exact
 	# spot first so we always resolve to it deterministically instead of a
-	# basename search below matching the subdirectory copy instead
+	# basename search below matching the subdirectory copy instead.
+	# Use -f/-L, not -e: fw_name can also be a bare directory name (e.g.
+	# "rtl_nic" in firmware.ex, meaning "pack the whole directory") and
+	# -e would match that too, short-circuiting past the directory-copy
+	# fallback below and into a plain (non-recursive) cp on a directory.
 	local fw_src="$FW_SYSTEM/$fw_name"
-	[ -e "$fw_src" ] || fw_src="$FW_SYSTEM/$fw_zst"
-	if [ ! -e "$fw_src" ]; then
+	[ -f "$fw_src" -o -L "$fw_src" ] || fw_src="$FW_SYSTEM/$fw_zst"
+	if [ ! -f "$fw_src" -a ! -L "$fw_src" ]; then
 		build_fw_index
 		# get firmware file from local system
 		fw_src="$(lookup_fw_index "$FW_FILE_INDEX" "$fw_name")"
 		[ -n "$fw_src" ] || fw_src="$(lookup_fw_index "$FW_FILE_INDEX" "$fw_zst")"
 	fi
-	if [ -n "$fw_src" ] && [ -e "$fw_src" ]; then
+	if [ -n "$fw_src" ] && [ -f "$fw_src" -o -L "$fw_src" ]; then
 		local fw_dir="$(dirname "$fw_src")"
 		local fw_target="${fw_dir/$FW_SYSTEM/$FW_CACHE}"
 		mkdir -p "$fw_target"
