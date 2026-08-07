@@ -451,15 +451,16 @@ To apply your changes you have to execute `update-linbofs`. The example above po
 
 ### Source tree structure
 * build: all files, which are used to build the package.
-  - bin: helper scripts (only get kernel archive script at the moment).
-  - conf.d: environment variables definition for the various build components.
-  - config: configuration files for various source packages (eg. busybox, kernel).
-  - initramfs.d: initramfs configurations for the various components, which are picked from the ubuntu build system to create the linbofs system from it.
-  - patches: source patches, which are to be applied (eg. cloop).
-  - run.d: the build scripts for the package components.
+  - bin: helper scripts (`kernel-harvester.sh` copies the kernel image and the modules listed under `config/modules.d/` out of the Ubuntu build environment; `reset-root.sh` resets ownership of files that were created as root during the build).
+  - config: build configuration (`build.env`/`serverfs.env` environment variables, `linbofs.apps` listing the host files pulled into linbofs, `modules.d/` listing the kernel modules to harvest, split per subsystem).
+  - run.d: the numbered build scripts for the package components, executed in order (linbofs root, symlinks, plymouth, apps, busybox, archive, kernel modules, serverfs).
 * debian: debian packaging stuff
-* linbofs: files, which are installed to the initramfs file system.
-* serverfs: files, which are installed to the server root file system.
+* src: source files installed into the package
+  - linbofs: files, which are installed to the initramfs file system.
+  - linbo-splash: the plymouth boot splash theme.
+  - serverfs: files, which are installed to the server root file system.
+* docs: additional documentation
+* tests: shell test harness (see `tests/shell/README.md`)
 
 ### Build instructions:
 * Install Ubuntu 26.04
