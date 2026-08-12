@@ -5,6 +5,11 @@ After=network.target
 [Service]
 Type=oneshot
 RemainAfterExit=yes
+# see linbo-torrent.service for why this can't be the default control-group:
+# start/stop spawn detached tmux sessions sharing one server with every other
+# tmux session on the host, so killing this unit's cgroup at stop/restart
+# would take all of them down, not just this unit's own tracked process
+KillMode=process
 ExecStart=/usr/sbin/linbo-multicast start
 ExecStop=/usr/sbin/linbo-multicast stop
 

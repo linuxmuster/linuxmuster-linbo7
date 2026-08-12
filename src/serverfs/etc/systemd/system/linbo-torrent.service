@@ -5,6 +5,12 @@ After=network.target
 [Service]
 Type=oneshot
 RemainAfterExit=yes
+# start/stop spawn detached tmux sessions that must outlive this unit's own
+# process (and, since tmux sessions all share one server, killing this unit's
+# cgroup at stop/restart takes down every tmux session on the host, torrent-
+# related or not); the default KillMode=control-group would do exactly that,
+# so only ever signal the tracked ExecStart/ExecStop process itself
+KillMode=process
 ExecStart=/usr/sbin/linbo-torrent start
 ExecStop=/usr/sbin/linbo-torrent stop
 ExecReload=/usr/sbin/linbo-torrent reload
