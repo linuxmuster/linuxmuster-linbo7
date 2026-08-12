@@ -1,3 +1,10 @@
+linuxmuster-linbo7 (7.4.12) lmn74; urgency=low
+
+  * fix(linbo-torrent, linbo-multicast): don't kill unrelated tmux sessions on
+    service stop/restart (5d7e7fc).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 12 Aug 2026 18:48:12 +0200
+
 linuxmuster-linbo7 (7.4.11) lmn74; urgency=low
 
   * fix(update-linbofs): copy_fw() no longer chokes on bare directory firmware entries (#164, 93b9dd4).
