@@ -1,7 +1,8 @@
-# common linbo shell functions
-#
-# thomas@linuxmuster.net
-# 20260801
+# Filename     : shell_functions
+# Description  : Common shell functions shared by linbofs scripts
+# Signed-off by: thomas@linuxmuster.net
+# Assisted by  : Claude
+# Date         : 20260817
 #
 
 set -o pipefail
@@ -73,7 +74,12 @@ printargs(){
   local arg
   local count=1
   for arg in "$@"; do
-    echo -n "$((count++)): »$arg« "
+    # "$((count++))" (postfix increment) is a bashism dash's arithmetic
+    # expansion doesn't support ("expecting primary: count++"), crashing
+    # this function outright under dash - increment as a separate
+    # statement instead.
+    echo -n "$count: »$arg« "
+    count=$((count + 1))
   done
   echo ""
 }
@@ -87,11 +93,12 @@ tolower(){
 
 # test if string is alpha numeric
 isalnum(){
-  if [[ $1 =~ ^[[:alnum:]]+$ ]];then
-    return 0
-  else
-    return 1
-  fi
+  # "[[ =~ ]]" is a bashism dash doesn't understand ("[[: not found"), which
+  # made this always fall through to the else branch and return 1 for any
+  # input at all under dash - see validip()/validhostname() above for the
+  # same class of bug. expr match is POSIX and works under both dash and
+  # busybox ash.
+  (expr match "$1" '[A-Za-z0-9]\+$') > /dev/null 2>&1 || return 1
 }
 
 # test if variable is an integer
@@ -107,7 +114,10 @@ isinteger() {
 # test if number is even or odd
 iseven(){
   isinteger $1 || return 1
-  [ $(expr $1 % 2) == 0 ] && return 0
+  # "==" inside "[ ]" is a bashism dash doesn't understand ("[: unexpected
+  # operator"), which made this always fail (return 1) for any input,
+  # including even numbers, under dash - "=" is the POSIX test operator.
+  [ "$(expr $1 % 2)" = "0" ] && return 0
 	return 1
 }
 

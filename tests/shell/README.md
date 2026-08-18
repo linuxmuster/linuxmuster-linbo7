@@ -102,14 +102,37 @@ today without stubs:
 - `convert_size()` (`linbo_partition`) - covered by `test_linbo_partition.sh`.
 - `valid_image_name()` and `valid_profile_name()` (`linbo_driverpostsync`) -
   covered by `test_linbo_driverpostsync.sh`.
-- `isinteger()`, `stringinstring()`, `remote_cache()`, `validip()` and
-  `validhostname()` (`shell_functions`, the shared library sourced by nearly
-  every linbofs script) - covered by `test_shell_functions.sh`. Testing
-  `validip()`/`validhostname()` surfaced a real bug: both used `&>` to
-  redirect `expr match`, a bashism dash parses as background (`&`) plus a
-  bare `> /dev/null` (a no-op that always succeeds) - so under dash they
-  validated any input at all as valid. Fixed to the POSIX
-  `> /dev/null 2>&1` form.
+- `isinteger()`, `stringinstring()`, `remote_cache()`, `validip()`,
+  `validhostname()`, `tolower()`, `isalnum()`, `iseven()`, `printargs()`,
+  `warmstart()`, `localmode()`, `get_disk_from_partition()`, `getinfo()`,
+  `get_filesize()` and `cleanlog()` (`shell_functions`, the shared library
+  sourced by nearly every linbofs script) - covered by
+  `test_shell_functions.sh`. `getinfo()`/`get_filesize()`/`cleanlog()` take
+  the file to operate on as an explicit argument, so they're testable
+  against a `$SHUNIT_TMPDIR` fixture rather than a real path.
+
+  Testing this file surfaced four real bugs, all the same class as each
+  other: a construct that's fine under bash/busybox `ash` but breaks under
+  real `dash`, silently or otherwise -
+  - `validip()`/`validhostname()`: both used `&>` to redirect `expr match`,
+    a bashism dash parses as background (`&`) plus a bare `> /dev/null`
+    (a no-op that always succeeds) - so under dash they validated any
+    input at all as valid. Fixed to the POSIX `> /dev/null 2>&1` form.
+  - `isalnum()`: used `[[ $1 =~ ... ]]`, which dash doesn't have at all
+    (`[[: not found`) - the resulting error made the function always
+    return 1, rejecting any input including valid ones. Fixed to
+    `expr match`, the same idiom already used by `validip()`.
+  - `iseven()`: used `[ ... == ... ]` - `==` isn't a `test`/`[` operator
+    under dash (`unexpected operator`), so it always returned 1, even for
+    even numbers. Fixed to `=`.
+  - `printargs()`: used `$((count++))` - dash's arithmetic expansion
+    doesn't support the postfix `++`/`--` operators at all
+    (`expecting primary: count++`), crashing the function outright. Fixed
+    to a separate `count=$((count + 1))` statement.
+
+  None of these were caught before because nothing had run this file under
+  a real `dash`/POSIX shell until this harness existed - busybox `ash` (the
+  real client runtime) tolerates all four constructs just fine.
 
 **Wave 2** - functions that need stubs or fixtures before they're unit-testable;
 tracked here rather than forced or used as an excuse to refactor the code
@@ -129,6 +152,12 @@ first:
   device enumeration (e.g. an overridable variable instead of a hardcoded
   path); only viable as an integration test on a real or virtual machine for
   now.
+- Remaining `shell_functions` helpers with hardcoded real paths or external
+  processes: `ismounted()` (`/proc/mounts`), `isdownloadable()` (`rsync`),
+  `get_label()`/`get_realdev()` (`/conf/part.*`, `/dev/disk/by-label`), the
+  `*_startconf()` family (`/conf/os.*`, `/conf/part.*`, `/conf/linbo`), and
+  everything from `sendlog()` onward (logging, disks, EFI, grub - real
+  mounts, `rsync`, `efibootmgr`, `grub-install`, ...).
 
 Phase 1 deliberately does not attempt retroactive coverage of the whole
 `linbofs` script inventory - the goal is a usable, documented harness plus one
