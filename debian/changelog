@@ -1,3 +1,15 @@
+linuxmuster-linbo7 (7.4.13) lmn74; urgency=low
+
+  * fix(shell_functions): isalnum() used "[[ =~ ]]", which dash doesn't have
+    at all, always rejecting valid input; fixed to expr match (9d81cfd).
+  * fix(shell_functions): iseven() used "[ ... == ... ]", invalid under dash,
+    always rejecting even numbers; fixed to "=" (9d81cfd).
+  * fix(shell_functions): printargs() used "$((count++))", unsupported by
+    dash's arithmetic expansion, crashing outright; fixed to a separate
+    increment statement (9d81cfd).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 18 Aug 2026 10:15:00 +0200
+
 linuxmuster-linbo7 (7.4.12) lmn74; urgency=low
 
   * fix(linbo-torrent, linbo-multicast): don't kill unrelated tmux sessions on
