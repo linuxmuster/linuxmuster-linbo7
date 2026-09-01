@@ -7,8 +7,12 @@ linuxmuster-linbo7 (7.4.13) lmn74; urgency=low
   * fix(shell_functions): printargs() used "$((count++))", unsupported by
     dash's arithmetic expansion, crashing outright; fixed to a separate
     increment statement (9d81cfd).
+  * fix(init.sh): wait up to netwait seconds (default 10) for a network
+    interface to appear before enumerating it, fixing USB NICs (e.g.
+    RTL8153) that enumerate a few seconds after udev settle returns
+    (#167, f98fb1a).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 18 Aug 2026 10:15:00 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 1 Sep 2026 15:45:00 +0200
 
 linuxmuster-linbo7 (7.4.12) lmn74; urgency=low
 
