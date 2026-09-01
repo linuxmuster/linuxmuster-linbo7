@@ -320,8 +320,9 @@ network(){
   [ -z "$netwait" ] && netwait=10
   netwaited=0
   while [ -z "$(grep ':' /proc/net/dev | awk -F\: '{ print $1 }' | awk '{ print $1}' | grep -v ^lo)" ] && [ "$netwaited" -lt "$netwait" ]; do
-    sleep 1
     netwaited=$((netwaited + 1))
+    print_status "Waiting for network interface to appear ($netwaited/$netwait) ..."
+    sleep 1
   done
   print_status "Requesting ip address per dhcp (retry=$dhcpretry) ..."
   for dev in $(grep ':' /proc/net/dev | awk -F\: '{ print $1 }' | awk '{ print $1}' | grep -v ^lo | sort); do
