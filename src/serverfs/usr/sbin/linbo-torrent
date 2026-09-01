@@ -1,8 +1,10 @@
 #!/bin/bash
 #
-# starts tmux sessions for each valid torrent in LINBODIR
-# thomas@linuxmuster.net
-# 20260730
+# Filename     : linbo-torrent
+# Description  : starts tmux sessions for each valid torrent in LINBODIR
+# Signed-off by: thomas@linuxmuster.net
+# Assisted by  : Claude
+# Date         : 20260901
 #
 
 # read environment
@@ -154,7 +156,13 @@ start(){
 
 stop(){
   local current
-  current="$(tmux display-message -p '#S' 2>/dev/null)"
+  # tmux display-message -p works without an attached client too - it then
+  # falls back to reporting the server's most-recently-used session, which
+  # is not the same thing as "the session this command was invoked from".
+  # Only query it when actually inside a tmux client ($TMUX is set there),
+  # otherwise this falsely refuses to stop the only running session when
+  # invoked from a plain, non-tmux shell (#168).
+  current="${TMUX:+$(tmux display-message -p '#S' 2>/dev/null)}"
   if [ -n "$SESSION" ]; then
     linbo-torrent status | grep -qw ^"$SESSION" || return
     if [ -n "$current" ] && [ "$SESSION" = "$current" ]; then
