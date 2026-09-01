@@ -11,8 +11,11 @@ linuxmuster-linbo7 (7.4.13) lmn74; urgency=low
     interface to appear before enumerating it, fixing USB NICs (e.g.
     RTL8153) that enumerate a few seconds after udev settle returns
     (#167, f98fb1a).
+  * fix(linbo-torrent): don't refuse stop/restart from a plain, non-tmux
+    shell - a regression from the #166 fix that made restart a silent
+    no-op whenever only one torrent session was running (#168, a46ac8c).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 1 Sep 2026 15:45:00 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 1 Sep 2026 19:10:00 +0200
 
 linuxmuster-linbo7 (7.4.12) lmn74; urgency=low
 
