@@ -1,11 +1,13 @@
 #!/bin/sh
-# init - System setup and hardware detection
-# This is a busybox 1.1.3 init script
+#
+# Filename     : init.sh
+# Description  : System setup and hardware detection - busybox init script
+# Signed-off by: thomas@linuxmuster.net
+# Assisted by  : Claude
+# Date         : 20260901
+#
 # (C) Klaus Knopper 2007
 # License: GPL V2
-#
-# thomas@linuxmuster.net
-# 20260722
 #
 
 # If you don't have a "standalone shell" busybox, enable this:
@@ -306,7 +308,21 @@ network(){
   local RC="0"
   local dev
   local ipaddr
+  local netwaited
   [ -z "$dhcpretry" ] && dhcpretry=3
+  # Wait briefly for at least one non-loopback interface to appear before
+  # enumerating them below. Some USB NICs (e.g. RTL8153, #167) enumerate a
+  # few seconds after hwsetup's udevadm settle already returned, since
+  # firmware loading happens asynchronously and isn't tracked by udev
+  # settle. Without this, the interface list below can come up empty and
+  # LINBO goes straight to offline without ever trying. No delay is added
+  # if an interface is already present, which is the common case.
+  [ -z "$netwait" ] && netwait=10
+  netwaited=0
+  while [ -z "$(grep ':' /proc/net/dev | awk -F\: '{ print $1 }' | awk '{ print $1}' | grep -v ^lo)" ] && [ "$netwaited" -lt "$netwait" ]; do
+    sleep 1
+    netwaited=$((netwaited + 1))
+  done
   print_status "Requesting ip address per dhcp (retry=$dhcpretry) ..."
   for dev in $(grep ':' /proc/net/dev | awk -F\: '{ print $1 }' | awk '{ print $1}' | grep -v ^lo | sort); do
     ip link set dev "$dev" up

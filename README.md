@@ -78,6 +78,7 @@ Parameter  |  Description
 `forcegrub`  |  Forces grub boot with windows uefi systems (in case of uefi boot issues).
 `linbocmd=cmd1,cmd2,...`  |  Provide [linbo-remote](https://github.com/linuxmuster/linuxmuster-linbo7/blob/main/README.md#linbo-remote) commands to be processed during boot.
 `loadmodules=mod1,mod2,...`  |  List of kernel modules to load on boot.
+`netwait=<n>`  |  Maximum seconds to wait for a network interface to appear before giving up on network setup (default 10). Only applies while no interface is present yet; useful for USB network adapters whose driver needs a few seconds after boot to enumerate the device.
 `noefibootmgr`  |  Skips providing the UEFI boot files and entries, if you need to organize them yourself or in case of boot issues.
 `nogui`  |  Does not start linbo_gui, provides a [nogui mode](https://github.com/linuxmuster/linuxmuster-linbo7?tab=readme-ov-file#nogui-mode) with a simple text console menu.
 `nomenu`  |  Suppresses the console menu in [nogui mode](https://github.com/linuxmuster/linuxmuster-linbo7?tab=readme-ov-file#nogui-mode) to provide a remote only mode.
