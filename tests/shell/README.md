@@ -105,11 +105,14 @@ today without stubs:
 - `isinteger()`, `stringinstring()`, `remote_cache()`, `validip()`,
   `validhostname()`, `tolower()`, `isalnum()`, `iseven()`, `printargs()`,
   `warmstart()`, `localmode()`, `get_disk_from_partition()`, `getinfo()`,
-  `get_filesize()` and `cleanlog()` (`shell_functions`, the shared library
-  sourced by nearly every linbofs script) - covered by
+  `get_filesize()`, `cleanlog()` and `interruptible()` (`shell_functions`,
+  the shared library sourced by nearly every linbofs script) - covered by
   `test_shell_functions.sh`. `getinfo()`/`get_filesize()`/`cleanlog()` take
   the file to operate on as an explicit argument, so they're testable
   against a `$SHUNIT_TMPDIR` fixture rather than a real path.
+  `interruptible()` runs its argument as a command and waits on it - no
+  filesystem/device access of its own, so it's tested against stub
+  commands (`true`, `false`, `sh -c "exit N"`).
 
   Testing this file surfaced four real bugs, all the same class as each
   other: a construct that's fine under bash/busybox `ash` but breaks under

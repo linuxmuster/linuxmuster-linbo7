@@ -4,7 +4,7 @@
 # Description  : Wave 1 tests for shell_functions
 # Signed-off by: thomas@linuxmuster.net
 # Assisted by  : Claude
-# Date         : 20260817
+# Date         : 20260902
 #
 # Wave 1 tests: pure string/validation helpers from the shared
 # shell_functions library sourced by nearly every linbofs script.
@@ -18,7 +18,7 @@ oneTimeSetUp() {
   . "$(dirname "$0")/lib/extract_function.sh"
   extract_function "$SCRIPT" isinteger stringinstring remote_cache validip validhostname \
     tolower isalnum iseven printargs warmstart localmode get_disk_from_partition \
-    getinfo get_filesize cleanlog \
+    getinfo get_filesize cleanlog interruptible \
     > "$SHUNIT_TMPDIR/shell_functions.sh"
   . "$SHUNIT_TMPDIR/shell_functions.sh"
 }
@@ -238,6 +238,30 @@ test_cleanlog_strips_prefix_collapses_spaces_and_dedupes() {
   assertEquals "hello world
 foo
 bar" "$(cat "$SHUNIT_TMPDIR/log.txt")"
+}
+
+test_interruptible_returns_success_exit_status() {
+  interruptible true
+  assertEquals 0 $?
+}
+
+test_interruptible_passes_through_nonzero_exit_status() {
+  interruptible sh -c "exit 3"
+  assertEquals 3 $?
+}
+
+test_interruptible_passes_through_failure_exit_status() {
+  interruptible false
+  assertEquals 1 $?
+}
+
+test_interruptible_returns_interrupt_exit_status() {
+  # RC=2 is the "interrupted" case: kills the (already-finished) child and
+  # calls bailout(), which is undefined here since only interruptible() was
+  # extracted - it fails harmlessly ("not found") rather than aborting the
+  # test, and the function still returns 2 afterwards.
+  interruptible sh -c "exit 2"
+  assertEquals 2 $?
 }
 
 . "$(dirname "$0")/shunit2"
