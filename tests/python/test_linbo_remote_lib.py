@@ -12,10 +12,16 @@ import pytest
 from linbo_remote_lib import (
     LinboRemoteError,
     build_onboot_cmds,
+    get_mac_from_ad,
+    get_ip_from_ad,
     hosts_in_group,
     hosts_in_room,
     parse_command_string,
+    render_remote_script,
     resolve_explicit_hosts,
+    resolve_wol_target,
+    tmux_attach_target,
+    tmux_session_name,
 )
 
 
@@ -194,3 +200,115 @@ def test_build_onboot_cmds_with_secrets_line():
 
 def test_build_onboot_cmds_noauto_only_no_commands():
     assert build_onboot_cmds([], noauto=True) == 'noauto'
+
+
+# --- tmux session / logfile naming ------------------------------------------
+
+def test_tmux_session_name_uses_dot():
+    assert tmux_session_name('r100-pc01') == 'r100-pc01.linbo-remote'
+
+
+def test_tmux_attach_target_uses_underscore():
+    # tmux itself rewrites the '.' in tmux_session_name() to '_' internally;
+    # this is the name to look an existing session back up by.
+    assert tmux_attach_target('r100-pc01') == 'r100-pc01_linbo-remote'
+
+
+# --- render_remote_script -----------------------------------------------------
+
+def test_render_remote_script_simple_commands():
+    script = render_remote_script('r100-pc01', ['format:2', 'sync:1'], '/var/tmp/123.r100-pc01.sh')
+    lines = script.splitlines()
+    assert lines[0] == '#!/bin/bash'
+    assert 'gui_ctl disable' in lines[1]
+    assert lines[2] == 'RC=0'
+    assert '/usr/bin/linbo_wrapper format:2 || RC=1' in lines[3]
+    assert lines[4] == 'sleep 3'
+    assert '/usr/bin/linbo_wrapper sync:1 || RC=1' in lines[5]
+    assert 'gui_ctl restore' in lines[-3]
+    assert lines[-2] == "rm -f /var/tmp/123.r100-pc01.sh"
+    assert lines[-1] == 'exit $RC'
+
+
+def test_render_remote_script_backgrounds_start_reboot_halt():
+    script = render_remote_script('r100-pc01', ['start:1'], '/var/tmp/x.sh')
+    assert '/usr/bin/linbo_wrapper start:1 &' in script
+    assert 'sleep 10' in script
+
+    script = render_remote_script('r100-pc01', ['reboot'], '/var/tmp/x.sh')
+    assert '/usr/bin/linbo_wrapper reboot &' in script
+
+    script = render_remote_script('r100-pc01', ['halt'], '/var/tmp/x.sh')
+    assert '/usr/bin/linbo_wrapper halt &' in script
+
+
+def test_render_remote_script_quotes_multiword_comment_as_one_token():
+    commands = parse_command_string('create_image:1:my long comment')
+    script = render_remote_script('r100-pc01', commands, '/var/tmp/x.sh')
+    assert '\'create_image:1:"my long comment"\'' in script
+    # and NOT split unquoted into the generated line
+    assert 'linbo_wrapper create_image:1:"my long comment"\n' not in script
+
+
+def test_render_remote_script_secrets_cleanup_when_no_backgrounded_command():
+    script = render_remote_script('r100-pc01', ['sync:1'], '/var/tmp/x.sh', secrets_uploaded=True)
+    assert '/bin/rm -f /tmp/rsyncd.secrets' in script
+
+
+def test_render_remote_script_no_secrets_cleanup_when_backgrounded_command_present():
+    script = render_remote_script('r100-pc01', ['sync:1', 'reboot'], '/var/tmp/x.sh', secrets_uploaded=True)
+    assert '/bin/rm -f /tmp/rsyncd.secrets' not in script
+
+
+# --- WOL target resolution ---------------------------------------------------
+
+def test_get_mac_from_ad_by_hostname():
+    calls = []
+
+    def fake_ldbsearch(filter_expr, attribute, basedn):
+        calls.append((filter_expr, attribute, basedn))
+        return '52:54:00:AA:BB:CC'
+
+    result = get_mac_from_ad('r100-pc01', 'DC=school,DC=lan', ldbsearch=fake_ldbsearch)
+    assert result == '52:54:00:AA:BB:CC'
+    assert calls == [('(sophomorixDnsNodename=r100-pc01)', 'sophomorixComputerMAC', 'DC=school,DC=lan')]
+
+
+def test_get_ip_from_ad_by_hostname():
+    result = get_ip_from_ad('r100-pc01', 'DC=school,DC=lan', ldbsearch=lambda *a: '10.16.100.1')
+    assert result == '10.16.100.1'
+
+
+def test_resolve_wol_target_uses_ad_values_when_valid():
+    mac, ip = resolve_wol_target(
+        'r100-pc01', 'DC=school,DC=lan',
+        ldbsearch=lambda filter_expr, attribute, basedn: (
+            '10.16.100.1' if attribute == 'sophomorixComputerIP' else '52:54:00:AA:BB:CC'
+        ),
+    )
+    assert mac == '52:54:00:AA:BB:CC'
+    assert ip == '10.16.100.1'
+
+
+def test_resolve_wol_target_falls_back_to_arp_when_ad_ip_invalid():
+    mac, ip = resolve_wol_target(
+        'r100-pc01', 'DC=school,DC=lan',
+        ldbsearch=lambda filter_expr, attribute, basedn: (
+            'DHCP' if attribute == 'sophomorixComputerIP' else '52:54:00:AA:BB:CC'
+        ),
+        arp_lookup=lambda hostname: '10.16.100.42',
+    )
+    assert mac == '52:54:00:AA:BB:CC'
+    assert ip == '10.16.100.42'
+
+
+def test_resolve_wol_target_falls_back_to_dhcp_lease_when_ad_mac_invalid():
+    mac, ip = resolve_wol_target(
+        'r100-pc01', 'DC=school,DC=lan',
+        ldbsearch=lambda filter_expr, attribute, basedn: (
+            '10.16.100.1' if attribute == 'sophomorixComputerIP' else ''
+        ),
+        dhcp_lease_mac=lambda ip: '52:54:00:dd:ee:ff',
+    )
+    assert mac == '52:54:00:dd:ee:ff'
+    assert ip == '10.16.100.1'
