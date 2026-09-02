@@ -9,6 +9,8 @@ linuxmuster-linbo7 (7.4.14) lmn74; urgency=low
   * fix(linbo-remote): exit with a clear message instead of a traceback if
     linuxmuster-base7 is missing - linbo7 is also used standalone
     (#169, cd1a85f).
+  * refactor(linbo-remote): rename functions to camelCase, matching the
+    project-wide Python convention (#169, a21ade6).
 
  -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 02 Sep 2026 15:01:08 +0200
 
