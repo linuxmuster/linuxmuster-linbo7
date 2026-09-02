@@ -226,6 +226,9 @@ pytest tests/python
 ```
 CI runs these via `.github/workflows/python-tests.yml`.
 
+### Python Naming Convention
+Same org-wide convention as `linuxmuster-base7`: **snake_case for variables, camelCase for functions** (e.g. `parseCommandString()`, `getGroupRoomDevices()`), including private/underscore-prefixed helpers (e.g. `_extractNr()`). Class names stay PascalCase. This applies even though it isn't PEP 8 - don't default to plain snake_case functions just because this repo historically had little Python.
+
 ### Client Debug Mode
 Boot with `debug` kernel parameter to get a shell before GUI starts. Environment variables are available in `/.env`.
 
