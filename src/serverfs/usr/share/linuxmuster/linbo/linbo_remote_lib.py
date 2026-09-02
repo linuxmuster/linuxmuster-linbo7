@@ -25,8 +25,8 @@ tests/python/README.md).
 
 Command-string wire format
 ---------------------------
-`parse_command_string()` returns the *logical* normalized commands (e.g.
-`create_image:1:"my comment"` with real quote characters). `render_remote_script()`
+`parseCommandString()` returns the *logical* normalized commands (e.g.
+`create_image:1:"my comment"` with real quote characters). `renderRemoteScript()`
 is responsible for shell-quoting each command as a whole when embedding it
 into the generated per-host script - unlike the original bash implementation,
 which embedded the raw (backslash-escaped) command text unquoted, silently
@@ -69,27 +69,27 @@ class LinboRemoteError(ValueError):
     """
 
 
-def _split_head(text):
+def _splitHead(text):
     """Return the leading token of `text`, up to the first ':' or ','."""
     return text.split(':', 1)[0].split(',', 1)[0]
 
 
-def _extract_token(remaining):
+def _extractToken(remaining):
     """Consume a leading ':<token>' and return (token, rest)."""
     rest = remaining[1:]
-    token = _split_head(rest)
+    token = _splitHead(rest)
     return token, rest[len(token):]
 
 
-def _extract_nr(remaining):
+def _extractNr(remaining):
     """Consume a leading ':<nr>' where <nr> must be a plain non-negative integer."""
-    nr, rest = _extract_token(remaining)
+    nr, rest = _extractToken(remaining)
     if not nr.isdigit():
         raise LinboRemoteError(f'{nr} is not an integer variable!')
     return nr, rest
 
 
-def _extract_comment(remaining):
+def _extractComment(remaining):
     """
     Consume a leading ':<comment>', where <comment> may itself contain commas.
 
@@ -109,7 +109,7 @@ def _extract_comment(remaining):
     return comment, rest
 
 
-def parse_command_string(cmds):
+def parseCommandString(cmds):
     """
     Parse a -c/-p command-list string (e.g. "format:2,sync:1,reboot") into a
     list of normalized command strings ready to be sent one-by-one to
@@ -121,7 +121,7 @@ def parse_command_string(cmds):
     commands = []
     remaining = cmds
     while remaining:
-        cmd = _split_head(remaining)
+        cmd = _splitHead(remaining)
         if cmd not in KNOWN_COMMANDS:
             raise LinboRemoteError(f'Command "{cmd}" is not known!')
         remaining = remaining[len(cmd):]
@@ -129,27 +129,27 @@ def parse_command_string(cmds):
 
         if cmd in _OPTIONAL_NR_COMMANDS:
             if remaining[:1] == ':':
-                nr, remaining = _extract_nr(remaining)
+                nr, remaining = _extractNr(remaining)
                 entry = f'{cmd}:{nr}'
 
         elif cmd in _REQUIRED_NR_COMMANDS:
             if remaining[:1] != ':':
                 raise LinboRemoteError(f'Command string "{remaining}" is not valid!')
-            nr, remaining = _extract_nr(remaining)
+            nr, remaining = _extractNr(remaining)
             entry = f'{cmd}:{nr}'
 
         elif cmd == _INITCACHE_COMMAND:
             if remaining[:1] == ':':
-                dltype, remaining = _extract_token(remaining)
+                dltype, remaining = _extractToken(remaining)
                 if dltype not in DOWNLOAD_TYPES:
                     raise LinboRemoteError(f'{dltype} is not known!')
                 entry = f'{cmd}:{dltype}'
 
         elif cmd in _COMMENT_COMMANDS:
-            nr, remaining = _extract_nr(remaining)
+            nr, remaining = _extractNr(remaining)
             entry = f'{cmd}:{nr}'
             if remaining[:1] == ':':
-                comment, remaining = _extract_comment(remaining)
+                comment, remaining = _extractComment(remaining)
                 entry = f'{entry}:"{comment}"'
 
         # label/partition/reboot/halt: no arguments, nothing further to consume
@@ -163,7 +163,7 @@ def parse_command_string(cmds):
     return commands
 
 
-def is_valid_hostname(name):
+def isValidHostname(name):
     """
     Same rule as linuxmuster-base7's isValidHostname(): plain, self-contained
     here (not imported) since it's a trivial syntax check with no I/O of its
@@ -178,8 +178,8 @@ def is_valid_hostname(name):
         return False
 
 
-def is_valid_ipv4(ip):
-    """Same rule as linuxmuster-base7's isValidHostIpv4(), self-contained (see is_valid_hostname)."""
+def isValidIpv4(ip):
+    """Same rule as linuxmuster-base7's isValidHostIpv4(), self-contained (see isValidHostname)."""
     try:
         octets = ip.split('.')
         if len(octets) != 4:
@@ -192,9 +192,9 @@ def is_valid_ipv4(ip):
         return False
 
 
-def hosts_in_group(devices, group):
+def hostsInGroup(devices, group):
     """
-    devices: rows as returned by get_group_room_devices(), i.e.
+    devices: rows as returned by getGroupRoomDevices(), i.e.
         (room, hostname, group, pxeflag) tuples, already pxe-flag-filtered
         and school-prefixed by getDevicesArray().
     Returns the hostnames belonging to `group`, in devices.csv order.
@@ -202,20 +202,20 @@ def hosts_in_group(devices, group):
     return [row[1] for row in devices if row[2] == group]
 
 
-def hosts_in_room(devices, room):
-    """Same as hosts_in_group(), but matching the room field (column 0)."""
+def hostsInRoom(devices, room):
+    """Same as hostsInGroup(), but matching the room field (column 0)."""
     return [row[1] for row in devices if row[0] == room]
 
 
-def resolve_explicit_hosts(items, devices, school='default-school', ip_to_hostname=None):
+def resolveExplicitHosts(items, devices, school='default-school', ip_to_hostname=None):
     """
     Resolve a -i <i1,i2,...> list of hostnames/IPs against `devices`.
 
-    devices: rows as returned by get_group_room_devices(), already pxe-flag
+    devices: rows as returned by getGroupRoomDevices(), already pxe-flag
         filtered and school-prefixed.
     ip_to_hostname: callable(ip) -> short hostname or None, used only for
         tokens that are a valid IP rather than a valid hostname. Defaults to
-        `default_ip_to_hostname` (reverse DNS); injectable for tests.
+        `defaultIpToHostname` (reverse DNS); injectable for tests.
 
     Returns (matched_hostnames, skip_messages). `skip_messages` mirrors the
     two kinds of skip line the bash version printed per unusable token:
@@ -224,7 +224,7 @@ def resolve_explicit_hosts(items, devices, school='default-school', ip_to_hostna
     pxe-flagged in devices.csv).
     """
     if ip_to_hostname is None:
-        ip_to_hostname = default_ip_to_hostname
+        ip_to_hostname = defaultIpToHostname
 
     prefix = f'{school}-' if school != 'default-school' else ''
 
@@ -239,9 +239,9 @@ def resolve_explicit_hosts(items, devices, school='default-school', ip_to_hostna
     skipped = []
     for item in items:
         hostname = None
-        if is_valid_hostname(item):
+        if isValidHostname(item):
             hostname = item
-        elif is_valid_ipv4(item):
+        elif isValidIpv4(item):
             resolved = ip_to_hostname(item)
             hostname = unprefixed(resolved) if resolved else None
 
@@ -259,7 +259,7 @@ def resolve_explicit_hosts(items, devices, school='default-school', ip_to_hostna
     return matched, skipped
 
 
-def default_ip_to_hostname(ip):
+def defaultIpToHostname(ip):
     """
     Reverse-resolve an IP to its short hostname - the Python equivalent of
     the original `nslookup "$IP" | head -1 | awk '{print $4}' | awk -F. '{print $1}'`
@@ -274,19 +274,19 @@ def default_ip_to_hostname(ip):
     return fqdn.split('.', 1)[0]
 
 
-def get_group_room_devices(school='default-school'):
+def getGroupRoomDevices(school='default-school'):
     """
     Read devices.csv for `school` via linuxmuster-base7 and return
     (room, hostname, group, pxeflag) rows, already filtered to pxe-flags 1/2
     (the linbo-related ones) and school-prefixed - the same filtering
-    `getDevicesArray()` already does, so hosts_in_group()/hosts_in_room()/
-    resolve_explicit_hosts() don't have to.
+    `getDevicesArray()` already does, so hostsInGroup()/hostsInRoom()/
+    resolveExplicitHosts() don't have to.
     """
     from linuxmuster_base7.functions import getDevicesArray
     return getDevicesArray(fieldnrs='0,1,2,10', pxeflag='1,2', school=school)
 
 
-def build_onboot_cmds(commands, noauto=False, disablegui=False, secrets_line=None):
+def buildOnbootCmds(commands, noauto=False, disablegui=False, secrets_line=None):
     """
     Assemble the comma-separated onboot command string written to a client's
     linbocmd/<hostname>.cmd file (-p mode).
@@ -313,20 +313,20 @@ def build_onboot_cmds(commands, noauto=False, disablegui=False, secrets_line=Non
 
 # --- tmux session / logfile naming ------------------------------------------
 
-def tmux_session_name(hostname):
+def tmuxSessionName(hostname):
     """
     The name passed to `tmux new -Ads` when starting a host's session, and
     the per-host logfile's basename (LINBOLOGDIR/<this>). tmux itself
     rewrites the '.' to '_' internally for the *session* it actually
-    creates - see tmux_attach_target() for the name to use when looking an
+    creates - see tmuxAttachTarget() for the name to use when looking an
     existing session back up. The logfile is a plain path, not subject to
     tmux's renaming, so it keeps the dot.
     """
     return f'{hostname}.linbo-remote'
 
 
-def tmux_attach_target(hostname):
-    """The actual tmux session name to use for `-a`/`-l` (attach/list) - see tmux_session_name()."""
+def tmuxAttachTarget(hostname):
+    """The actual tmux session name to use for `-a`/`-l` (attach/list) - see tmuxSessionName()."""
     return f'{hostname}_linbo-remote'
 
 
@@ -338,11 +338,11 @@ WRAPPER = '/usr/bin/linbo_wrapper'
 _BACKGROUNDED_COMMAND_PREFIXES = ('start', 'reboot', 'halt', 'poweroff')
 
 
-def render_remote_script(hostname, commands, script_path, secrets_uploaded=False):
+def renderRemoteScript(hostname, commands, script_path, secrets_uploaded=False):
     """
     Build the per-host shell script executed inside a tmux session for -c
     (direct) mode: disables the GUI, runs each normalized command
-    (parse_command_string() output) against linbo_wrapper in order via
+    (parseCommandString() output) against linbo_wrapper in order via
     linbo-ssh, restores the GUI, then removes itself.
 
     start*/reboot/halt commands are backgrounded with a 10s grace period
@@ -379,15 +379,15 @@ def render_remote_script(hostname, commands, script_path, secrets_uploaded=False
 
 # --- wake-on-LAN target resolution -------------------------------------------
 
-def is_valid_mac(mac):
-    """Same rule as linuxmuster-base7's isValidMac(), self-contained (see is_valid_hostname)."""
+def isValidMac(mac):
+    """Same rule as linuxmuster-base7's isValidMac(), self-contained (see isValidHostname)."""
     try:
         return bool(re.match(r'[0-9a-f]{2}([-:])[0-9a-f]{2}(\1[0-9a-f]{2}){4}$', mac.lower()))
     except (TypeError, AttributeError):
         return False
 
 
-def default_ldbsearch(filter_expr, attribute, basedn):
+def defaultLdbsearch(filter_expr, attribute, basedn):
     """
     Query a single attribute from Samba's local AD database via ldbsearch -
     the Python equivalent of helperfunctions.sh's $LDBSEARCH pipeline
@@ -410,37 +410,37 @@ def default_ldbsearch(filter_expr, attribute, basedn):
     return None
 
 
-def get_mac_from_ad(query, basedn, ldbsearch=None):
+def getMacFromAd(query, basedn, ldbsearch=None):
     """
     Resolve a device's MAC address (sophomorixComputerMAC) from Samba AD by
     hostname, IP or MAC - mirrors helperfunctions.sh's get_mac(). `ldbsearch`
-    is injectable (see default_ldbsearch); defaults to a real AD query.
+    is injectable (see defaultLdbsearch); defaults to a real AD query.
     """
-    ldbsearch = ldbsearch or default_ldbsearch
+    ldbsearch = ldbsearch or defaultLdbsearch
     attr = 'sophomorixComputerMAC'
-    if is_valid_ipv4(query):
+    if isValidIpv4(query):
         return ldbsearch(f'(sophomorixComputerIP={query})', attr, basedn)
-    if is_valid_hostname(query):
+    if isValidHostname(query):
         return ldbsearch(f'(sophomorixDnsNodename={query.lower()})', attr, basedn)
-    if is_valid_mac(query):
+    if isValidMac(query):
         return ldbsearch(f'({attr}={query.upper()})', attr, basedn)
     return None
 
 
-def get_ip_from_ad(query, basedn, ldbsearch=None):
+def getIpFromAd(query, basedn, ldbsearch=None):
     """Resolve a device's IP (sophomorixComputerIP) from Samba AD - mirrors helperfunctions.sh's get_ip()."""
-    ldbsearch = ldbsearch or default_ldbsearch
+    ldbsearch = ldbsearch or defaultLdbsearch
     attr = 'sophomorixComputerIP'
-    if is_valid_hostname(query):
+    if isValidHostname(query):
         return ldbsearch(f'(sophomorixDnsNodename={query.lower()})', attr, basedn)
-    if is_valid_mac(query):
+    if isValidMac(query):
         return ldbsearch(f'(sophomorixComputerMAC={query.upper()})', attr, basedn)
-    if is_valid_ipv4(query):
+    if isValidIpv4(query):
         return ldbsearch(f'({attr}={query})', attr, basedn)
     return None
 
 
-def default_arp_lookup(hostname):
+def defaultArpLookup(hostname):
     """
     Resolve a hostname's IP from the local ARP cache - the Python equivalent
     of `arp -a "$host" | awk -F\\( '{print $2}' | awk -F\\) '{print $1}'`.
@@ -454,7 +454,7 @@ def default_arp_lookup(hostname):
     return match.group(1) if match else None
 
 
-def default_dhcp_lease_mac(ip, leases_file='/var/lib/dhcp/dhcpd.leases'):
+def defaultDhcpLeaseMac(ip, leases_file='/var/lib/dhcp/dhcpd.leases'):
     """
     Resolve the most recent MAC address leased to `ip` from the ISC DHCP
     leases file - the Python equivalent of the bash pipeline
@@ -478,7 +478,7 @@ def default_dhcp_lease_mac(ip, leases_file='/var/lib/dhcp/dhcpd.leases'):
     return None
 
 
-def resolve_wol_target(hostname, basedn, ldbsearch=None, arp_lookup=None, dhcp_lease_mac=None):
+def resolveWolTarget(hostname, basedn, ldbsearch=None, arp_lookup=None, dhcp_lease_mac=None):
     """
     Resolve the MAC address and IP to use for waking `hostname` up,
     replicating the fallback chain in linbo-remote's WOL loop:
@@ -490,26 +490,26 @@ def resolve_wol_target(hostname, basedn, ldbsearch=None, arp_lookup=None, dhcp_l
 
     Returns (mac, ip) - either may be None if every source failed.
     """
-    arp_lookup = arp_lookup or default_arp_lookup
-    dhcp_lease_mac = dhcp_lease_mac or default_dhcp_lease_mac
+    arp_lookup = arp_lookup or defaultArpLookup
+    dhcp_lease_mac = dhcp_lease_mac or defaultDhcpLeaseMac
 
-    mac = get_mac_from_ad(hostname, basedn, ldbsearch=ldbsearch)
-    ip = get_ip_from_ad(hostname, basedn, ldbsearch=ldbsearch)
+    mac = getMacFromAd(hostname, basedn, ldbsearch=ldbsearch)
+    ip = getIpFromAd(hostname, basedn, ldbsearch=ldbsearch)
 
-    if not is_valid_ipv4(ip):
+    if not isValidIpv4(ip):
         ip = arp_lookup(hostname)
 
-    if not is_valid_mac(mac) and ip:
+    if not isValidMac(mac) and ip:
         mac = dhcp_lease_mac(ip)
 
     return mac, ip
 
 
-def get_broadcast_address(ip):
+def getBroadcastAddress(ip):
     """
     The subnet broadcast address for `ip`, via linuxmuster-base7's
     getIpBcAddress() (subnets.csv-based) - imported lazily, see
-    get_group_room_devices(). Returns None if it can't be determined (no
+    getGroupRoomDevices(). Returns None if it can't be determined (no
     matching subnet, or linuxmuster-base7 unavailable).
     """
     try:

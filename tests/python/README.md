@@ -23,14 +23,14 @@ Python package, same as the rest of `src/serverfs/`.
 
 `linbo_remote_lib.py` reads devices.csv via linuxmuster-base7's
 `getDevicesArray()` on a real server, but that import is confined to the one
-function that actually needs it (`get_group_room_devices()`) and done lazily
-inside it. Every other function - the command parser, `hosts_in_group()`,
-`hosts_in_room()`, `resolve_explicit_hosts()`, `build_onboot_cmds()` - takes
+function that actually needs it (`getGroupRoomDevices()`) and done lazily
+inside it. Every other function - the command parser, `hostsInGroup()`,
+`hostsInRoom()`, `resolveExplicitHosts()`, `buildOnbootCmds()` - takes
 already-fetched device rows as plain data and has no filesystem, network or
 cross-repo dependency of its own, so these tests run without
 linuxmuster-base7 installed and without a real devices.csv.
 
-`resolve_explicit_hosts()`'s hostname/IPv4 syntax validators
+`resolveExplicitHosts()`'s hostname/IPv4 syntax validators
 (`_is_valid_hostname`/`_is_valid_ipv4`) are likewise small, self-contained
 reimplementations rather than imports from linuxmuster-base7 - reusing that
 package here would trade a few lines of regex for a real cross-repo test

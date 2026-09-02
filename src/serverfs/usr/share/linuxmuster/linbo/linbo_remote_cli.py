@@ -22,7 +22,7 @@ while fixing two confirmed bugs rather than replicating them (see issue
 
 - create_image/create_qdiff comments containing a space used to be
   truncated at the first space when relayed to linbo_wrapper
-  (render_remote_script() in linbo_remote_lib.py quotes the whole
+  (renderRemoteScript() in linbo_remote_lib.py quotes the whole
   command token now).
 - `-u` (use broadcast address for WOL) used to accumulate every
   previously resolved host's `-i <bcaddr>` into the same wakeonlan
@@ -57,7 +57,7 @@ SESSION_MATCH = '_linbo-remote'
 
 # --- usage/help --------------------------------------------------------------
 
-def print_usage(msg=None):
+def printUsage(msg=None):
     print()
     print('Usage: linbo-remote <options>')
     print()
@@ -127,25 +127,25 @@ def print_usage(msg=None):
         print(msg)
 
 
-def usage_error(msg=None):
-    print_usage(msg)
+def usageError(msg=None):
+    printUsage(msg)
     sys.exit(1)
 
 
 # --- tmux session listing/attach (-l/-a) -------------------------------------
 
-def list_sessions():
+def listSessions():
     result = subprocess.run(['tmux', 'list-sessions'], capture_output=True, text=True, check=False)
     for line in result.stdout.splitlines():
         if SESSION_MATCH in line:
             print(line)
 
 
-def attach_session(hostname):
-    target = lib.tmux_attach_target(hostname)
+def attachSession(hostname):
+    target = lib.tmuxAttachTarget(hostname)
     result = subprocess.run(['tmux', 'list-sessions'], capture_output=True, text=True, check=False)
     if not any(line.startswith(target) for line in result.stdout.splitlines()):
-        usage_error(f'There is no session for host {hostname}.')
+        usageError(f'There is no session for host {hostname}.')
     rc = subprocess.run(['tmux', 'attach', '-t', target], check=False).returncode
     if rc != 0:
         sys.exit(1)
@@ -153,7 +153,7 @@ def attach_session(hostname):
 
 # --- online check / waiting --------------------------------------------------
 
-def is_online(hostname):
+def isOnline(hostname):
     result = subprocess.run(
         [
             '/usr/sbin/linbo-ssh', '-o', 'BatchMode=yes', '-o', 'StrictHostKeyChecking=no',
@@ -164,7 +164,7 @@ def is_online(hostname):
     return result.returncode == 0
 
 
-def do_wait(seconds, message, leading_blank_line=False):
+def doWait(seconds, message, leading_blank_line=False):
     if not seconds:
         return
     if leading_blank_line:
@@ -178,11 +178,11 @@ def do_wait(seconds, message, leading_blank_line=False):
 
 # --- onboot command files (-p, and/or -n/-d alone) ---------------------------
 
-def onboot_cmd_file(hostname):
+def onbootCmdFile(hostname):
     return os.path.join(environment.LINBODIR, 'linbocmd', f'{hostname}.cmd')
 
 
-def read_secrets_line():
+def readSecretsLine():
     """The "linbo:<hash>" line from /etc/rsyncd.secrets, or None if absent."""
     try:
         with open(SECRETS_FILE) as f:
@@ -194,7 +194,7 @@ def read_secrets_line():
     return None
 
 
-def fix_onboot_dir_permissions():
+def fixOnbootDirPermissions():
     """chown nobody:root, chmod 660 on every file in linbocmd/ - matches the
     bash version applying this to the whole directory, not just the files
     just written."""
@@ -211,20 +211,20 @@ def fix_onboot_dir_permissions():
             continue
 
 
-def write_onboot_files(hosts, onboot_string):
+def writeOnbootFiles(hosts, onboot_string):
     print()
     print('Preparing onboot linbo tasks:')
     for host in hosts:
         print(f' {host} ... ', end='')
-        with open(onboot_cmd_file(host), 'w') as f:
+        with open(onbootCmdFile(host), 'w') as f:
             f.write(onboot_string + '\n')
         print('Done.')
-    fix_onboot_dir_permissions()
+    fixOnbootDirPermissions()
 
 
 # --- wake-on-lan --------------------------------------------------------------
 
-def send_wol(mac, extra_args=None):
+def sendWol(mac, extra_args=None):
     wakeonlan_bin = shutil.which('wakeonlan')
     if not wakeonlan_bin:
         print('wakeonlan not found!')
@@ -233,7 +233,7 @@ def send_wol(mac, extra_args=None):
     subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
 
 
-def wake_hosts(hosts, school, between, use_bcaddr, is_direct, is_onboot):
+def wakeHosts(hosts, school, between, use_bcaddr, is_direct, is_onboot):
     print()
     print('Trying to wake up:')
     try:
@@ -245,26 +245,26 @@ def wake_hosts(hosts, school, between, use_bcaddr, is_direct, is_onboot):
     prefix = f'{school}-' if school != 'default-school' else ''
     for index, host in enumerate(hosts):
         if between and index != 0:
-            do_wait(between, '  ')
+            doWait(between, '  ')
         print(f' {host} ... ', end='')
         bare_host = host[len(prefix):] if prefix and host.startswith(prefix) else host
-        mac, ip = lib.resolve_wol_target(bare_host, basedn)
+        mac, ip = lib.resolveWolTarget(bare_host, basedn)
 
         # a fresh -i <bcaddr> per host, not accumulated across the loop
         # (the original bash implementation reused and kept extending the
         # same $WOL variable across iterations - see module docstring)
         extra_args = []
-        if use_bcaddr and lib.is_valid_ipv4(ip):
-            bcaddr = lib.get_broadcast_address(ip)
-            if bcaddr and lib.is_valid_ipv4(bcaddr):
+        if use_bcaddr and lib.isValidIpv4(ip):
+            bcaddr = lib.getBroadcastAddress(ip)
+            if bcaddr and lib.isValidIpv4(bcaddr):
                 extra_args = ['-i', bcaddr]
 
-        if not lib.is_valid_mac(mac):
+        if not lib.isValidMac(mac):
             print(f'{mac} is no valid mac address!' if mac else 'No mac address found!')
             continue
 
         if is_onboot:
-            if is_online(host):
+            if isOnline(host):
                 print('Client is already online, rebooting ...')
                 subprocess.run(
                     [
@@ -274,28 +274,28 @@ def wake_hosts(hosts, school, between, use_bcaddr, is_direct, is_onboot):
                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False,
                 )
             else:
-                send_wol(mac, extra_args)
+                sendWol(mac, extra_args)
                 print('Sent.')
         elif is_direct:
-            send_wol(mac, extra_args)
+            sendWol(mac, extra_args)
             print('Sent.')
         else:
-            send_wol(mac, extra_args)
+            sendWol(mac, extra_args)
             print('Sent.')
 
 
 # --- direct command dispatch (-c) --------------------------------------------
 
-def send_cmds(hosts, commands, wait, secrets_uploaded):
+def sendCmds(hosts, commands, wait, secrets_uploaded):
     if wait:
-        do_wait(wait, f'Waiting {wait} second(s) for client(s) to boot', leading_blank_line=True)
+        doWait(wait, f'Waiting {wait} second(s) for client(s) to boot', leading_blank_line=True)
 
     print()
     print('Sending command(s) to:')
     for host in hosts:
         print(f' {host} ... ', end='')
 
-        if not is_online(host):
+        if not isOnline(host):
             print('Not online, host skipped.')
             continue
 
@@ -306,11 +306,11 @@ def send_cmds(hosts, commands, wait, secrets_uploaded):
                 stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False,
             )
 
-        session_name = lib.tmux_session_name(host)
+        session_name = lib.tmuxSessionName(host)
         logfile = os.path.join(environment.LINBOLOGDIR, session_name)
         script_path = os.path.join(TMPDIR, f'{os.getpid()}.{host}.sh')
 
-        script_text = lib.render_remote_script(host, commands, script_path, secrets_uploaded=secrets_uploaded)
+        script_text = lib.renderRemoteScript(host, commands, script_path, secrets_uploaded=secrets_uploaded)
         with open(script_path, 'w') as f:
             f.write(script_text)
         os.chmod(script_path, 0o755)
@@ -327,13 +327,13 @@ def send_cmds(hosts, commands, wait, secrets_uploaded):
         print(f'Started with PID {pid}. Log see {logfile}.')
 
 
-def test_onboot(hosts, wait):
-    do_wait(wait, f'Waiting {wait} second(s) for client(s) to boot', leading_blank_line=True)
+def testOnboot(hosts, wait):
+    doWait(wait, f'Waiting {wait} second(s) for client(s) to boot', leading_blank_line=True)
     print()
     print('Verifying onboot tasks:')
     for host in hosts:
         print(f' {host} ... ', end='')
-        path = onboot_cmd_file(host)
+        path = onbootCmdFile(host)
         if os.path.exists(path):
             os.remove(path)
             print('Not done, host skipped!')
@@ -341,18 +341,18 @@ def test_onboot(hosts, wait):
             print('Ok!')
 
 
-def test_online(hosts, wait):
-    do_wait(wait, f'Waiting {wait} second(s) for client(s) to boot', leading_blank_line=True)
+def testOnline(hosts, wait):
+    doWait(wait, f'Waiting {wait} second(s) for client(s) to boot', leading_blank_line=True)
     print()
     print('Testing if clients have booted:')
     for host in hosts:
         print(f' {host} ... ', end='')
-        print('Online!' if is_online(host) else 'Not online!')
+        print('Online!' if isOnline(host) else 'Not online!')
 
 
 # --- linuxmuster-base7 availability -------------------------------------------
 
-def ensure_base7_available():
+def ensureBase7Available():
     """
     linbo-remote needs linuxmuster-base7 for devices.csv/subnet lookups
     (getDevicesArray, getSetupValue, getIpBcAddress, all used downstream via
@@ -382,7 +382,7 @@ def main(argv=None):
     try:
         opts, _ = getopt.getopt(argv, 'a:b:c:dg:hi:lnp:r:uw:s:')
     except getopt.GetoptError as error:
-        usage_error(str(error))
+        usageError(str(error))
         return 1  # unreachable, keeps type-checkers happy
 
     attach_host = None
@@ -401,7 +401,7 @@ def main(argv=None):
 
     for opt, val in opts:
         if opt == '-h':
-            print_usage()
+            printUsage()
             return 0
         elif opt == '-a':
             attach_host = val
@@ -431,30 +431,30 @@ def main(argv=None):
             school = val
 
     if attach_host is not None:
-        attach_session(attach_host)
+        attachSession(attach_host)
         return 0
     if do_list:
-        list_sessions()
+        listSessions()
         return 0
 
-    ensure_base7_available()
+    ensureBase7Available()
 
     # --- option-combination validation (mirrors the bash checks 1:1) -------
     if not group and not hosts_raw and not room:
-        usage_error('No hosts, no group, no room defined!')
+        usageError('No hosts, no group, no room defined!')
     if group and hosts_raw:
-        usage_error('Group and hosts defined!')
+        usageError('Group and hosts defined!')
     if group and room:
-        usage_error('Group and room defined!')
+        usageError('Group and room defined!')
     if direct_cmds and onboot_cmds:
-        usage_error('Direct and onboot commands defined!')
+        usageError('Direct and onboot commands defined!')
     if not direct_cmds and not onboot_cmds and not wait_raw and not disablegui and not noauto:
-        usage_error('No commands or wakeonlan defined!')
+        usageError('No commands or wakeonlan defined!')
 
     wait = None
     if wait_raw is not None:
         if not wait_raw.isdigit():
-            usage_error(f'{wait_raw} is not an integer variable!')
+            usageError(f'{wait_raw} is not an integer variable!')
         wait = int(wait_raw)
         if not shutil.which('wakeonlan'):
             print('wakeonlan not found!')
@@ -465,9 +465,9 @@ def main(argv=None):
     between = None
     if between_raw is not None:
         if wait is None:
-            usage_error('Option -b can only be used with -w!')
+            usageError('Option -b can only be used with -w!')
         if not between_raw.isdigit():
-            usage_error(f'{between_raw} is not an integer variable!')
+            usageError(f'{between_raw} is not an integer variable!')
         between = int(between_raw)
 
     is_direct = bool(direct_cmds)
@@ -479,15 +479,15 @@ def main(argv=None):
         hosts_raw is not None and len([h for h in hosts_raw.split(',') if h]) > 1
     )
     try:
-        parsed_cmds = lib.parse_command_string(cmds_string) if cmds_string else []
+        parsed_cmds = lib.parseCommandString(cmds_string) if cmds_string else []
     except lib.LinboRemoteError as error:
-        usage_error(str(error))
+        usageError(str(error))
         return 1
 
     if is_multi_host_selection and any(
         c.startswith(('create_image', 'create_qdiff', 'upload_image', 'upload_qdiff')) for c in parsed_cmds
     ):
-        usage_error('Upload or create cannot be used with lists!')
+        usageError('Upload or create cannot be used with lists!')
 
     needs_secrets = any(c.startswith(('upload_image', 'upload_qdiff')) for c in parsed_cmds)
 
@@ -497,42 +497,42 @@ def main(argv=None):
     print('###')
 
     # --- host resolution ----------------------------------------------------
-    devices = lib.get_group_room_devices(school=school)
+    devices = lib.getGroupRoomDevices(school=school)
     if group:
-        hosts = lib.hosts_in_group(devices, group)
+        hosts = lib.hostsInGroup(devices, group)
         if not hosts:
-            usage_error(f'No hosts in group {group}!')
+            usageError(f'No hosts in group {group}!')
     elif room:
-        hosts = lib.hosts_in_room(devices, room)
+        hosts = lib.hostsInRoom(devices, room)
         if not hosts:
-            usage_error(f'No hosts in room {room}!')
+            usageError(f'No hosts in room {room}!')
     else:
         items = [h for h in hosts_raw.split(',') if h]
-        hosts, skip_messages = lib.resolve_explicit_hosts(items, devices, school=school)
+        hosts, skip_messages = lib.resolveExplicitHosts(items, devices, school=school)
         for skip_message in skip_messages:
             print(skip_message)
         if not hosts:
-            usage_error('No valid hosts in list!')
+            usageError('No valid hosts in list!')
 
     # --- onboot command files (-p, and/or bare -n/-d) ------------------------
-    secrets_line = read_secrets_line() if needs_secrets else None
-    onboot_string = lib.build_onboot_cmds(
+    secrets_line = readSecretsLine() if needs_secrets else None
+    onboot_string = lib.buildOnbootCmds(
         parsed_cmds if is_onboot else [], noauto=noauto, disablegui=disablegui, secrets_line=secrets_line,
     )
     if onboot_string:
-        write_onboot_files(hosts, onboot_string)
+        writeOnbootFiles(hosts, onboot_string)
 
     # --- wake-on-lan ----------------------------------------------------------
     if wait is not None:
-        wake_hosts(hosts, school, between, use_bcaddr, is_direct, is_onboot)
+        wakeHosts(hosts, school, between, use_bcaddr, is_direct, is_onboot)
 
     # --- dispatch -------------------------------------------------------------
     if is_direct:
-        send_cmds(hosts, parsed_cmds, wait, needs_secrets)
+        sendCmds(hosts, parsed_cmds, wait, needs_secrets)
     if is_onboot and wait:
-        test_onboot(hosts, wait)
+        testOnboot(hosts, wait)
     elif not is_onboot and not is_direct and wait:
-        test_online(hosts, wait)
+        testOnline(hosts, wait)
 
     print()
     print('###')

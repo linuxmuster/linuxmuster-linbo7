@@ -24,7 +24,7 @@ DEVICES = [
 @pytest.fixture(autouse=True)
 def no_real_devices_csv(monkeypatch):
     """Every test in this file gets a fixed device list instead of touching a real devices.csv."""
-    monkeypatch.setattr(cli.lib, 'get_group_room_devices', lambda school='default-school': DEVICES)
+    monkeypatch.setattr(cli.lib, 'getGroupRoomDevices', lambda school='default-school': DEVICES)
 
 
 @pytest.fixture(autouse=True)
@@ -34,17 +34,17 @@ def assume_base7_available(monkeypatch):
     the fixed DEVICES list above) unless it opts out - linuxmuster-base7
     genuinely isn't installed in the test environment, so without this every
     test past the -h/-a/-l early-exits would hit main()'s real
-    ensure_base7_available() and exit(1). See
+    ensureBase7Available() and exit(1). See
     test_missing_base7_exits_with_message for the real, unmocked behavior.
     """
-    monkeypatch.setattr(cli, 'ensure_base7_available', lambda: None)
+    monkeypatch.setattr(cli, 'ensureBase7Available', lambda: None)
 
 
-# --- usage_error / print_usage ------------------------------------------------
+# --- usageError / printUsage ------------------------------------------------
 
 def test_usage_error_exits_1(capsys):
     with pytest.raises(SystemExit) as exc_info:
-        cli.usage_error('boom')
+        cli.usageError('boom')
     assert exc_info.value.code == 1
     out = capsys.readouterr().out
     assert 'Usage: linbo-remote <options>' in out
@@ -54,7 +54,7 @@ def test_usage_error_exits_1(capsys):
 def test_missing_base7_exits_with_message(capsys, monkeypatch):
     # deliberately does NOT use the assume_base7_available fixture override -
     # linuxmuster_base7 genuinely isn't installed in this test environment,
-    # so this exercises ensure_base7_available()'s real ImportError path.
+    # so this exercises ensureBase7Available()'s real ImportError path.
     monkeypatch.undo()  # drop this test's own fixtures before the real check runs
     with pytest.raises(SystemExit) as exc_info:
         cli.main(['-i', 'r100-pc01', '-c', 'reboot'])
@@ -119,7 +119,7 @@ def test_wakeonlan_missing(capsys, monkeypatch):
 # --- successful dispatch, with subprocess/filesystem mocked -------------------
 
 def test_direct_dispatch_happy_path(monkeypatch, tmp_path, capsys):
-    monkeypatch.setattr(cli, 'is_online', lambda host: True)
+    monkeypatch.setattr(cli, 'isOnline', lambda host: True)
     monkeypatch.setattr(cli.environment, 'LINBOLOGDIR', str(tmp_path))
     monkeypatch.setattr(cli, 'TMPDIR', str(tmp_path))
     run_calls = []
@@ -139,7 +139,7 @@ def test_direct_dispatch_happy_path(monkeypatch, tmp_path, capsys):
 
 
 def test_direct_dispatch_offline_host_skipped(monkeypatch, capsys):
-    monkeypatch.setattr(cli, 'is_online', lambda host: False)
+    monkeypatch.setattr(cli, 'isOnline', lambda host: False)
 
     rc = cli.main(['-i', 'r100-pc01', '-c', 'reboot'])
 
@@ -151,7 +151,7 @@ def test_direct_dispatch_offline_host_skipped(monkeypatch, capsys):
 def test_onboot_writes_file_with_noauto_and_disablegui(monkeypatch, tmp_path, capsys):
     monkeypatch.setattr(cli.environment, 'LINBODIR', str(tmp_path))
     (tmp_path / 'linbocmd').mkdir()
-    monkeypatch.setattr(cli, 'fix_onboot_dir_permissions', lambda: None)
+    monkeypatch.setattr(cli, 'fixOnbootDirPermissions', lambda: None)
 
     rc = cli.main(['-i', 'r100-pc01', '-p', 'sync:1', '-n', '-d'])
 
@@ -166,7 +166,7 @@ def test_list_sessions_filters_by_marker(monkeypatch, capsys):
         cli.subprocess, 'run',
         lambda *a, **kw: MagicMock(stdout='other_session: 1 windows\nr100-pc01_linbo-remote: 1 windows\n'),
     )
-    cli.list_sessions()
+    cli.listSessions()
     out = capsys.readouterr().out
     assert 'r100-pc01_linbo-remote' in out
     assert 'other_session' not in out
@@ -175,6 +175,6 @@ def test_list_sessions_filters_by_marker(monkeypatch, capsys):
 def test_attach_session_no_such_session(monkeypatch, capsys):
     monkeypatch.setattr(cli.subprocess, 'run', lambda *a, **kw: MagicMock(stdout=''))
     with pytest.raises(SystemExit) as exc_info:
-        cli.attach_session('r100-pc01')
+        cli.attachSession('r100-pc01')
     assert exc_info.value.code == 1
     assert 'There is no session for host r100-pc01.' in capsys.readouterr().out
