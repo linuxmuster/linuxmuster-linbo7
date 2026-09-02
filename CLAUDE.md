@@ -219,6 +219,13 @@ busybox ash tests/shell/run.sh   # against busybox ash
 ```
 CI runs these via `.github/workflows/shell-tests.yml`.
 
+### Python test harness
+Unit tests (pytest) for the pure-function parts of the `linbo-remote` Python rewrite (issue [#169](https://github.com/linuxmuster/linuxmuster-linbo7/issues/169), branch `linbo-remote-refactor`), currently `linbo_remote_lib.py`'s command-string parser and host resolution (see `tests/python/README.md`):
+```sh
+pytest tests/python
+```
+CI runs these via `.github/workflows/python-tests.yml`.
+
 ### Client Debug Mode
 Boot with `debug` kernel parameter to get a shell before GUI starts. Environment variables are available in `/.env`.
 

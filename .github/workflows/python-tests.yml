@@ -1,0 +1,27 @@
+# Python test harness (tests/python/)
+#
+# Runs pytest against the pure-function parts of the linbo-remote Python
+# rewrite (issue #169). See tests/python/README.md.
+#
+# Informational only for now, same as shell-tests.yml: not a required status
+# check in branch protection.
+#
+# thomas@linuxmuster.net
+# 20260902
+
+name: Python tests
+
+on: [push, pull_request, workflow_dispatch, workflow_call]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Install pytest
+        run: pip install pytest
+      - name: Run Python tests
+        run: pytest tests/python
