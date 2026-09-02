@@ -1,3 +1,31 @@
+linuxmuster-linbo7 (7.4.14) lmn74; urgency=low
+
+  * refactor(linbo-remote): rewrite the cmd:nr:msg command-string parser,
+    group/room/explicit-list host resolution and onboot command-file
+    assembly as pure, pytest-covered Python functions in the new
+    linbo_remote_lib.py; not wired into the production script yet
+    (#169, 59fefb7).
+  * refactor(linbo-remote): replace the bash implementation with a Python
+    rewrite (linbo_remote_cli.py + a thin /usr/sbin/linbo-remote launcher),
+    covering option parsing, wake-on-LAN (now resolved via Samba AD, so
+    DHCP clients get a real IP instead of the literal string "DHCP" from
+    devices.csv), the tmux/SSH dispatch for -c/-p and -a/-l session
+    attach/list. Preserves the external contract linuxmuster-tools' and
+    linuxmuster-api's LinboRemote consumers rely on (exit codes, key stdout
+    strings, tmux session/logfile naming, onboot .cmd file format). Fixes
+    two confirmed bugs found while porting rather than replicating them:
+    create_image/create_qdiff comments containing a space used to be
+    silently truncated at the first space, and -h/--help used to exit 1
+    like a rejected invocation (#169, fa1eae6).
+  * fix(linbo-remote): exit early with a clear message instead of a bare
+    traceback if linuxmuster-base7 isn't installed - linuxmuster-linbo7 is
+    also used standalone, so this can only be caught at runtime, not via a
+    package dependency (a hard one would also create a package cycle with
+    linuxmuster-base7, which itself depends on linuxmuster-linbo7)
+    (#169, cd1a85f).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 02 Sep 2026 15:01:08 +0200
+
 linuxmuster-linbo7 (7.4.13) lmn74; urgency=low
 
   * fix(shell_functions): isalnum() used "[[ =~ ]]", which dash doesn't have
