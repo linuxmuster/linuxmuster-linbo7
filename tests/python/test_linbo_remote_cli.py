@@ -27,6 +27,19 @@ def no_real_devices_csv(monkeypatch):
     monkeypatch.setattr(cli.lib, 'get_group_room_devices', lambda school='default-school': DEVICES)
 
 
+@pytest.fixture(autouse=True)
+def assume_base7_available(monkeypatch):
+    """
+    Every test in this file assumes linuxmuster-base7 is installed (matching
+    the fixed DEVICES list above) unless it opts out - linuxmuster-base7
+    genuinely isn't installed in the test environment, so without this every
+    test past the -h/-a/-l early-exits would hit main()'s real
+    ensure_base7_available() and exit(1). See
+    test_missing_base7_exits_with_message for the real, unmocked behavior.
+    """
+    monkeypatch.setattr(cli, 'ensure_base7_available', lambda: None)
+
+
 # --- usage_error / print_usage ------------------------------------------------
 
 def test_usage_error_exits_1(capsys):
@@ -36,6 +49,17 @@ def test_usage_error_exits_1(capsys):
     out = capsys.readouterr().out
     assert 'Usage: linbo-remote <options>' in out
     assert out.rstrip().splitlines()[-1] == 'boom'
+
+
+def test_missing_base7_exits_with_message(capsys, monkeypatch):
+    # deliberately does NOT use the assume_base7_available fixture override -
+    # linuxmuster_base7 genuinely isn't installed in this test environment,
+    # so this exercises ensure_base7_available()'s real ImportError path.
+    monkeypatch.undo()  # drop this test's own fixtures before the real check runs
+    with pytest.raises(SystemExit) as exc_info:
+        cli.main(['-i', 'r100-pc01', '-c', 'reboot'])
+    assert exc_info.value.code == 1
+    assert 'linbo-remote requires linuxmuster-base7 to be installed' in capsys.readouterr().out
 
 
 def test_help_exits_0(capsys):

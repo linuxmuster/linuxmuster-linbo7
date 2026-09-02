@@ -350,6 +350,30 @@ def test_online(hosts, wait):
         print('Online!' if is_online(host) else 'Not online!')
 
 
+# --- linuxmuster-base7 availability -------------------------------------------
+
+def ensure_base7_available():
+    """
+    linbo-remote needs linuxmuster-base7 for devices.csv/subnet lookups
+    (getDevicesArray, getSetupValue, getIpBcAddress, all used downstream via
+    linbo_remote_lib.py's lazy imports) - but linuxmuster-linbo7 is also used
+    standalone, without linuxmuster-base7 installed. That's exactly why
+    debian/control lists it under Recommends, not Depends (a hard Depends
+    would also create a package cycle: linuxmuster-base7 itself Depends on
+    linuxmuster-linbo7). So this can't be caught at install time - fail
+    fast with a clear message instead of a bare ImportError traceback
+    partway through host resolution.
+
+    Not needed for -h/-a/-l, which touch neither devices.csv nor subnets.csv
+    - callers check those first and return before ever reaching this.
+    """
+    try:
+        import linuxmuster_base7.functions  # noqa: F401
+    except ImportError:
+        print('linbo-remote requires linuxmuster-base7 to be installed (for devices.csv/subnet lookups).')
+        sys.exit(1)
+
+
 # --- main ---------------------------------------------------------------------
 
 def main(argv=None):
@@ -412,6 +436,8 @@ def main(argv=None):
     if do_list:
         list_sessions()
         return 0
+
+    ensure_base7_available()
 
     # --- option-combination validation (mirrors the bash checks 1:1) -------
     if not group and not hosts_raw and not room:
