@@ -11,6 +11,9 @@ linuxmuster-linbo7 (7.4.14) lmn74; urgency=low
     (#169, cd1a85f).
   * refactor(linbo-remote): rename functions to camelCase, matching the
     project-wide Python convention (#169, a21ade6).
+  * fix(mkgrubhostimg.py): fix stale base7 import and port the GRUB module
+    lists from mkgrubnetdir.sh, which were never actually reachable via
+    environment.py (65dc921).
 
  -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 02 Sep 2026 15:01:08 +0200
 
