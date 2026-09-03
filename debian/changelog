@@ -14,6 +14,9 @@ linuxmuster-linbo7 (7.4.14) lmn74; urgency=low
   * fix(mkgrubhostimg.py): fix stale base7 import and port the GRUB module
     lists from mkgrubnetdir.sh, which were never actually reachable via
     environment.py (65dc921).
+  * refactor(linbo-mkgrubimg): rename mkgrubhostimg.py to linbo_mkgrubimg.py
+    and replace the /usr/sbin/linbo-mkgrubimg symlink with a thin launcher,
+    same pattern as linbo-remote (235c160).
 
  -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 02 Sep 2026 15:01:08 +0200
 
