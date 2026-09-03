@@ -1,24 +1,56 @@
 #!/usr/bin/python3
 #
-# creates host specific image for grub network boot
-# stored in /srv/linbo/boot/grub/hostcfg/<hostname>.img
-#
-# linuxmuster-mkgrubimg.py
-# thomas@linuxmuster.net
-# 20220416
+# Filename     : mkgrubhostimg.py
+# Description  : Creates a host specific image for grub network boot,
+#                stored in /srv/linbo/boot/grub/hostcfg/<hostname>.img
+# Signed-off by: thomas@linuxmuster.net
+# Assisted by  : Claude
+# Date         : 20260903
 #
 
 import configparser
-import environment
 import getopt
+import glob
 import os
 import re
 import sys
 
-from functions import getHostname
-from functions import readTextfile
-from functions import writeTextfile
-from functions import getStartconfOption
+sys.path.insert(0, '/usr/lib/linuxmuster')
+import environment  # noqa: E402
+
+from linuxmuster_base7.functions import getHostname, getStartconfOption, readTextfile, writeTextfile  # noqa: E402
+
+# GRUB netboot module lists. Mirrors mkgrubnetdir.sh's GRUBI386MODS/GRUBEFIMODS
+# (which builds the same lists as local shell variables at grub-mknetdir time,
+# never persisted anywhere Python could read - environment.py never carried
+# these despite this script referencing them as environment.GRUBI386MODS/
+# GRUBEFIMODS, which never actually existed there).
+GRUB_COMMON_MODULES = (
+    'all_video boot chain configfile cpuid echo net ext2 extcmd fat gettext gfxmenu '
+    'gfxterm gzio http iso9660 ntfs linux linux16 loadenv loopback minicmd net part_gpt part_msdos '
+    'png progress read reiserfs search sleep terminal test tftp'
+)
+
+
+def getGrubI386Modules():
+    """i386-pc netboot GRUB modules - static list, mirrors mkgrubnetdir.sh's GRUBI386MODS."""
+    return GRUB_COMMON_MODULES + ' biosdisk gfxterm_background normal ntldr pxe'
+
+
+def getGrubEfiModules(efi_dir='/usr/lib/grub/x86_64-efi'):
+    """
+    x86_64-efi netboot GRUB modules: the common list plus every *efi*.mod
+    file actually present in `efi_dir` - mirrors mkgrubnetdir.sh's GRUBEFIMODS,
+    which discovers these the same way (`ls "$EFI64_DIR"/*efi*.mod`) rather
+    than hardcoding them, since the exact set depends on the installed
+    grub-efi-amd64-bin package version.
+    """
+    efi_modules = sorted(
+        os.path.splitext(os.path.basename(path))[0]
+        for path in glob.glob(os.path.join(efi_dir, '*efi*.mod'))
+    )
+    return GRUB_COMMON_MODULES + ' ' + ' '.join(efi_modules)
+
 
 def usage():
     print('Purpose: linbo-mkgrubimg creates host specific image for grub network')
@@ -104,13 +136,13 @@ if systemtype == 'bios' or systemtype == 'bios64':
     platform = 'i386-pc'
     imgtype = platform + '-pxe'
     iface = 'pxe'
-    modules = environment.GRUBI386MODS
+    modules = getGrubI386Modules()
     normal = 'normal'
 elif systemtype == 'efi64':
     platform = 'x86_64-efi'
     imgtype = platform
     iface = 'efinet0'
-    modules = environment.GRUBEFIMODS
+    modules = getGrubEfiModules()
 else:
     print('Cannot get SystemType of ' + hostname + ' from start.conf.' + group + '!')
     sys.exit(1)
