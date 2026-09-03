@@ -1,0 +1,18 @@
+#!/usr/bin/python3
+#
+# Filename     : linbo-mkgrubimg
+# Description  : Creates a host specific image for grub network boot. Thin
+#                launcher - all logic lives in linbo_mkgrubimg.py
+#                (importable/testable), see /usr/share/linuxmuster/linbo/.
+# Signed-off by: thomas@linuxmuster.net
+# Assisted by  : Claude
+# Date         : 20260903
+#
+
+import sys
+
+sys.path.insert(0, '/usr/share/linuxmuster/linbo')
+from linbo_mkgrubimg import main  # noqa: E402
+
+if __name__ == '__main__':
+    main()
