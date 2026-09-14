@@ -1,3 +1,10 @@
+linuxmuster-linbo7 (4.3.38-0) lmn73; urgency=low
+
+  * kernel updates: 6.1.187, 6.12.109, 7.2.5 (#134, 707b65b).
+  * linbo_wrapper: typo fix in prestart case (7287e71).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 14 Sep 2026 13:48:55 +0200
+
 linuxmuster-linbo7 (4.3.37-0) lmn73; urgency=low
 
   * kernel updates: 6.1.180, 6.12.100, 7.1.5 (#134, 126de37).
