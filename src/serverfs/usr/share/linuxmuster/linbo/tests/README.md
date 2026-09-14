@@ -1,6 +1,6 @@
 # linbo-remote dry-run smoke test
 
-`dry_run_smoke_test.py` is a live, on-server counterpart to the mocked unit
+`linbo-remote_dry_run_test.py` is a live, on-server counterpart to the mocked unit
 tests in `tests/python/` (repository root) - see issue
 [#170](https://github.com/linuxmuster/linuxmuster-linbo7/issues/170). It
 exercises every command shape `linbo-remote`'s own command parser accepts
@@ -11,7 +11,7 @@ partitioning, syncing, image creation/upload, reboot or halt.
 
 This ships as part of the package (installed to
 `/usr/share/linuxmuster/linbo/tests/`), unlike `tests/python/`, which is
-repo/CI-only and never installed - `dry_run_smoke_test.py` needs a real
+repo/CI-only and never installed - `linbo-remote_dry_run_test.py` needs a real
 server (linuxmuster-base7, real `devices.csv`/AD data, real `linbo-remote`
 install) and a real, reachable LINBO client, none of which CI has.
 
@@ -20,7 +20,7 @@ install) and a real, reachable LINBO client, none of which CI has.
 On a real server, with a LINBO client (`--host`) currently online:
 
 ```sh
-python3 /usr/share/linuxmuster/linbo/tests/dry_run_smoke_test.py --host <hostname>
+python3 /usr/share/linuxmuster/linbo/tests/linbo-remote_dry_run_test.py --host <hostname>
 ```
 
 Optional: `--nr <#>` (default `1`) picks which `start.conf` OS position to

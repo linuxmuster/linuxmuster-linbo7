@@ -229,7 +229,7 @@ CI runs these via `.github/workflows/python-tests.yml`.
 ### linbo-remote dry-run smoke test
 Live, on-server counterpart to the mocked unit tests above - exercises every `linbo-remote` command shape with `--dry-run` against a real, online LINBO client (issue [#170](https://github.com/linuxmuster/linuxmuster-linbo7/issues/170)). Ships as part of the package (`/usr/share/linuxmuster/linbo/tests/`), not repo/CI-only like `tests/python/` - needs a real server and client. See `src/serverfs/usr/share/linuxmuster/linbo/tests/README.md`:
 ```sh
-python3 /usr/share/linuxmuster/linbo/tests/dry_run_smoke_test.py --host <hostname>
+python3 /usr/share/linuxmuster/linbo/tests/linbo-remote_dry_run_test.py --host <hostname>
 ```
 
 ### Python Naming Convention

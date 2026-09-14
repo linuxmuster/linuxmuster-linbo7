@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 #
-# Filename     : dry_run_smoke_test.py
+# Filename     : linbo-remote_dry_run_test.py
 # Description  : Exercises every linbo-remote command shape with --dry-run
 #                against a real, reachable LINBO client, to verify each one
 #                arrives at linbo_wrapper correctly. A live counterpart to
@@ -12,7 +12,7 @@
 # Date         : 20260914
 #
 """
-Usage: python3 dry_run_smoke_test.py --host <hostname> [--nr <os-nr>] [--school <school>]
+Usage: python3 linbo-remote_dry_run_test.py --host <hostname> [--nr <os-nr>] [--school <school>]
 
 Runs `linbo-remote -i <host> -c <cmd> --dry-run` for a representative set of
 commands covering every shape linbo_wrapper accepts (see
@@ -20,8 +20,10 @@ buildCommandMatrix()), plus a --dry-run -p onboot check, and inspects the
 resulting tmux session
 log for the expected linbo_wrapper output - the "DRY RUN MODE" banner, the
 right "Command : <name>" echo, and (where applicable) a
-"[dry-run] would run: ..." line. Prints a PASS/FAIL summary per command and
-exits non-zero if anything failed.
+"[dry-run] would run: ..." line. Prints a PASS/FAIL line per command as soon
+as it's checked (not collected and dumped at the end - each command takes a
+few seconds, so this keeps a long run legible while it's happening), plus a
+final summary, and exits non-zero if anything failed.
 
 Deliberately lenient on exact argument text for os.<nr>-dependent commands
 (create_image, upload_image, ...): the *shape* of the check stays the same
@@ -134,7 +136,7 @@ def readLogWhenStable(host, settle_checks=2, poll_interval=0.2, timeout=10):
 
     This is *not* a fix for concurrent access: linbo-remote uses one fixed
     tmux session name and one fixed logfile per host
-    (tmux_session_name()/tmuxAttachTarget()), so two invocations targeting
+    (tmuxSessionName()/tmuxAttachTarget()), so two invocations targeting
     the *same* host at the same time - two of this script, or this script
     racing a real admin's own `linbo-remote -i <host> ...` - will corrupt
     each other's session/log the same way, with or without this function.
@@ -218,6 +220,13 @@ def checkOnboot(host, school, nr):
     return 'PASS', None
 
 
+def printResult(label, status, reason, width):
+    line = f'{label:<{width}}  {status}'
+    if reason:
+        line += f'  ({reason})'
+    print(line, flush=True)  # flush: stdout is fully buffered when piped, not just line-buffered
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__.strip().splitlines()[0])
     parser.add_argument('--host', required=True, help='hostname of a currently online LINBO client')
@@ -227,20 +236,20 @@ def main():
     parser.add_argument('--school', default='default-school')
     args = parser.parse_args()
 
+    matrix = buildCommandMatrix(args.nr)
+    # known upfront (labels don't depend on running anything), so results can
+    # still print aligned even though each is printed live, one at a time
+    width = max(len(label) for label, _, _ in matrix + [('-p onboot dry-run', '', '')])
+
     results = []
-    for label, cmd, expected_name in buildCommandMatrix(args.nr):
+    for label, cmd, expected_name in matrix:
         status, reason = checkCommand(args.host, args.school, label, cmd, expected_name)
+        printResult(label, status, reason, width)
         results.append((label, status, reason))
 
     onboot_status, onboot_reason = checkOnboot(args.host, args.school, args.nr)
+    printResult('-p onboot dry-run', onboot_status, onboot_reason, width)
     results.append(('-p onboot dry-run', onboot_status, onboot_reason))
-
-    width = max(len(label) for label, _, _ in results)
-    for label, status, reason in results:
-        line = f'{label:<{width}}  {status}'
-        if reason:
-            line += f'  ({reason})'
-        print(line)
 
     failed = [r for r in results if r[1] == 'FAIL']
     skipped = [r for r in results if r[1] == 'SKIP']
