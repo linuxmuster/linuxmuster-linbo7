@@ -26,8 +26,11 @@ linuxmuster-linbo7 (7.4.14) lmn74; urgency=low
     tmux session/logfile per host, so concurrent invocations against the
     same host (this tool or a real admin's own command) corrupt each
     other's results - not a --dry-run bug (#170, 98073e6).
+  * refactor(dry_run_smoke_test.py): rename to linbo-remote_dry_run_test.py,
+    print each command's result live instead of only at the end
+    (#170, 9fb27fe).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 14 Sep 2026 15:20:47 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 14 Sep 2026 15:34:45 +0200
 
 linuxmuster-linbo7 (7.4.13) lmn74; urgency=low
 
