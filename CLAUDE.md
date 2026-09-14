@@ -226,6 +226,12 @@ pytest tests/python
 ```
 CI runs these via `.github/workflows/python-tests.yml`.
 
+### linbo-remote dry-run smoke test
+Live, on-server counterpart to the mocked unit tests above - exercises every `linbo-remote` command shape with `--dry-run` against a real, online LINBO client (issue [#170](https://github.com/linuxmuster/linuxmuster-linbo7/issues/170)). Ships as part of the package (`/usr/share/linuxmuster/linbo/tests/`), not repo/CI-only like `tests/python/` - needs a real server and client. See `src/serverfs/usr/share/linuxmuster/linbo/tests/README.md`:
+```sh
+python3 /usr/share/linuxmuster/linbo/tests/dry_run_smoke_test.py --host <hostname>
+```
+
 ### Python Naming Convention
 Same org-wide convention as `linuxmuster-base7`: **snake_case for variables, camelCase for functions** (e.g. `parseCommandString()`, `getGroupRoomDevices()`), including private/underscore-prefixed helpers (e.g. `_extractNr()`). Class names stay PascalCase. This applies even though it isn't PEP 8 - don't default to plain snake_case functions just because this repo historically had little Python.
 
