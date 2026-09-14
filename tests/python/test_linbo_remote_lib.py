@@ -202,6 +202,14 @@ def test_build_onboot_cmds_noauto_only_no_commands():
     assert buildOnbootCmds([], noauto=True) == 'noauto'
 
 
+def test_build_onboot_cmds_dry_run_comes_first():
+    # must be first, before secrets_line even, so linbofs' init.sh has the
+    # flag active for the whole boot command sequence
+    assert buildOnbootCmds(
+        ['upload_image:1'], noauto=True, secrets_line='linbo:somehash', dry_run=True,
+    ) == 'dryrun,linbo:somehash,upload_image:1,noauto'
+
+
 # --- tmux session / logfile naming ------------------------------------------
 
 def test_tmux_session_name_uses_dot():
@@ -253,6 +261,23 @@ def test_render_remote_script_quotes_multiword_comment_as_one_token():
 def test_render_remote_script_secrets_cleanup_when_no_backgrounded_command():
     script = renderRemoteScript('r100-pc01', ['sync:1'], '/var/tmp/x.sh', secrets_uploaded=True)
     assert '/bin/rm -f /tmp/rsyncd.secrets' in script
+
+
+def test_render_remote_script_dry_run_flag_on_every_wrapper_call():
+    script = renderRemoteScript('r100-pc01', ['format:2', 'sync:1'], '/var/tmp/x.sh', dry_run=True)
+    assert '/usr/bin/linbo_wrapper --dry-run format:2 || RC=1' in script
+    assert '/usr/bin/linbo_wrapper --dry-run sync:1 || RC=1' in script
+
+
+def test_render_remote_script_dry_run_flag_on_backgrounded_commands_too():
+    # especially there - that's exactly the case you don't want a real reboot
+    script = renderRemoteScript('r100-pc01', ['reboot'], '/var/tmp/x.sh', dry_run=True)
+    assert '/usr/bin/linbo_wrapper --dry-run reboot &' in script
+
+
+def test_render_remote_script_no_dry_run_flag_by_default():
+    script = renderRemoteScript('r100-pc01', ['reboot'], '/var/tmp/x.sh')
+    assert '--dry-run' not in script
 
 
 def test_render_remote_script_no_secrets_cleanup_when_backgrounded_command_present():

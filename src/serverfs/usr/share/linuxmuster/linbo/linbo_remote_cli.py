@@ -72,6 +72,10 @@ def printUsage(msg=None):
     print('                    per ssh direct to the client(s). Gui will be disabled')
     print('                    during execution.')
     print(' -d                 Disables gui on next boot.')
+    print(' --dry-run          Report what each command given with "-c" or "-p"')
+    print('                    would do on the client, without actually doing it')
+    print('                    (no partitioning, syncing, image creation/upload,')
+    print('                    reboot or halt). Requires "-c" or "-p".')
     print(' -g <group>         All hosts of this hostgroup will be processed.')
     print(' -i <i1,i2,...>     Single ip or hostname or comma separated list of ips')
     print('                    or hostnames of clients to be processed.')
@@ -286,7 +290,7 @@ def wakeHosts(hosts, school, between, use_bcaddr, is_direct, is_onboot):
 
 # --- direct command dispatch (-c) --------------------------------------------
 
-def sendCmds(hosts, commands, wait, secrets_uploaded):
+def sendCmds(hosts, commands, wait, secrets_uploaded, dry_run=False):
     if wait:
         doWait(wait, f'Waiting {wait} second(s) for client(s) to boot', leading_blank_line=True)
 
@@ -310,7 +314,9 @@ def sendCmds(hosts, commands, wait, secrets_uploaded):
         logfile = os.path.join(environment.LINBOLOGDIR, session_name)
         script_path = os.path.join(TMPDIR, f'{os.getpid()}.{host}.sh')
 
-        script_text = lib.renderRemoteScript(host, commands, script_path, secrets_uploaded=secrets_uploaded)
+        script_text = lib.renderRemoteScript(
+            host, commands, script_path, secrets_uploaded=secrets_uploaded, dry_run=dry_run,
+        )
         with open(script_path, 'w') as f:
             f.write(script_text)
         os.chmod(script_path, 0o755)
@@ -380,7 +386,7 @@ def main(argv=None):
     argv = sys.argv[1:] if argv is None else argv
 
     try:
-        opts, _ = getopt.getopt(argv, 'a:b:c:dg:hi:lnp:r:uw:s:')
+        opts, _ = getopt.getopt(argv, 'a:b:c:dg:hi:lnp:r:uw:s:', ['dry-run'])
     except getopt.GetoptError as error:
         usageError(str(error))
         return 1  # unreachable, keeps type-checkers happy
@@ -390,6 +396,7 @@ def main(argv=None):
     between_raw = None
     direct_cmds = None
     disablegui = False
+    dry_run = False
     group = None
     hosts_raw = None
     noauto = False
@@ -413,6 +420,8 @@ def main(argv=None):
             direct_cmds = val
         elif opt == '-d':
             disablegui = True
+        elif opt == '--dry-run':
+            dry_run = True
         elif opt == '-g':
             group = val
         elif opt == '-i':
@@ -450,6 +459,8 @@ def main(argv=None):
         usageError('Direct and onboot commands defined!')
     if not direct_cmds and not onboot_cmds and not wait_raw and not disablegui and not noauto:
         usageError('No commands or wakeonlan defined!')
+    if dry_run and not direct_cmds and not onboot_cmds:
+        usageError('--dry-run requires -c or -p!')
 
     wait = None
     if wait_raw is not None:
@@ -518,6 +529,7 @@ def main(argv=None):
     secrets_line = readSecretsLine() if needs_secrets else None
     onboot_string = lib.buildOnbootCmds(
         parsed_cmds if is_onboot else [], noauto=noauto, disablegui=disablegui, secrets_line=secrets_line,
+        dry_run=dry_run if is_onboot else False,
     )
     if onboot_string:
         writeOnbootFiles(hosts, onboot_string)
@@ -528,7 +540,7 @@ def main(argv=None):
 
     # --- dispatch -------------------------------------------------------------
     if is_direct:
-        sendCmds(hosts, parsed_cmds, wait, needs_secrets)
+        sendCmds(hosts, parsed_cmds, wait, needs_secrets, dry_run=dry_run)
     if is_onboot and wait:
         testOnboot(hosts, wait)
     elif not is_onboot and not is_direct and wait:

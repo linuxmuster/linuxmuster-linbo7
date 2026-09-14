@@ -8,6 +8,7 @@
 # thomas@linuxmuster.net
 # 20260902
 
+import os
 from unittest.mock import MagicMock
 
 import pytest
@@ -80,6 +81,7 @@ def test_help_exits_0(capsys):
     (['-i', 'r100-pc01', '-w', 'x'], 'x is not an integer variable!'),
     (['-i', 'r100-pc01', '-w', '10', '-b', 'x'], 'x is not an integer variable!'),
     (['-i', 'r100-pc01', '-b', '5', '-c', 'reboot'], 'Option -b can only be used with -w!'),
+    (['-i', 'r100-pc01', '-w', '5', '--dry-run'], '--dry-run requires -c or -p!'),
 ])
 def test_validation_errors(argv, expected_message, capsys, monkeypatch):
     monkeypatch.setattr(cli.shutil, 'which', lambda name: '/usr/bin/wakeonlan')
@@ -138,6 +140,19 @@ def test_direct_dispatch_happy_path(monkeypatch, tmp_path, capsys):
     assert any('r100-pc01.linbo-remote' in c[0][0] for c in tmux_calls)
 
 
+def test_direct_dispatch_dry_run_writes_dry_run_flag_into_script(monkeypatch, tmp_path, capsys):
+    monkeypatch.setattr(cli, 'isOnline', lambda host: True)
+    monkeypatch.setattr(cli.environment, 'LINBOLOGDIR', str(tmp_path))
+    monkeypatch.setattr(cli, 'TMPDIR', str(tmp_path))
+    monkeypatch.setattr(cli.subprocess, 'run', lambda *a, **kw: MagicMock(returncode=0, stdout='12345\n'))
+
+    rc = cli.main(['-i', 'r100-pc01', '-c', 'reboot', '--dry-run'])
+
+    assert rc == 0
+    script_path = tmp_path / f'{os.getpid()}.r100-pc01.sh'
+    assert 'linbo_wrapper --dry-run reboot &' in script_path.read_text()
+
+
 def test_direct_dispatch_offline_host_skipped(monkeypatch, capsys):
     monkeypatch.setattr(cli, 'isOnline', lambda host: False)
 
@@ -159,6 +174,18 @@ def test_onboot_writes_file_with_noauto_and_disablegui(monkeypatch, tmp_path, ca
     content = (tmp_path / 'linbocmd' / 'r100-pc01.cmd').read_text()
     assert content == 'sync:1,noauto,disablegui\n'
     assert 'Preparing onboot linbo tasks:' in capsys.readouterr().out
+
+
+def test_onboot_dry_run_writes_dryrun_token_first(monkeypatch, tmp_path, capsys):
+    monkeypatch.setattr(cli.environment, 'LINBODIR', str(tmp_path))
+    (tmp_path / 'linbocmd').mkdir()
+    monkeypatch.setattr(cli, 'fixOnbootDirPermissions', lambda: None)
+
+    rc = cli.main(['-i', 'r100-pc01', '-p', 'sync:1', '--dry-run'])
+
+    assert rc == 0
+    content = (tmp_path / 'linbocmd' / 'r100-pc01.cmd').read_text()
+    assert content == 'dryrun,sync:1\n'
 
 
 def test_list_sessions_filters_by_marker(monkeypatch, capsys):

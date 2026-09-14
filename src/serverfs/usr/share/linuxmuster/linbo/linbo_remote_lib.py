@@ -286,7 +286,7 @@ def getGroupRoomDevices(school='default-school'):
     return getDevicesArray(fieldnrs='0,1,2,10', pxeflag='1,2', school=school)
 
 
-def buildOnbootCmds(commands, noauto=False, disablegui=False, secrets_line=None):
+def buildOnbootCmds(commands, noauto=False, disablegui=False, secrets_line=None, dry_run=False):
     """
     Assemble the comma-separated onboot command string written to a client's
     linbocmd/<hostname>.cmd file (-p mode).
@@ -297,10 +297,18 @@ def buildOnbootCmds(commands, noauto=False, disablegui=False, secrets_line=None)
         whether an upload_image/upload_qdiff command is present); this
         function only assembles the string.
 
-    The literal "noauto"/"disablegui" tokens must not change - linbofs'
-    client-side init.sh greps for them by that exact name.
+    dry_run: prepends the literal "dryrun" token - linbofs' init.sh
+        recognizes it (like "noauto"/"disablegui") and prepends --dry-run to
+        every linbo_wrapper invocation for the rest of that boot's command
+        sequence, so it must come first, before secrets_line even, to be in
+        effect for the whole sequence.
+
+    The literal "noauto"/"disablegui"/"dryrun" tokens must not change -
+    linbofs' client-side init.sh matches them by that exact name.
     """
     parts = []
+    if dry_run:
+        parts.append('dryrun')
     if secrets_line:
         parts.append(secrets_line)
     parts.extend(commands)
@@ -338,7 +346,7 @@ WRAPPER = '/usr/bin/linbo_wrapper'
 _BACKGROUNDED_COMMAND_PREFIXES = ('start', 'reboot', 'halt', 'poweroff')
 
 
-def renderRemoteScript(hostname, commands, script_path, secrets_uploaded=False):
+def renderRemoteScript(hostname, commands, script_path, secrets_uploaded=False, dry_run=False):
     """
     Build the per-host shell script executed inside a tmux session for -c
     (direct) mode: disables the GUI, runs each normalized command
@@ -356,7 +364,14 @@ def renderRemoteScript(hostname, commands, script_path, secrets_uploaded=False):
     forwarding intact (verified against a simulated ssh remote-command-join +
     remote-shell-reparse); the original bash implementation embedded it
     unquoted and silently truncated it at the first space.
+
+    dry_run: prepends --dry-run to every linbo_wrapper invocation (including
+        backgrounded start/reboot/halt ones - especially those, since that's
+        exactly where you don't want a real reboot while testing) so it just
+        reports what it would do instead of actually doing it. See
+        linbo_wrapper's own --dry-run handling.
     """
+    wrapper = f'{WRAPPER} --dry-run' if dry_run else WRAPPER
     lines = ['#!/bin/bash', f'{SSH_CMD} {hostname} gui_ctl disable', 'RC=0']
     has_backgrounded = False
     for index, cmd in enumerate(commands):
@@ -365,10 +380,10 @@ def renderRemoteScript(hostname, commands, script_path, secrets_uploaded=False):
         quoted = shlex.quote(cmd)
         if cmd.startswith(_BACKGROUNDED_COMMAND_PREFIXES):
             has_backgrounded = True
-            lines.append(f'[ $RC = 0 ] && {SSH_CMD} {hostname} {WRAPPER} {quoted} &')
+            lines.append(f'[ $RC = 0 ] && {SSH_CMD} {hostname} {wrapper} {quoted} &')
             lines.append('sleep 10')
         else:
-            lines.append(f'[ $RC = 0 ] && {SSH_CMD} {hostname} {WRAPPER} {quoted} || RC=1')
+            lines.append(f'[ $RC = 0 ] && {SSH_CMD} {hostname} {wrapper} {quoted} || RC=1')
     if secrets_uploaded and not has_backgrounded:
         lines.append(f'{SSH_CMD} {hostname} /bin/rm -f /tmp/rsyncd.secrets')
     lines.append(f'{SSH_CMD} {hostname} gui_ctl restore')

@@ -505,8 +505,13 @@ network
 if [ -s /linbocmd ]; then
   OIFS="$IFS"
   IFS=","
+  dryrunflag=""
   for cmd in $(cat /linbocmd); do
     [ "$cmd" = "noauto" -o "$cmd" = "disablegui" ] && continue
+    if [ "$cmd" = "dryrun" ]; then
+      dryrunflag="--dry-run"
+      continue
+    fi
     # filter password
     if echo "$cmd" | grep -q ^linbo:; then
       msg="linbo_wrapper linbo:*****"
@@ -515,7 +520,7 @@ if [ -s /linbocmd ]; then
     fi
     print_status "$msg"
     echo "$msg" 2>&1
-    /usr/bin/linbo_wrapper "$cmd" | while read line; do
+    /usr/bin/linbo_wrapper $dryrunflag "$cmd" | while read line; do
       print_status "$line"
     done
   done

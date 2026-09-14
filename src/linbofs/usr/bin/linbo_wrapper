@@ -2,7 +2,7 @@
 #
 # linbo_wrapper: wrapper for linbo commands
 # thomas@linuxmuster.net
-# 20250816
+# 20260914
 #
 
 SECRETS=/tmp/rsyncd.secrets
@@ -13,10 +13,14 @@ SECRETS=/tmp/rsyncd.secrets
 # print usage infos
 usage(){
   echo
-  echo "Usage: linbo_wrapper <command1 command2 ...>"
+  echo "Usage: linbo_wrapper [--dry-run] <command1 command2 ...>"
   echo
   echo "linbo_wrapper is a linbo command wrapper."
   echo "It reads the start.conf and creates the according commands."
+  echo
+  echo "--dry-run : if given as the first argument, report what each command"
+  echo "            would do instead of actually doing it (no partitioning,"
+  echo "            syncing, image creation/upload, reboot or halt)."
   echo
   echo "Available commands are:"
   echo
@@ -73,8 +77,29 @@ create_desc(){
   mv /cache/msg.tmp "/cache/$image.desc"
 }
 
+# run a command for real, or just announce it in dry-run mode (-> DRYRUN)
+# does not itself decide RC on skip: the caller's own "|| exit 1" still runs,
+# so a dry-run command is treated as having succeeded (RC 0), same as a real
+# one that returns 0
+run_cmd(){
+  if [ -n "$DRYRUN" ]; then
+    echo "[dry-run] would run: $*"
+  else
+    "$@"
+  fi
+}
+
 #### functions end ####
 
+
+# dry-run mode: report what would be done, without actually doing it -
+# must be the first argument, before any commands (checked before the
+# help/empty-args check below, so "linbo_wrapper --dry-run" alone or
+# "linbo_wrapper --dry-run help" still behave sensibly)
+if [ "$1" = "--dry-run" ]; then
+  DRYRUN="yes"
+  shift
+fi
 
 # print help
 [ -z "$1" -o "$1" = "help" ] && usage
@@ -82,6 +107,7 @@ create_desc(){
 # get environment
 source /usr/share/linbo/shell_functions
 echo "### $timestamp $(basename "$0") $@ ###"
+[ -n "$DRYRUN" ] && echo "### DRY RUN MODE - no commands will actually be executed ###"
 
 # process command line args
 while [ "$#" -gt "0" ]; do
@@ -102,17 +128,17 @@ while [ "$#" -gt "0" ]; do
       echo "${cmd}:${password}" > "$SECRETS"
       ;;
 
-    partition) linbo_partition || exit 1 ;;
+    partition) run_cmd linbo_partition || exit 1 ;;
 
     format)
       if [ -n "$osnr" ]; then
-        linbo_format "$osnr" || exit 1
+        run_cmd linbo_format "$osnr" || exit 1
       else
-        linbo_partition_format || exit 1
+        run_cmd linbo_partition_format || exit 1
       fi
       ;;
 
-    initcache) linbo_initcache || exit 1 ;;
+    initcache) run_cmd linbo_initcache || exit 1 ;;
 
     create_image|create_qdiff)
       source /conf/os.$osnr
@@ -123,8 +149,8 @@ while [ "$#" -gt "0" ]; do
       else
         imagefile="$baseimage"
       fi
-      linbo_create_image "$osnr" "$qdiff" || exit 1
-      create_desc "$imagefile"
+      run_cmd linbo_create_image "$osnr" "$qdiff" || exit 1
+      run_cmd create_desc "$imagefile"
       ;;
 
     upload_image|upload_qdiff)
@@ -134,38 +160,38 @@ while [ "$#" -gt "0" ]; do
       # differential image
       [ "$cmd" = "upload_qdiff" ] && imagefile="${imagefile/.qcow2/.qdiff}"
       echo "Uploading $imagefile to $LINBOSERVER ..."
-      linbo_upload "$password" "$imagefile" || exit 1
+      run_cmd linbo_upload "$password" "$imagefile" || exit 1
       ;;
 
     new)
       source /conf/os.$osnr || exit 1
       echo "Formatting and syncing $name ..."
-      linbo_sync "$osnr" "force" || exit 1
+      run_cmd linbo_sync "$osnr" "force" || exit 1
       ;;
 
     sync)
       source /conf/os.$osnr || exit 1
       echo "Syncing $name ..."
-      linbo_sync "$osnr" || exit 1
+      run_cmd linbo_sync "$osnr" || exit 1
       ;;
 
-    postsync) linbo_postsync "$osnr" || exit 1 ;;
+    postsync) run_cmd linbo_postsync "$osnr" || exit 1 ;;
 
     start)
       source /conf/os.$osnr || exit 1
       echo "Starting $name ..."
-      linbo_cmd start "$osnr" || exit 1
+      run_cmd linbo_cmd start "$osnr" || exit 1
       ;;
 
-    prestart) linbo_prestart "$osnr"r || exit 1 ;;
+    prestart) run_cmd linbo_prestart "$osnr" || exit 1 ;;
 
-    update) linbo_update || exit 1 ;;
+    update) run_cmd linbo_update || exit 1 ;;
 
-    label) linbo_label "all" || exit 1 ;;
+    label) run_cmd linbo_label "all" || exit 1 ;;
 
-    reboot) /sbin/reboot || exit 1 ;;
+    reboot) run_cmd /sbin/reboot || exit 1 ;;
 
-    halt|poweroff) /sbin/poweroff || exit 1 ;;
+    halt|poweroff) run_cmd /sbin/poweroff || exit 1 ;;
 
     gui_ctl_disable) gui_ctl disable || exit 1 ;;
 
