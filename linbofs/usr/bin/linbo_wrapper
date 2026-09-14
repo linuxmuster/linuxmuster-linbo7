@@ -2,7 +2,7 @@
 #
 # linbo_wrapper: wrapper for linbo commands
 # thomas@linuxmuster.net
-# 20250816
+# 20260914
 #
 
 SECRETS=/tmp/rsyncd.secrets
@@ -157,7 +157,7 @@ while [ "$#" -gt "0" ]; do
       linbo_cmd start "$osnr" || exit 1
       ;;
 
-    prestart) linbo_prestart "$osnr"r || exit 1 ;;
+    prestart) linbo_prestart "$osnr" || exit 1 ;;
 
     update) linbo_update || exit 1 ;;
 
