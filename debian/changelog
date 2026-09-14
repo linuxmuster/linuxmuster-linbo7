@@ -22,8 +22,12 @@ linuxmuster-linbo7 (7.4.14) lmn74; urgency=low
     (#170, 087e712).
   * test(linbo-remote): add an on-server dry-run smoke test tool covering
     every command shape against a real, online client (#170, 3b4e9e7).
+  * doc(dry_run_smoke_test.py): document that linbo-remote uses one fixed
+    tmux session/logfile per host, so concurrent invocations against the
+    same host (this tool or a real admin's own command) corrupt each
+    other's results - not a --dry-run bug (#170, 98073e6).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 14 Sep 2026 14:31:34 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 14 Sep 2026 15:20:47 +0200
 
 linuxmuster-linbo7 (7.4.13) lmn74; urgency=low
 
