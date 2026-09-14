@@ -37,6 +37,16 @@ Needs: a real linuxmuster-base7 server with linbo-remote installed, and a
 LINBO client (given by --host, e.g. a devices.csv hostname) that is
 currently online and has at least one OS defined at position --nr (default:
 1) in its start.conf.
+
+Don't run this against a host something else might be targeting at the same
+time (another run of this script, or a real admin's own linbo-remote
+command) - linbo-remote uses one fixed tmux session name and one fixed
+logfile per host, so concurrent invocations against the *same* host corrupt
+each other's session/log and produce confusing, seemingly-random failures
+that have nothing to do with linbo-remote or linbo_wrapper actually being
+broken. This is a pre-existing property of the tmux-based dispatch design,
+true of the original bash implementation too - not something --dry-run
+introduced or something this script can wait its way around.
 """
 
 import argparse
@@ -114,6 +124,41 @@ def readLog(host):
         return None
 
 
+def readLogWhenStable(host, settle_checks=2, poll_interval=0.2, timeout=10):
+    """
+    Read the per-host session log, waiting for its content to stop changing
+    across a couple of quick re-reads before returning it - cheap insurance
+    against tmux reporting a session as gone (waitForSessionToEnd()) a hair
+    before its pipe-pane's `cat > logfile` process has actually finished
+    flushing and closing the file.
+
+    This is *not* a fix for concurrent access: linbo-remote uses one fixed
+    tmux session name and one fixed logfile per host
+    (tmux_session_name()/tmuxAttachTarget()), so two invocations targeting
+    the *same* host at the same time - two of this script, or this script
+    racing a real admin's own `linbo-remote -i <host> ...` - will corrupt
+    each other's session/log the same way, with or without this function.
+    That's a pre-existing property of the tmux-based dispatch design (true
+    of the original bash implementation too), not something introduced by
+    --dry-run or fixable by waiting longer here. Don't run this script
+    against a host that something else might be targeting at the same time.
+    """
+    deadline = time.time() + timeout
+    last = None
+    stable_count = 0
+    while time.time() < deadline:
+        current = readLog(host)
+        if current is not None and current == last:
+            stable_count += 1
+            if stable_count >= settle_checks:
+                return current
+        else:
+            stable_count = 0
+        last = current
+        time.sleep(poll_interval)
+    return last
+
+
 def runDryRunCommand(host, school, cmd, timeout=20):
     result = subprocess.run(
         [LINBO_REMOTE, '-i', host, '-s', school, '-c', cmd, '--dry-run'],
@@ -125,7 +170,7 @@ def runDryRunCommand(host, school, cmd, timeout=20):
         return 'FAIL', f'linbo-remote exited {result.returncode}', result.stdout
 
     waitForSessionToEnd(host, timeout=timeout)
-    log = readLog(host)
+    log = readLogWhenStable(host)
     if log is None:
         return 'FAIL', 'no session log found', result.stdout
     return 'LOG', None, log

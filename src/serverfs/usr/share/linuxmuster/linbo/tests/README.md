@@ -28,6 +28,13 @@ use for `<#>`-taking commands, `--school <school>` for a non-default
 school. Prints a PASS/FAIL/SKIP line per command plus a summary, and exits
 non-zero if anything failed.
 
+**Don't run it against a host something else might be targeting at the same
+time** (another run of this script, or a real admin's own `linbo-remote`
+command) - see "A note on concurrent access" below. Confirmed by hitting
+this directly during development: two overlapping runs against the same
+host produced consistent-looking but entirely bogus failures across
+unrelated commands.
+
 ## What it checks, and what it deliberately doesn't
 
 For each command it runs `linbo-remote -i <host> -c <cmd> --dry-run` and
@@ -53,6 +60,21 @@ of `linbo_remote_lib.KNOWN_COMMANDS` - this caught a real mistake during
 development: `update` is a real `linbo_wrapper` command, but was never part
 of `linbo-remote`'s own command vocabulary (not even in the original bash
 implementation), so it's excluded on purpose, not by oversight.
+
+## A note on concurrent access
+
+`linbo-remote` uses one fixed tmux session name and one fixed logfile per
+*host* (`tmuxSessionName()`/`tmuxAttachTarget()` in `linbo_remote_lib.py`),
+not per invocation. Two invocations targeting the same host at the same
+time - two runs of this script, or this script racing a real admin's own
+`linbo-remote -i <host> ...` - corrupt each other's session/log and produce
+confusing, seemingly-random failures scattered across unrelated commands,
+even though neither `linbo-remote` nor `linbo_wrapper` did anything wrong.
+This is a pre-existing property of the tmux-based dispatch design (true of
+the original bash implementation too), not something `--dry-run`
+introduced, and not something this script's log-reading can wait its way
+around - it only ever targets one host at a time itself, but has no way to
+know if someone else is doing the same.
 
 ## Not covered
 
