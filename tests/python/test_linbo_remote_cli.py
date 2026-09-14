@@ -1,12 +1,13 @@
-# test_linbo_remote_cli.py
 #
-# pytest coverage for linbo_remote_cli.py's option validation and
-# orchestration. Real subprocess/tmux/ssh/AD calls are mocked - see
-# tests/python/README.md for the "Wave 1 vs Wave 2" testing philosophy this
-# follows.
+# Filename     : test_linbo_remote_cli.py
+# Description  : pytest coverage for linbo_remote_cli.py's option
+#                validation and orchestration. Real subprocess/tmux/ssh/AD
+#                calls are mocked - see tests/python/README.md for the
+#                "Wave 1 vs Wave 2" testing philosophy this follows.
+# Signed-off by: thomas@linuxmuster.net
+# Assisted by  : Claude
+# Date         : 20260914
 #
-# thomas@linuxmuster.net
-# 20260902
 
 import os
 from unittest.mock import MagicMock

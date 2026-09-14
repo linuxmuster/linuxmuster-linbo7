@@ -1,11 +1,14 @@
-# test_linbo_remote_lib.py
 #
-# pytest coverage for the pure functions in linbo_remote_lib.py: the -c/-p
-# command-string parser, group/room/explicit-list host resolution and
-# onboot command-file assembly. See tests/python/README.md.
+# Filename     : test_linbo_remote_lib.py
+# Description  : pytest coverage for the pure functions in
+#                linbo_remote_lib.py: the -c/-p command-string parser,
+#                group/room/explicit-list host resolution, onboot
+#                command-file assembly, per-host script rendering and
+#                wake-on-LAN target resolution. See tests/python/README.md.
+# Signed-off by: thomas@linuxmuster.net
+# Assisted by  : Claude
+# Date         : 20260914
 #
-# thomas@linuxmuster.net
-# 20260902
 
 import pytest
 

@@ -1,12 +1,14 @@
-# conftest.py for tests/python/
 #
-# Makes src/serverfs/usr/share/linuxmuster/linbo/ importable as plain module
-# names (e.g. `import linbo_remote_lib`), matching how these files are laid
-# out on a real server (usr/share/linuxmuster/linbo/), not as an installable
-# Python package.
+# Filename     : conftest.py
+# Description  : pytest fixture setup for tests/python/ - makes
+#                src/serverfs/usr/share/linuxmuster/linbo/ importable as
+#                plain module names (e.g. `import linbo_remote_lib`),
+#                matching how these files are laid out on a real server, not
+#                as an installable Python package.
+# Signed-off by: thomas@linuxmuster.net
+# Assisted by  : Claude
+# Date         : 20260914
 #
-# thomas@linuxmuster.net
-# 20260902
 
 import pathlib
 import sys
