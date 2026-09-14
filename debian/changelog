@@ -20,8 +20,10 @@ linuxmuster-linbo7 (7.4.14) lmn74; urgency=low
   * feat(linbo-remote, linbo_wrapper): add --dry-run, reporting what each
     command would do on the client instead of doing it, for both -c and -p
     (#170, 087e712).
+  * test(linbo-remote): add an on-server dry-run smoke test tool covering
+    every command shape against a real, online client (#170, 3b4e9e7).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 14 Sep 2026 13:15:32 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 14 Sep 2026 14:31:34 +0200
 
 linuxmuster-linbo7 (7.4.13) lmn74; urgency=low
 
