@@ -31,8 +31,11 @@ linuxmuster-linbo7 (7.4.14) lmn74; urgency=low
     (#170, 9fb27fe).
   * test(linbo_wrapper): add Wave 1 shell-test-harness coverage for
     run_cmd() and get_passwd() (#170, 2bbad65).
+  * fix(build/run.d/7_serverfs): strip stray __pycache__/*.pyc from the
+    package - found doing a real end-to-end build+install+PXE-boot
+    verification of #169/#170 (dc2baec).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 14 Sep 2026 15:48:05 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 15 Sep 2026 08:10:06 +0200
 
 linuxmuster-linbo7 (7.4.13) lmn74; urgency=low
 
