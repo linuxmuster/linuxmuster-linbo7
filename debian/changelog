@@ -34,8 +34,10 @@ linuxmuster-linbo7 (7.4.14) lmn74; urgency=low
   * fix(build/run.d/7_serverfs): strip stray __pycache__/*.pyc from the
     package - found doing a real end-to-end build+install+PXE-boot
     verification of #169/#170 (dc2baec).
+  * doc(README.md): sync the linbo-remote help text with the actual -h
+    output and document --dry-run (a3268ff).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 15 Sep 2026 08:10:06 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 15 Sep 2026 08:23:08 +0200
 
 linuxmuster-linbo7 (7.4.13) lmn74; urgency=low
 
