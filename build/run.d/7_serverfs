@@ -17,6 +17,13 @@ echo "##############################################"
 # copy rootfs files to package root directory
 cp -v -a "$SERVERFS"/* "$PKGBUILDROOT" || exit 1
 
+# strip any stray Python bytecode cache picked up from a source tree that
+# had been used for local testing (py_compile/pytest) before this build -
+# cp -a copies whatever is on disk regardless of .gitignore, so a dirty
+# working tree can otherwise ship __pycache__/*.pyc in the package
+find "$PKGBUILDROOT" -iname "__pycache__" -type d -exec rm -rf {} + 2>/dev/null
+find "$PKGBUILDROOT" \( -iname "*.pyc" -o -iname "*.pyo" \) -delete
+
 # make certain files executable
 chmod 755 "$SRVFS_SHAREDIR"/*.sh
 
