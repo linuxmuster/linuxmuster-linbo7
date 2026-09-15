@@ -137,6 +137,16 @@ today without stubs:
   a real `dash`/POSIX shell until this harness existed - busybox `ash` (the
   real client runtime) tolerates all four constructs just fine.
 
+- `run_cmd()` and `get_passwd()` (`linbo_wrapper`) - covered by
+  `test_linbo_wrapper.sh`. `run_cmd()` (added for `--dry-run`, issue
+  [#170](https://github.com/linuxmuster/linuxmuster-linbo7/issues/170)) has
+  no filesystem/device access of its own - it either runs its argument as a
+  real command or just echoes what it would have run, so it's tested
+  against stub commands (`echo`, `true`, `false`, `touch`), the same idiom
+  `interruptible()`'s test already uses. `get_passwd()` reads `$SECRETS`,
+  a plain variable rather than a hardcoded path, so it's testable against a
+  `$SHUNIT_TMPDIR` fixture file.
+
 **Wave 2** - functions that need stubs or fixtures before they're unit-testable;
 tracked here rather than forced or used as an excuse to refactor the code
 first:
@@ -155,6 +165,10 @@ first:
   device enumeration (e.g. an overridable variable instead of a hardcoded
   path); only viable as an integration test on a real or virtual machine for
   now.
+- `create_desc()` (`linbo_wrapper`) - calls `linbo_mountcache` and writes to
+  `/cache`, a real device/mount dependency; would need the same
+  `linbo_mountcache` abstraction as `findcache()` above before it's
+  unit-testable.
 - Remaining `shell_functions` helpers with hardcoded real paths or external
   processes: `ismounted()` (`/proc/mounts`), `isdownloadable()` (`rsync`),
   `get_label()`/`get_realdev()` (`/conf/part.*`, `/dev/disk/by-label`), the

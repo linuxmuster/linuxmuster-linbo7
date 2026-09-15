@@ -1,3 +1,44 @@
+linuxmuster-linbo7 (7.4.14) lmn74; urgency=low
+
+  * refactor(linbo-remote): port the command parser and host resolution to
+    pure, pytest-covered Python functions (linbo_remote_lib.py), not wired
+    in yet (#169, 59fefb7).
+  * refactor(linbo-remote): rewrite the rest in Python (linbo_remote_cli.py),
+    same external contract, WOL now resolved via Samba AD; fixes two found
+    bugs (truncated multi-word image comments, -h exit code) (#169, fa1eae6).
+  * fix(linbo-remote): exit with a clear message instead of a traceback if
+    linuxmuster-base7 is missing - linbo7 is also used standalone
+    (#169, cd1a85f).
+  * refactor(linbo-remote): rename functions to camelCase, matching the
+    project-wide Python convention (#169, a21ade6).
+  * fix(mkgrubhostimg.py): fix stale base7 import and port the GRUB module
+    lists from mkgrubnetdir.sh, which were never actually reachable via
+    environment.py (65dc921).
+  * refactor(linbo-mkgrubimg): rename mkgrubhostimg.py to linbo_mkgrubimg.py
+    and replace the /usr/sbin/linbo-mkgrubimg symlink with a thin launcher,
+    same pattern as linbo-remote (235c160).
+  * feat(linbo-remote, linbo_wrapper): add --dry-run, reporting what each
+    command would do on the client instead of doing it, for both -c and -p
+    (#170, 087e712).
+  * test(linbo-remote): add an on-server dry-run smoke test tool covering
+    every command shape against a real, online client (#170, 3b4e9e7).
+  * doc(dry_run_smoke_test.py): document that linbo-remote uses one fixed
+    tmux session/logfile per host, so concurrent invocations against the
+    same host (this tool or a real admin's own command) corrupt each
+    other's results - not a --dry-run bug (#170, 98073e6).
+  * refactor(dry_run_smoke_test.py): rename to linbo-remote_dry_run_test.py,
+    print each command's result live instead of only at the end
+    (#170, 9fb27fe).
+  * test(linbo_wrapper): add Wave 1 shell-test-harness coverage for
+    run_cmd() and get_passwd() (#170, 2bbad65).
+  * fix(build/run.d/7_serverfs): strip stray __pycache__/*.pyc from the
+    package - found doing a real end-to-end build+install+PXE-boot
+    verification of #169/#170 (dc2baec).
+  * doc(README.md): sync the linbo-remote help text with the actual -h
+    output and document --dry-run (a3268ff).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 15 Sep 2026 08:23:08 +0200
+
 linuxmuster-linbo7 (7.4.13) lmn74; urgency=low
 
   * fix(shell_functions): isalnum() used "[[ =~ ]]", which dash doesn't have
