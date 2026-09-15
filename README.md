@@ -116,6 +116,10 @@ Options:
                     per ssh direct to the client(s). Gui will be disabled
                     during execution.
  -d                 Disables gui on next boot.
+ --dry-run          Report what each command given with "-c" or "-p"
+                    would do on the client, without actually doing it
+                    (no partitioning, syncing, image creation/upload,
+                    reboot or halt). Requires "-c" or "-p".
  -g <group>         All hosts of this hostgroup will be processed.
  -i <i1,i2,...>     Single ip or hostname or comma separated list of ips
                     or hostnames of clients to be processed.
@@ -149,10 +153,9 @@ initcache:<dltype>       : Updates local cache. <dltype> is one of
                            If dltype is not specified it is read from
                            start.conf.
 sync:<#>                 : Syncs the operating system on position nr <#>.
-postsync:<#>             : Invokes postsync script of the os on position nr <#>.
 new:<#>                  : Clean sync of the operating system on position nr <#>
                            (formats the according partition before).
-nogui                    : Do not start the LINBO Gui (see below).
+postsync:<#>             : Invokes postsync script of the os on position nr <#>.
 start:<#>                : Starts the operating system on pos. nr <#>.
 prestart:<#>             : Invokes prestart script of the os on position nr <#>.
 create_image:<#>:<"msg"> : Creates a full image from operating system nr <#>.
@@ -168,6 +171,11 @@ The commands were sent per ssh to the linbo_wrapper on the client and processed
 in the order given on the commandline.
 create_* and upload_* commands cannot be used with hostlists, -r and -g options.
 ```
+
+* New in 7.4.14: `--dry-run` reports what each command given with `-c`/`-p` would do
+  on the client, without actually doing it - see
+  [`linbo-remote_dry_run_test.py`](src/serverfs/usr/share/linuxmuster/linbo/tests/README.md)
+  for a way to exercise it against every supported command at once.
 
 ### linbo-torrent
 * The new command `attach` attaches a torrent's tmux session.
