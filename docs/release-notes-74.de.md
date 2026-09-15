@@ -4,6 +4,7 @@
 
 | Version | Datum | Ziel-Repository |
 |---------|-------|-----------------|
+| 7.4.14 | 15.09.2026 | lmn74 |
 | 7.4.10 | 01.08.2026 | lmn74 |
 | 7.4.9 | 30.07.2026 | lmn74 |
 | 7.4.8 | 23.07.2026 | lmn74 |
@@ -133,6 +134,26 @@ für die Verteilung von Windows-Treibern:
 
 Zusätzlich wurde ein erster Shell-Test-Harness für linbofs-Skripte eingeführt
 (Phase 1), der u. a. die Namensvalidierung von `linbo_driverpostsync` abdeckt.
+
+---
+
+### 6. linbo-remote: Rewrite in Python, neue Option `--dry-run` (#169/#170, ab 7.4.14)
+
+`linbo-remote` sowie Teile des clientseitigen `linbo_wrapper` wurden nach
+Python bzw. testbar überarbeitet, bei unverändertem Verhalten für alle
+Aufrufer (`linuxmuster-tools`, `linuxmuster-api`).
+
+- Neue Option `--dry-run`: zeigt für jeden mit `-c`/`-p` übergebenen Befehl,
+  was der Client tun würde, ohne es wirklich auszuführen.
+- Zwei reale Bugs beim Portieren gefunden und behoben: mehrwortige
+  Bild-Kommentare (`create_image:<#>:"..."`) wurden bisher am ersten
+  Leerzeichen abgeschnitten; `-h` beendete sich fälschlich mit Exit-Code 1.
+- `linbo-mkgrubimg` (vormals `mkgrubhostimg.py`) repariert: war durch
+  veraltete Imports gegen aktuelles `linuxmuster-base7` nicht mehr lauffähig.
+- Umfangreiche neue Testabdeckung: pytest-Unit-Tests, Shell-Tests (dash +
+  busybox ash) sowie ein Live-Smoke-Test (`linbo-remote_dry_run_test.py`),
+  der alle unterstützten Befehle per `--dry-run` gegen einen echten Client
+  durchspielt.
 
 ---
 
