@@ -1,3 +1,15 @@
+linuxmuster-linbo7 (7.4.15) lmn74; urgency=low
+
+  * fix(rsync-pre-download.sh): isolate per-transfer staging file for
+    status/log uploads, preventing parallel host uploads from clobbering
+    each other's temporary files or writing into the wrong host log
+    (#172, a238262).
+  * fix(linbo-scp.sh): remove trailing "$" from RSYNC_SKIP_COMPRESS
+    variable name, preventing malformed rsync --skip-compress suffix
+    lists in the upload wrapper (d74fef8).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 17 Sep 2026 13:39:36 +0200
+
 linuxmuster-linbo7 (7.4.14) lmn74; urgency=low
 
   * refactor(linbo-remote): port the command parser and host resolution to
