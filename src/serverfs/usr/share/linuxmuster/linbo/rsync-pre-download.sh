@@ -1,8 +1,11 @@
 #!/bin/bash
 #
-# Pre-Download script for rsync/LINBO
-# thomas@linuxmuster.net
-# 20260520
+# Filename     : rsync-pre-download.sh
+# Description  : rsync pre-xfer hook for LINBO downloads; handles log/status
+#                uploads and keeps per-transfer staging files isolated.
+# Signed-off by: thomas@linuxmuster.net
+# Assisted by  : Claude
+# Date         : 20260917
 #
 
 # read in linuxmuster specific environment
@@ -16,14 +19,26 @@ exec >>$LOGFILE 2>&1
 echo "### rsync pre download begin: $(date) ###"
 
 FILE="${RSYNC_MODULE_PATH}/${RSYNC_REQUEST##$RSYNC_MODULE_NAME/}"
-PIDFILE="/tmp/rsync.$RSYNC_PID"
-echo "$FILE" > "$PIDFILE"
-
 BASENAME="$(basename "$FILE")"
 EXT="${BASENAME##*.}"
 BASE="$(echo "$BASENAME" | sed 's/\(.*\)\..*/\1/')"
 case "$EXT" in desc|info|macct|torrent|hash) BASE="$(echo "$BASE" | sed 's/\(.*\)\..*/\1/')" ;; esac
 IMGDIR="$LINBOIMGDIR/$BASE"
+
+# Host log/status uploads share the same rsync request path for every client.
+# Keep the staging file unique per transfer so concurrent clients cannot
+# overwrite each other's temporary files while preserving the original target
+# filename in the log directory. The same PID is already used for
+# /tmp/rsync.$RSYNC_PID, so reusing it here keeps the path stable and unique.
+STAGINGFILE="$FILE"
+case "$EXT" in
+  log|status|gz)
+    STAGINGFILE="${FILE}.${RSYNC_PID}"
+    ;;
+esac
+
+PIDFILE="/tmp/rsync.$RSYNC_PID"
+echo "$STAGINGFILE" > "$PIDFILE"
 
 # fetch host & domainname
 do_rsync_hostname
@@ -35,6 +50,7 @@ echo "HOSTNAME: $RSYNC_HOST_NAME"
 echo "IP: $RSYNC_HOST_ADDR"
 echo "RSYNC_REQUEST: $RSYNC_REQUEST"
 echo "FILE: $FILE"
+[ -n "$STAGINGFILE" ] && echo "STAGINGFILE: $STAGINGFILE"
 echo "PIDFILE: $PIDFILE"
 echo "EXT: $EXT"
 
@@ -74,16 +90,26 @@ case $EXT in
   log|status|gz)
     targetfile="$LINBOLOGDIR/${RSYNC_HOST_NAME%%.*}_$(basename "$FILE")"
     sourcefile="$(echo "$FILE" | sed -e "s|$LINBODIR||" | sed -e "s|//|/|")"
-    echo "Upload request for $FILE: $sourcefile -> $targetfile."
-    linbo-scp -v "${RSYNC_HOST_ADDR}:$sourcefile" "$FILE" || RC="1"
-    if [ -s "$FILE" ]; then
+    echo "Upload request for $STAGINGFILE: $sourcefile -> $targetfile."
+    RC=0
+    linbo-scp -v "${RSYNC_HOST_ADDR}:$sourcefile" "$STAGINGFILE" || {
+      RC=$?
+      echo "ERROR: linbo-scp failed for $sourcefile -> $STAGINGFILE (rc=$RC)" >&2
+    }
+    if [ "$RC" -ne 0 ]; then
+      rm -f "$STAGINGFILE"
+      echo "RC: $RC"
+      echo "### rsync pre download end: $(date) ###"
+      exit "$RC"
+    fi
+    if [ -s "$STAGINGFILE" ]; then
       if [ "$EXT" = "log" ]; then
-        cat "$FILE" >> "$targetfile"
+        cat "$STAGINGFILE" >> "$targetfile"
       else
-        cp "$FILE" "$targetfile"
+        cp "$STAGINGFILE" "$targetfile"
       fi
-      rm -f "$FILE"
-      #touch "$FILE"
+      rm -f "$STAGINGFILE"
+      #touch "$STAGINGFILE"
     fi
   ;;
 
