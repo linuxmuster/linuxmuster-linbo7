@@ -9,7 +9,7 @@
 #                Step 2 of the linbo-remote Python rewrite (issue #169).
 # Signed-off by: thomas@linuxmuster.net
 # Assisted by  : Claude
-# Date         : 20260902
+# Date         : 20260919
 #
 """
 linbo-remote's CLI orchestration.
@@ -260,7 +260,12 @@ def wakeHosts(hosts, school, between, use_bcaddr, is_direct, is_onboot):
         extra_args = []
         if use_bcaddr and lib.isValidIpv4(ip):
             bcaddr = lib.getBroadcastAddress(ip)
-            if bcaddr and lib.isValidIpv4(bcaddr):
+            # bcaddr is already a valid dotted-quad from netaddr's
+            # IPNetwork.broadcast (or None, handled above) - re-validating it
+            # with isValidIpv4() rejected it outright for any /24-or-larger
+            # subnet, since a broadcast address' last octet is always .255,
+            # which isValidIpv4() treats as an invalid *host* address (#173).
+            if bcaddr:
                 extra_args = ['-i', bcaddr]
 
         if not lib.isValidMac(mac):

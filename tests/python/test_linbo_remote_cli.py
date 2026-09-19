@@ -6,7 +6,7 @@
 #                "Wave 1 vs Wave 2" testing philosophy this follows.
 # Signed-off by: thomas@linuxmuster.net
 # Assisted by  : Claude
-# Date         : 20260914
+# Date         : 20260919
 #
 
 import os
@@ -117,6 +117,40 @@ def test_wakeonlan_missing(capsys, monkeypatch):
     monkeypatch.setattr(cli.shutil, 'which', lambda name: None)
     assert cli.main(['-i', 'r100-pc01', '-w', '5']) == 1
     assert capsys.readouterr().out.rstrip().splitlines()[-1] == 'wakeonlan not found!'
+
+
+# --- wake-on-lan directed broadcast (-u) --------------------------------------
+
+def test_wake_with_bcaddr_uses_directed_broadcast_for_slash24_subnet(monkeypatch):
+    """
+    Regression test for #173: a /24-or-larger subnet's broadcast address
+    always ends in .255, which isValidIpv4() correctly rejects as an invalid
+    *host* address - re-validating the already-computed bcaddr with that same
+    host-address check made -u a silent no-op for the common case.
+    """
+    monkeypatch.setattr(cli.shutil, 'which', lambda name: '/usr/bin/wakeonlan')
+    monkeypatch.setattr(cli.lib, 'resolveWolTarget', lambda host, basedn: ('AA:BB:CC:DD:EE:FF', '10.16.1.5'))
+    monkeypatch.setattr(cli.lib, 'getBroadcastAddress', lambda ip: '10.16.1.255')
+    run_calls = []
+    monkeypatch.setattr(cli.subprocess, 'run', lambda *a, **kw: run_calls.append(a[0]) or MagicMock(returncode=0))
+
+    cli.wakeHosts(['r100-pc01'], 'default-school', None, True, False, False)
+
+    assert run_calls == [['/usr/bin/wakeonlan', '-i', '10.16.1.255', 'AA:BB:CC:DD:EE:FF']]
+
+
+def test_wake_without_u_flag_skips_directed_broadcast(monkeypatch):
+    monkeypatch.setattr(cli.shutil, 'which', lambda name: '/usr/bin/wakeonlan')
+    monkeypatch.setattr(cli.lib, 'resolveWolTarget', lambda host, basedn: ('AA:BB:CC:DD:EE:FF', '10.16.1.5'))
+    bcaddr_calls = []
+    monkeypatch.setattr(cli.lib, 'getBroadcastAddress', lambda ip: bcaddr_calls.append(ip) or '10.16.1.255')
+    run_calls = []
+    monkeypatch.setattr(cli.subprocess, 'run', lambda *a, **kw: run_calls.append(a[0]) or MagicMock(returncode=0))
+
+    cli.wakeHosts(['r100-pc01'], 'default-school', None, False, False, False)
+
+    assert run_calls == [['/usr/bin/wakeonlan', 'AA:BB:CC:DD:EE:FF']]
+    assert bcaddr_calls == []
 
 
 # --- successful dispatch, with subprocess/filesystem mocked -------------------
