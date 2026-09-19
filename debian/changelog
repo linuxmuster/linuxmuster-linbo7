@@ -1,3 +1,12 @@
+linuxmuster-linbo7 (7.4.16) lmn74; urgency=low
+
+  * fix(linbo_remote_cli): stop rejecting directed-broadcast WOL address -
+    a subnet's broadcast address always ends in .255 for prefix <= /24,
+    which was rejected by the host-address-shaped isValidIpv4() check,
+    silently disabling -u for the common case (#173, de59df6).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 19 Sep 2026 14:16:25 +0200
+
 linuxmuster-linbo7 (7.4.15) lmn74; urgency=low
 
   * fix(rsync-pre-download.sh): isolate per-transfer staging file for
