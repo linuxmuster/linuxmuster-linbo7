@@ -6,7 +6,7 @@
 #                "Wave 1 vs Wave 2" testing philosophy this follows.
 # Signed-off by: thomas@linuxmuster.net
 # Assisted by  : Claude
-# Date         : 20260919
+# Date         : 20260921
 #
 
 import os
@@ -124,9 +124,10 @@ def test_wakeonlan_missing(capsys, monkeypatch):
 def test_wake_with_bcaddr_uses_directed_broadcast_for_slash24_subnet(monkeypatch):
     """
     Regression test for #173: a /24-or-larger subnet's broadcast address
-    always ends in .255, which isValidIpv4() correctly rejects as an invalid
-    *host* address - re-validating the already-computed bcaddr with that same
-    host-address check made -u a silent no-op for the common case.
+    always ends in .255. isValidIpv4() used to reject that as an invalid
+    *host* address (fixed separately in #174) - re-validating the already-
+    computed bcaddr with that check made -u a silent no-op for the common
+    case regardless.
     """
     monkeypatch.setattr(cli.shutil, 'which', lambda name: '/usr/bin/wakeonlan')
     monkeypatch.setattr(cli.lib, 'resolveWolTarget', lambda host, basedn: ('AA:BB:CC:DD:EE:FF', '10.16.1.5'))

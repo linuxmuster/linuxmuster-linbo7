@@ -7,7 +7,7 @@
 #                wake-on-LAN target resolution. See tests/python/README.md.
 # Signed-off by: thomas@linuxmuster.net
 # Assisted by  : Claude
-# Date         : 20260914
+# Date         : 20260921
 #
 
 import pytest
@@ -19,6 +19,7 @@ from linbo_remote_lib import (
     getIpFromAd,
     hostsInGroup,
     hostsInRoom,
+    isValidIpv4,
     parseCommandString,
     renderRemoteScript,
     resolveExplicitHosts,
@@ -134,6 +135,31 @@ def test_hosts_in_room():
 
 def test_hosts_in_room_no_match():
     assert hostsInRoom(DEVICES, 'r999') == []
+
+
+# --- isValidIpv4 -------------------------------------------------------------
+
+@pytest.mark.parametrize('ip, expected', [
+    ('10.16.100.1', True),
+    ('0.0.0.0', True),
+    ('255.255.255.255', True),
+    # regression cases for #174: a trailing/leading .0 or .255 depends on the
+    # subnet's prefix length, which this function doesn't know - it used to
+    # reject these outright, assuming a /24-or-larger subnet
+    ('10.0.0.0', True),
+    ('10.0.0.255', True),
+    ('10.0.1.255', True),
+    # still-invalid syntax
+    ('10.16.100', False),
+    ('10.16.100.1.2', False),
+    ('10.16.100.256', False),
+    ('10.16.100.-1', False),
+    ('10.16.100.abc', False),
+    ('', False),
+    (None, False),
+])
+def test_is_valid_ipv4(ip, expected):
+    assert isValidIpv4(ip) == expected
 
 
 # --- resolveExplicitHosts --------------------------------------------------

@@ -8,7 +8,7 @@
 #                Steps 1+2 of the linbo-remote Python rewrite (issue #169).
 # Signed-off by: thomas@linuxmuster.net
 # Assisted by  : Claude
-# Date         : 20260902
+# Date         : 20260921
 #
 """
 Helper functions for the linbo-remote Python rewrite.
@@ -179,15 +179,18 @@ def isValidHostname(name):
 
 
 def isValidIpv4(ip):
-    """Same rule as linuxmuster-base7's isValidHostIpv4(), self-contained (see isValidHostname)."""
+    """
+    Syntax only: four dot-separated octets, each 0-255. Deliberately doesn't
+    reject addresses ending in .0/.255 as "network"/"broadcast"-looking -
+    whether those are valid host addresses depends on the subnet's prefix
+    length, which isn't known here (see #174; used to mirror
+    linuxmuster-base7's isValidHostIpv4(), which had the same issue).
+    """
     try:
         octets = ip.split('.')
         if len(octets) != 4:
             return False
-        values = [int(o) for o in octets]
-        if values[0] == 0 or any(v > 254 for v in (values[0], values[3])):
-            return False
-        return all(0 <= v <= 255 for v in values)
+        return all(0 <= int(o) <= 255 for o in octets)
     except (ValueError, AttributeError):
         return False
 
