@@ -1,3 +1,12 @@
+linuxmuster-linbo7 (7.4.17) lmn74; urgency=low
+
+  * fix(linbo_remote_lib): make isValidIpv4() a pure syntax check - the
+    octet-based .0/.255 "network"/"broadcast" heuristic was only correct
+    by coincidence for /24 subnets, wrongly rejecting valid host addresses
+    in larger subnets (#174, 6805dc2).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 21 Sep 2026 13:08:02 +0200
+
 linuxmuster-linbo7 (7.4.16) lmn74; urgency=low
 
   * fix(linbo_remote_cli): stop rejecting directed-broadcast WOL address -
