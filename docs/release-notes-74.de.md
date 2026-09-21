@@ -1,4 +1,4 @@
-# linuxmuster-linbo7 7.4.15
+# linuxmuster-linbo7 7.4.17
 
 LINBO ist die Netzwerk-Boot- und Imaging-Umgebung von linuxmuster.net, über die
 Clients gestartet, Festplattenabbilder verteilt und Windows- und
@@ -30,9 +30,11 @@ gleich mit behoben.
 
 Zahlreiche kleinere Fehler wurden behoben: fehlende WLAN-Firmware beim
 Booten, brüchige Skripte auf manchen USB-Netzwerkadaptern und älteren
-Systemen, Aussetzer bei der Torrent-basierten Imageverteilung sowie zuletzt
-sich gegenseitig überschreibende Status-Uploads mehrerer gleichzeitig
-laufender Clients.
+Systemen, Aussetzer bei der Torrent-basierten Imageverteilung, sich
+gegenseitig überschreibende Status-Uploads mehrerer gleichzeitig laufender
+Clients, nicht ankommende Wake-on-LAN-Pakete über Router/Firewall hinweg
+sowie verlorene Einträge in der Status-Historie bei Rechnern mit mehreren
+Images.
 
 ## Versionsschema angeglichen
 
