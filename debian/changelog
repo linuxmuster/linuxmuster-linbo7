@@ -4,8 +4,11 @@ linuxmuster-linbo7 (7.4.17) lmn74; urgency=low
     octet-based .0/.255 "network"/"broadcast" heuristic was only correct
     by coincidence for /24 subnets, wrongly rejecting valid host addresses
     in larger subnets (#174, 6805dc2).
+  * fix(rsync-pre-download.sh): merge per-image status lines again instead
+    of overwriting <host>_image.status on every sync, which discarded every
+    other image's entry since 13ff562 (#171, 235231d).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 21 Sep 2026 13:08:02 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 21 Sep 2026 13:41:58 +0200
 
 linuxmuster-linbo7 (7.4.16) lmn74; urgency=low
 
