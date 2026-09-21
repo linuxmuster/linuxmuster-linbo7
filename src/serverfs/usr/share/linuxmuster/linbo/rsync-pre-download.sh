@@ -2,10 +2,11 @@
 #
 # Filename     : rsync-pre-download.sh
 # Description  : rsync pre-xfer hook for LINBO downloads; handles log/status
-#                uploads and keeps per-transfer staging files isolated.
+#                uploads, merges per-image status lines, and keeps
+#                per-transfer staging files isolated.
 # Signed-off by: thomas@linuxmuster.net
 # Assisted by  : Claude
-# Date         : 20260917
+# Date         : 20260921
 #
 
 # read in linuxmuster specific environment
@@ -103,11 +104,30 @@ case $EXT in
       exit "$RC"
     fi
     if [ -s "$STAGINGFILE" ]; then
-      if [ "$EXT" = "log" ]; then
-        cat "$STAGINGFILE" >> "$targetfile"
-      else
-        cp "$STAGINGFILE" "$targetfile"
-      fi
+      case "$EXT" in
+        log)
+          cat "$STAGINGFILE" >> "$targetfile"
+        ;;
+        status)
+          # Keep one line per image: drop the previous entry for this image
+          # before appending the new one. Client uploads exactly one line per
+          # sync (see shell_functions' log_image_status()), so without this
+          # merge, syncing a second image on the same host would silently
+          # discard every other image's line (#171). Match field 3 exactly,
+          # not a regex - the pre-13ff562 code used an unanchored sed match
+          # on the image name, which e.g. "jammy.qcow2" also matched inside
+          # "data-jammy.qcow2", deleting the wrong entry.
+          image="$(awk '{ print $3 }' "$STAGINGFILE")"
+          if [ -s "$targetfile" ] && [ -n "$image" ]; then
+            awk -v img="$image" '$3 != img' "$targetfile" > "$targetfile.new" \
+              && mv "$targetfile.new" "$targetfile"
+          fi
+          cat "$STAGINGFILE" >> "$targetfile"
+        ;;
+        *)
+          cp "$STAGINGFILE" "$targetfile"
+        ;;
+      esac
       rm -f "$STAGINGFILE"
       #touch "$STAGINGFILE"
     fi
