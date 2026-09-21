@@ -1,0 +1,4 @@
+## Troubleshooting
+This document collects solutions to issues reported by users. It will be extended successively.
+
+* **Internal display goes almost black right when sync starts, external monitor unaffected (Intel 8th-10th gen iGPUs)**: On some laptops with a PWM-controlled backlight (e.g. Kaby Lake, Coffee Lake, Ice Lake, Comet Lake), the backlight state gets lost during a DRM master switch (e.g. boot splash handing off the display to the Linbo gui) and only a full power-off restores normal brightness. Add the kernel parameter `i915.enable_dpcd_backlight=1` to the affected device's/group's `KernelOptions` in its `start.conf` to force AUX/DPCD based backlight control instead of PWM. Note: `acpi_backlight=native`/`acpi_backlight=vendor` do *not* help here, since they only choose between the ACPI-generic and the native GPU backlight interface, not between PWM and DPCD.
