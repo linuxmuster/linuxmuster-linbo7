@@ -9,6 +9,11 @@ Dieses Dokument beschreibt die Einrichtung, wie sie in 7.4 tatsächlich
 möglich ist. Bitte vorher den Abschnitt [Was 7.4 noch nicht
 kann](#was-74-noch-nicht-kann) lesen.
 
+Stand: Die Angaben sind gegen den ausgelieferten Code geprüft und vom Autor
+der Funktion durchgesehen
+([Issue #175](https://github.com/linuxmuster/linuxmuster-linbo7/issues/175)).
+Eine überarbeitete Fassung von seiner Hand ist angekündigt.
+
 ## Wie es funktioniert
 
 Auf dem Server liegt pro Gerätemodell ein *Treiberprofil* unter
@@ -19,8 +24,11 @@ ein kleines Hilfsskript im Imageverzeichnis.
 
 Beim Synchronisieren lädt der Client zunächst nur die Kennungen aller
 zugewiesenen Profile, vergleicht sie mit seinen eigenen DMI-Werten und
-überträgt ausschließlich die Treiber der passenden Profile. Windows
-installiert sie beim nächsten Start selbst über PnPUtil.
+überträgt ausschließlich die Treiber der passenden Profile. Installiert
+werden sie anschließend von Windows selbst über PnPUtil – entweder
+unbeaufsichtigt beim Systemstart oder, ohne die dafür nötige Vorbereitung,
+erst bei der nächsten Anmeldung eines Administrators. Siehe
+[Vorbereitung im Golden Image](#vorbereitung-im-golden-image).
 
 Wichtig zur Einordnung: Ein Treiberprofil hat nichts mit der
 linuxmuster-Hardwareklasse zu tun, also nicht mit der LINBO-Gruppe aus
@@ -31,22 +39,53 @@ Bezeichnung; erlaubt sind Buchstaben, Ziffern, Punkt, Unterstrich und
 Bindestrich, beginnend mit einem alphanumerischen Zeichen. Eine sprechende
 Bezeichnung wie `lenovo-21l4` hat sich bewährt.
 
+## Vorbereitung im Golden Image
+
+Dieser Schritt ist einmalig und entscheidet darüber, wann die Treiber
+installiert werden.
+
+Der Client erkennt eine unbeaufsichtigte Installation an zwei Dateien im
+Windows-System, die **beide** vorhanden sein müssen:
+
+| Datei | Inhalt |
+|---|---|
+| `C:\Windows\System32\Tasks\LINBO-Driver-Install` | geplante Aufgabe, läuft beim Systemstart als SYSTEM und ruft `C:\Drivers\LINBO\pnputil-install.cmd` auf |
+| `C:\ProgramData\LINBO\Drivers\startup-task-ready` | genau die Zeichenkette `LINBO SYSTEM driver startup task v1` |
+
+Sind beide vorhanden, entfernt `linbo_driverpostsync` vorhandene
+RunOnce-Einträge und überlässt die Installation der Aufgabe. Fehlt eines von
+beiden, trägt es stattdessen einen RunOnce-Eintrag ein – die Treiber werden
+dann erst installiert, wenn sich das nächste Mal ein Administrator anmeldet.
+
+Aufgabe und Marker müssen im Golden Image angelegt und das Image danach neu
+erstellt werden. **Kein linuxmuster-Paket liefert sie mit**, siehe
+[Was 7.4 noch nicht kann](#was-74-noch-nicht-kann).
+
+Bestandsimages aus dem früheren eigenständigen Projekt „LINBO Patchless"
+funktionieren weiter: Dort werden `LINBO-Patchless-Driver-Install` und
+`C:\ProgramData\LINBO-Patchless\startup-task-ready` mit der Zeichenkette
+`LINBO-Patchless SYSTEM startup task v1` ebenfalls akzeptiert.
+
 ## Schritt 1: Hersteller- und Modellkennung ermitteln
 
-Die Zuordnung erfolgt über die DMI-Werte des Clients. Auf einem laufenden
-Client:
+Die Zuordnung erfolgt über die DMI-Werte des Clients. Am besten liest man
+sie aus derselben Quelle, die auch `linbo_driverpostsync` beim Vergleich
+verwendet – etwa in der LINBO-Shell des betreffenden Clients:
 
 ```sh
-dmidecode -s system-manufacturer
-dmidecode -s system-product-name
+cat /sys/class/dmi/id/sys_vendor /sys/class/dmi/id/product_name
 ```
 
-Alternativ liefert die API die von den Clients hochgeladenen
+Die API zeigt zusätzlich die von den Clients hochgeladenen
 Hardwareinventare:
 
 ```sh
 curl -H "X-API-Key: <schlüssel>" https://<server>/v1/linbo/drivers/inventory
 ```
+
+Das Inventar dient nur dem Nachschlagen. Profile entstehen daraus nicht
+automatisch, sie werden im nächsten Schritt von Hand oder über die API
+angelegt.
 
 ## Schritt 2: Profil anlegen
 
@@ -109,9 +148,13 @@ images.assign_driver_profile("lenovo-21l4", "win11")
 Dabei passiert zweierlei automatisch: Im Profilverzeichnis entsteht eine
 `image.conf` mit der Imagezuordnung, und im Imageverzeichnis wird
 `/srv/linbo/images/win11/win11.driverpostsync` geschrieben – das Hilfsskript,
-das der Client später ausführt. Ein Eingriff von Hand ist dort nicht nötig
-und auch nicht vorgesehen: Der Server erkennt fremde Dateien an einer
-fehlenden Kopfzeile und überschreibt sie nicht.
+das der Client später ausführt.
+
+Diese Datei darf **weder von Hand angelegt noch bearbeitet werden**. Der
+Server erkennt seine eigenen Dateien an der Kopfzeile
+`# Managed-By: linuxmusterTools.linbo.driver_hooks v1`. Fehlt sie, gilt die
+Datei als fremd und wird nicht überschrieben – jede weitere Zuweisung für
+dieses Image schlägt dann fehl, bis die Datei entfernt wurde.
 
 Ein Image kann beliebig viele Profile haben. Ein Profil gehört dagegen zu
 genau einem Image.
@@ -124,10 +167,15 @@ Nach dem nächsten Synchronisieren eines Clients:
 |---|---|
 | `/cache/linbo-driverpostsync.log` | Protokoll des Treiberlaufs auf dem Client |
 | `/cache/linbo-driverprofiles/<image>/` | zuletzt übertragene Treiber |
-| `/mnt/Drivers/LINBO/` | für Windows bereitgelegte Treiber samt `pnputil-install.cmd` |
+| `/mnt/Drivers/LINBO/`, aus Windows `C:\Drivers\LINBO` | bereitgelegte Treiber samt `pnputil-install.cmd` |
 
-Installiert werden die Treiber beim darauffolgenden Windows-Start über einen
-RunOnce-Eintrag.
+Das Protokoll sagt auch, welcher Weg gewählt wurde: „SYSTEM startup task
+detected" bedeutet unbeaufsichtigte Installation, „RunOnce fallback
+registered … administrator logon required" die Rückfallebene.
+
+Installiert werden die Treiber danach durch Windows selbst mit
+`pnputil /add-driver C:\Drivers\LINBO\*.inf /subdirs /install`. Das Ergebnis
+steht auf der Windows-Seite in `C:\ProgramData\LINBO\Drivers\driver-install.log`.
 
 ## Profile ändern und entfernen
 
@@ -141,6 +189,11 @@ räumen die Clients bereits übertragene Treiber aus ihrem Cache wieder ab.
 
 ## Was 7.4 noch nicht kann
 
+- **Der Windows-Teil fehlt im Lieferumfang.** Die geplante Aufgabe
+  `LINBO-Driver-Install` und ihre Markerdatei legt kein linuxmuster-Paket an.
+  Ohne sie funktioniert die Verteilung zwar, die Installation wartet aber auf
+  die nächste Administratoranmeldung. Wer sie unbeaufsichtigt haben will,
+  muss beides selbst ins Golden Image einbauen.
 - **Keine Oberfläche.** Weder die WebUI noch `lmncli` haben Kommandos für
   Treiberprofile. Die Einrichtung läuft über die API oder direkt im
   Dateisystem.
