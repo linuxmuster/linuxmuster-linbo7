@@ -28,7 +28,7 @@ zugewiesenen Profile, vergleicht sie mit seinen eigenen DMI-Werten und
 werden sie anschließend von Windows selbst über PnPUtil – entweder
 unbeaufsichtigt beim Systemstart oder, ohne die dafür nötige Vorbereitung,
 erst bei der nächsten Anmeldung eines Administrators. Siehe
-[Vorbereitung im Golden Image](#vorbereitung-im-golden-image).
+[Vorbereitung am Muster-Client](#vorbereitung-am-muster-client).
 
 Wichtig zur Einordnung: Ein Treiberprofil hat nichts mit der
 linuxmuster-Hardwareklasse zu tun, also nicht mit der LINBO-Gruppe aus
@@ -39,7 +39,7 @@ Bezeichnung; erlaubt sind Buchstaben, Ziffern, Punkt, Unterstrich und
 Bindestrich, beginnend mit einem alphanumerischen Zeichen. Eine sprechende
 Bezeichnung wie `lenovo-21l4` hat sich bewährt.
 
-## Vorbereitung im Golden Image
+## Vorbereitung am Muster-Client
 
 Dieser Schritt ist einmalig und entscheidet darüber, wann die Treiber
 installiert werden.
@@ -57,9 +57,11 @@ RunOnce-Einträge und überlässt die Installation der Aufgabe. Fehlt eines von
 beiden, trägt es stattdessen einen RunOnce-Eintrag ein – die Treiber werden
 dann erst installiert, wenn sich das nächste Mal ein Administrator anmeldet.
 
-Aufgabe und Marker müssen im Golden Image angelegt und das Image danach neu
-erstellt werden. **Kein linuxmuster-Paket liefert sie mit**, siehe
-[Was 7.4 noch nicht kann](#was-74-noch-nicht-kann).
+Beide Dateien müssen in der Windows-Installation liegen, die das LINBO-Image
+enthält. In der Praxis heißt das: in Windows auf dem Muster-Client anlegen
+und danach das Image neu erstellen. Ein bereits vorhandenes Image genügt
+nicht, solange es die Dateien nicht enthält. **Kein linuxmuster-Paket liefert
+sie mit**, siehe [Was 7.4 noch nicht kann](#was-74-noch-nicht-kann).
 
 Bestandsimages aus dem früheren eigenständigen Projekt „LINBO Patchless"
 funktionieren weiter: Dort werden `LINBO-Patchless-Driver-Install` und
@@ -193,7 +195,7 @@ räumen die Clients bereits übertragene Treiber aus ihrem Cache wieder ab.
   `LINBO-Driver-Install` und ihre Markerdatei legt kein linuxmuster-Paket an.
   Ohne sie funktioniert die Verteilung zwar, die Installation wartet aber auf
   die nächste Administratoranmeldung. Wer sie unbeaufsichtigt haben will,
-  muss beides selbst ins Golden Image einbauen.
+  muss beides selbst am Muster-Client einrichten und das Image neu erstellen.
 - **Keine Oberfläche.** Weder die WebUI noch `lmncli` haben Kommandos für
   Treiberprofile. Die Einrichtung läuft über die API oder direkt im
   Dateisystem.
