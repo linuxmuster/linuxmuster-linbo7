@@ -25,14 +25,29 @@ LINBO-Gruppe aus `devices.csv` hat er nichts zu tun.
 
 ## Einmalig: Windows-Image vorbereiten
 
-Damit Windows die Treiber ohne Anmeldung installiert, braucht das
-Golden Image einen Autostart-Task. Dazu im laufenden Windows als
+Damit Windows die Treiber ohne Anmeldung installiert, braucht das Windows
+auf dem Muster-Client einen Autostart-Task. Dazu im laufenden Windows als
 Administrator
 [`Install-LinboDriverTask.ps1`](https://github.com/amolani/linbo-patchless/blob/80bc474bd23ca19a1396f3e8e425ec1489ee1c7a/windows/Install-LinboDriverTask.ps1)
-ausführen und danach das Image neu erstellen.
+ausführen und danach das Image neu erstellen. Das Skript stammt aus einem
+externen Repository, ein linuxmuster-Paket liefert es noch nicht mit
+([#177](https://github.com/linuxmuster/linuxmuster-linbo7/issues/177)).
 
-Ohne diesen Task installiert Windows die Treiber erst, wenn sich ein
+Das Skript legt zwei Dateien an. LINBO prüft beim Sync, ob **beide**
+vorhanden sind:
+
+| Datei | Inhalt |
+|---|---|
+| `C:\Windows\System32\Tasks\LINBO-Driver-Install` | Task, läuft beim Systemstart als SYSTEM und ruft `C:\Drivers\LINBO\pnputil-install.cmd` auf |
+| `C:\ProgramData\LINBO\Drivers\startup-task-ready` | genau die Zeichenkette `LINBO SYSTEM driver startup task v1` |
+
+Fehlt eine davon, installiert Windows die Treiber erst, wenn sich ein
 Administrator anmeldet (RunOnce).
+
+Images aus dem früheren Projekt „LINBO Patchless" funktionieren weiter:
+`LINBO-Patchless-Driver-Install` zusammen mit
+`C:\ProgramData\LINBO-Patchless\startup-task-ready` (Inhalt
+`LINBO-Patchless SYSTEM startup task v1`) wird ebenfalls erkannt.
 
 ## Pro Gerätemodell
 
@@ -91,9 +106,11 @@ Dabei entstehen automatisch:
 - `/srv/linbo/drivers/lenovo-21l4/image.conf`
 - `/srv/linbo/images/win11/win11.driverpostsync`
 
-Die `.driverpostsync` **nicht selbst anlegen oder bearbeiten.** Eine
-selbst geschriebene Datei betrachtet der Server als fremd und überschreibt
-sie nicht mehr; weitere Zuweisungen schlagen dann fehl.
+Die `.driverpostsync` **nicht selbst anlegen oder bearbeiten.** Der Server
+erkennt seine eigenen Dateien an der Kopfzeile
+`# Managed-By: linuxmusterTools.linbo.driver_hooks v1`. Eine Datei ohne
+diese Zeile gilt als fremd und wird nicht überschrieben; weitere Zuweisungen
+für das Image schlagen dann fehl, bis die Datei entfernt wurde.
 
 Ein Image kann beliebig viele Profile haben, ein Profil gehört zu genau
 einem Image.
@@ -109,6 +126,10 @@ einem Image.
 | `/cache/linbo-driverpostsync.log` (LINBO) | welches Profil gepasst hat und was übertragen wurde |
 | `C:\Drivers\LINBO\` (Windows) | bereitgelegte Treiber und `pnputil-install.cmd` |
 | `C:\ProgramData\LINBO\Drivers\driver-install.log` (Windows) | Ergebnis der Installation |
+
+Im LINBO-Log steht auch, welcher Weg gewählt wurde: `SYSTEM startup task
+detected` heißt Installation beim nächsten Start, `RunOnce fallback
+registered … administrator logon required` heißt, der Task fehlt im Image.
 
 ## Zuweisung aufheben und Profil löschen
 
@@ -153,3 +174,6 @@ Das JWT liefert `GET /v1/auth/` mit Benutzername und Passwort.
 - [README von linuxmusterTools.linbo](https://github.com/linuxmuster/linuxmuster-tools/blob/lmn74/usr/lib/python3/dist-packages/linuxmusterTools/linbo/README.md)
 - [PR #149](https://github.com/linuxmuster/linuxmuster-linbo7/pull/149),
   [PR #157](https://github.com/linuxmuster/linuxmuster-linbo7/pull/157)
+
+Signed-off by: thomas@linuxmuster.net
+Assisted by  : Claude
