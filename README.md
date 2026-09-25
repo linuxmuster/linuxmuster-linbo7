@@ -407,6 +407,26 @@ Note that there are some restrictions by the use of wireless network connections
 * Assume that huge downloads of operating system images may reduce your wireless experience.
 * Consider to setup a restricted wireless network for Linbo management purposes to limit unauthorized use.
 
+## Windows driver profiles
+Since 7.4 Linbo can deliver model-specific Windows drivers. One Windows image can serve many hardware models; each client receives only the drivers matching its DMI vendor and product.
+1. Create a profile directory `/srv/linbo/drivers/<profile>/` with a `match.conf`:
+    ```
+    [match]
+    vendor = LENOVO
+    product = 21L4
+    ```
+    `vendor` must match exactly, `product` is a case-sensitive substring (`*` matches every model of the vendor).
+2. Copy the extracted `.inf` drivers into the same directory (subdirectories are allowed).
+3. Assign the profile to an image on the server:
+    ```
+    python3 -c 'from linuxmusterTools.linbo import LinboDriverManager, LinboImageManager
+    LinboImageManager(driver_manager=LinboDriverManager()).assign_driver_profile("lenovo-21l4", "win11")'
+    ```
+    This generates `/srv/linbo/images/win11/win11.driverpostsync`. Do not create or edit this file by hand.
+4. Sync the client. Matching drivers are staged in `C:\Drivers\LINBO` and installed by `pnputil` at the next Windows start if the golden image contains the `LINBO-Driver-Install` startup task; otherwise at the next administrator logon (RunOnce).
+
+Step-by-step guide (German): [docs/windows-treiberprofile-einrichten.de.md](docs/windows-treiberprofile-einrichten.de.md)
+
 ## Execute your own boot scripts
 Perform the following 4 steps to execute your own boot script during the linbo-client's init process:
 1. Create the script, which you want to execute during linbo boot, for example under `/root/linbofs/mybootscript.sh`. Note that you can use the linbo environment in your script by sourcing the file `/.env` (see above).  
