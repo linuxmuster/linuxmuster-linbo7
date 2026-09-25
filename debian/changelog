@@ -1,3 +1,10 @@
+linuxmuster-linbo7 (7.4.18) lmn74; urgency=low
+
+  * feat(linbo-torrent): enable LPD and a 5 minute tracker interval by
+    default (#152, d08c577).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 25 Sep 2026 09:27:47 +0200
+
 linuxmuster-linbo7 (7.4.17) lmn74; urgency=low
 
   * fix(linbo_remote_lib): make isValidIpv4() a pure syntax check - the
