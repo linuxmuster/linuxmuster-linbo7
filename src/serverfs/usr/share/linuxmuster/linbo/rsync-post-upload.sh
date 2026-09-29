@@ -118,8 +118,12 @@ case "$EXT" in
       if [ -n "$unicodepwd" ]; then
         echo "Saving samba password hash and kvno for $image."
         template="$LINBOTPLDIR/machineacct"
-        sed -e "s|@@unicodepwd@@|$unicodepwd|" \
-          -e "s|@@suppcredentials@@|$suppcredentials|" "$template" > "$imagemacct"
+        # create it anew with mode 600, the [linbo] rsync module can read it
+        # as nobody while it is still 644, and writing into an existing file
+        # keeps its mode until the chmod
+        rm -f "$imagemacct"
+        (umask 077; sed -e "s|@@unicodepwd@@|$unicodepwd|" \
+          -e "s|@@suppcredentials@@|$suppcredentials|" "$template" > "$imagemacct")
         chmod 600 "$imagemacct"
         # remove obsolete macct file if present
         rm -f "$IMGDIR/${BASE}.macct"
