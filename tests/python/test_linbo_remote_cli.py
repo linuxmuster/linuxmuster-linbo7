@@ -182,6 +182,10 @@ def test_direct_dispatch_happy_path(monkeypatch, tmp_path, capsys):
         rf"cat > {re.escape(str(tmp_path))}/r100-pc01_linbo-remote_\d{{14}}\.log", pipe_args[0],
     )
     assert re.search(r'Log see \S+r100-pc01_linbo-remote_\d{14}\.log\.', out)
+    # and the script appends the run record to the shared jsonl file
+    script_text = (tmp_path / f'{os.getpid()}.r100-pc01.sh').read_text()
+    assert f'RUN_RECORD_FILE={tmp_path}/linbo-remote_runs.jsonl' in script_text
+    assert '"hostname":"r100-pc01"' in script_text
 
 
 def test_direct_dispatch_dry_run_writes_dry_run_flag_into_script(monkeypatch, tmp_path, capsys):

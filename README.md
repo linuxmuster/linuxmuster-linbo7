@@ -99,6 +99,7 @@ Parameter  |  Description
   ```
 * The option `-c` now disables the gui by default during command execution. 
 * The new option `-a` allows to attach a host's tmux session.
+* Every `-c` run writes its own log `<hostname>_linbo-remote_<YYYYmmddHHMMSS>.log` and appends one JSON line (hostname, mode, commands, dry_run, start, end, rc, log) to `linbo-remote_runs.jsonl`, both in `/var/log/linuxmuster/linbo/`.
 
 Full linbo-remote help:
 
