@@ -8,7 +8,7 @@
 #                Steps 1+2 of the linbo-remote Python rewrite (issue #169).
 # Signed-off by: thomas@linuxmuster.net
 # Assisted by  : Claude
-# Date         : 20260921
+# Date         : 20261001
 #
 """
 Helper functions for the linbo-remote Python rewrite.
@@ -43,6 +43,7 @@ give a usable IP for those hosts at all.
 import re
 import shlex
 import subprocess
+import time
 
 DOWNLOAD_TYPES = ('multicast', 'rsync', 'torrent')
 
@@ -326,14 +327,27 @@ def buildOnbootCmds(commands, noauto=False, disablegui=False, secrets_line=None,
 
 def tmuxSessionName(hostname):
     """
-    The name passed to `tmux new -Ads` when starting a host's session, and
-    the per-host logfile's basename (LINBOLOGDIR/<this>). tmux itself
-    rewrites the '.' to '_' internally for the *session* it actually
-    creates - see tmuxAttachTarget() for the name to use when looking an
-    existing session back up. The logfile is a plain path, not subject to
-    tmux's renaming, so it keeps the dot.
+    The name passed to `tmux new -Ads` when starting a host's session.
+    tmux itself rewrites the '.' to '_' internally for the *session* it
+    actually creates - see tmuxAttachTarget() for the name to use when
+    looking an existing session back up. The per-run logfile has its own
+    name, see runLogName().
     """
     return f'{hostname}.linbo-remote'
+
+
+def runLogName(hostname, timestamp=None):
+    """
+    Basename of one run's logfile (LINBOLOGDIR/<this>):
+    <hostname>_linbo-remote_<YYYYmmddHHMMSS>.log. Every run gets its own
+    file, so a new run no longer truncates the previous one's log. Seconds
+    are part of the timestamp so two runs on the same host within one minute
+    don't collide. The name deliberately does not match the *_linbo.log glob
+    update-linbofs scans for missing firmware.
+    """
+    if timestamp is None:
+        timestamp = time.strftime('%Y%m%d%H%M%S')
+    return f'{hostname}_linbo-remote_{timestamp}.log'
 
 
 def tmuxAttachTarget(hostname):
