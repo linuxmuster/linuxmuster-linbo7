@@ -300,6 +300,8 @@ def sendCmds(hosts, commands, wait, secrets_uploaded, dry_run=False):
     if wait:
         doWait(wait, f'Waiting {wait} second(s) for client(s) to boot', leading_blank_line=True)
 
+    lib.pruneRunLogs(environment.LINBOLOGDIR)
+
     print()
     print('Sending command(s) to:')
     for host in hosts:

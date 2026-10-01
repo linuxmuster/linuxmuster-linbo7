@@ -41,6 +41,7 @@ give a usable IP for those hosts at all.
 """
 
 import json
+import os
 import re
 import shlex
 import subprocess
@@ -352,6 +353,42 @@ def runLogName(hostname, timestamp=None):
 
 
 RUN_RECORD_BASENAME = 'linbo-remote_runs.jsonl'
+
+# Per-run logs older than this are deleted when a new run starts. Run records
+# in RUN_RECORD_BASENAME are rotated by logrotate instead.
+RUN_LOG_RETENTION_DAYS = 90
+
+_RUN_LOG_RE = re.compile(r'.+_linbo-remote_\d{14}\.log$')
+
+
+def pruneRunLogs(logdir, max_age_days=RUN_LOG_RETENTION_DAYS, now=None):
+    """
+    Delete per-run logs (see runLogName()) in logdir whose modification time
+    is more than max_age_days old; returns the number removed. Only files
+    matching the per-run name are touched. Best effort: a file that cannot be
+    stat'ed or removed is skipped, pruning must never break a run.
+
+    logrotate cannot do this: every per-run log has a unique name, so it would
+    never rotate (and thus never delete) the small ones, and its size rule
+    would rotate big ones into an empty file of the same name.
+    """
+    cutoff = (time.time() if now is None else now) - max_age_days * 86400
+    removed = 0
+    try:
+        names = os.listdir(logdir)
+    except OSError:
+        return 0
+    for name in names:
+        if not _RUN_LOG_RE.match(name):
+            continue
+        path = os.path.join(logdir, name)
+        try:
+            if os.path.getmtime(path) < cutoff:
+                os.remove(path)
+                removed += 1
+        except OSError:
+            continue
+    return removed
 
 
 def buildRunRecordPrefix(hostname, commands, started, logfile, mode='direct', dry_run=False):
