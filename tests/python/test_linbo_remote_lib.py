@@ -12,7 +12,9 @@
 
 import fnmatch
 import json
+import os
 import re
+import signal
 import shutil
 import subprocess
 import time
@@ -465,3 +467,26 @@ def test_run_record_written_on_failure_and_appended(monkeypatch, tmp_path):
     assert rc == 1
     records = [json.loads(line) for line in record_file.read_text().splitlines()]
     assert [r['rc'] for r in records] == [0, 1]
+
+
+@needs_bash_flock
+@pytest.mark.parametrize('sig, expected_rc', [
+    (signal.SIGHUP, 129),    # tmux kill-session / closed pane
+    (signal.SIGTERM, 143),
+    (signal.SIGINT, 130),
+])
+def test_run_record_of_aborted_run_has_signal_exit_status(monkeypatch, tmp_path, sig, expected_rc):
+    import linbo_remote_lib
+    monkeypatch.setattr(linbo_remote_lib, 'SSH_CMD', 'sleep 30; true')
+    record_file = tmp_path / RUN_RECORD_BASENAME
+    prefix = buildRunRecordPrefix('r100-pc01', ['sync:1'], STARTED, str(tmp_path / 'x.log'))
+    script = tmp_path / 'run.sh'
+    script.write_text(renderRemoteScript(
+        'r100-pc01', ['sync:1'], str(script), record_file=str(record_file), record_prefix=prefix,
+    ))
+    proc = subprocess.Popen(['bash', str(script)], start_new_session=True)
+    time.sleep(1)
+    os.killpg(proc.pid, sig)    # whole group, like tmux does - kills the running child too
+    proc.wait(timeout=10)
+    record = json.loads(record_file.read_text().splitlines()[0])
+    assert record['rc'] == expected_rc

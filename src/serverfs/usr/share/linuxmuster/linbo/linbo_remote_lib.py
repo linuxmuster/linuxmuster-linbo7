@@ -414,7 +414,8 @@ def renderRemoteScript(hostname, commands, script_path, secrets_uploaded=False, 
     record_file/record_prefix: when both are given, an EXIT trap appends one
         JSON line to record_file - record_prefix (buildRunRecordPrefix())
         plus the end time and the script's exit status. A trap, so that an
-        aborted run (e.g. its tmux session being killed) leaves a record too.
+        aborted run (e.g. its tmux session being killed) leaves a record too,
+        with the 128+signal exit status.
         The append is serialized with flock, as parallel runs share the file.
     """
     wrapper = f'{WRAPPER} --dry-run' if dry_run else WRAPPER
@@ -428,6 +429,11 @@ def renderRemoteScript(hostname, commands, script_path, secrets_uploaded=False, 
             '    { flock 9 && printf \'%s,"end":"%s","rc":%d}\\n\' "$RUN_RECORD" '
             '"$(date +%Y-%m-%dT%H:%M:%S%z)" "$rc" >&9; } 2>/dev/null 9>>"$RUN_RECORD_FILE"',
             '}',
+            # bash reports $?=0 in the EXIT trap after an unhandled fatal signal, which would
+            # record an aborted run as a success - turn the signal into its 128+n status first
+            "trap 'exit 129' HUP",
+            "trap 'exit 130' INT",
+            "trap 'exit 143' TERM",
             'trap writeRunRecord EXIT',
         ]
     lines += [f'{SSH_CMD} {hostname} gui_ctl disable', 'RC=0']
