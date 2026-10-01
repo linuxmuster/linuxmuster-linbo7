@@ -26,6 +26,7 @@ from linbo_remote_lib import (
     RUN_RECORD_BASENAME,
     buildOnbootCmds,
     buildRunRecordPrefix,
+    pruneRunLogs,
     getMacFromAd,
     getIpFromAd,
     hostsInGroup,
@@ -490,3 +491,30 @@ def test_run_record_of_aborted_run_has_signal_exit_status(monkeypatch, tmp_path,
     proc.wait(timeout=10)
     record = json.loads(record_file.read_text().splitlines()[0])
     assert record['rc'] == expected_rc
+
+
+# --- retention of per-run logs ----------------------------------------------
+
+def test_prune_run_logs_removes_only_old_per_run_logs(tmp_path):
+    now = time.time()
+    old = tmp_path / 'r100-pc01_linbo-remote_20260101000000.log'
+    fresh = tmp_path / 'r100-pc01_linbo-remote_20261001120000.log'
+    others = [
+        tmp_path / 'r100-pc01_linbo.log',
+        tmp_path / 'rsync-pre-download.log',
+        tmp_path / RUN_RECORD_BASENAME,
+        tmp_path / 'r100-pc01_linbo-remote_20260101000000.log.1.gz',
+    ]
+    for f in [old, fresh, *others]:
+        f.write_text('x')
+        os.utime(f, (now - 200 * 86400, now - 200 * 86400))
+    os.utime(fresh, (now - 1 * 86400, now - 1 * 86400))
+
+    assert pruneRunLogs(str(tmp_path), max_age_days=90, now=now) == 1
+    assert not old.exists()
+    assert fresh.exists()
+    assert all(f.exists() for f in others)
+
+
+def test_prune_run_logs_missing_dir_is_not_an_error(tmp_path):
+    assert pruneRunLogs(str(tmp_path / 'nope')) == 0

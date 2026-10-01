@@ -1,4 +1,7 @@
-/var/log/linuxmuster/linbo/*.log {
+# *[!0-9].log leaves out the per-run linbo-remote logs
+# (<host>_linbo-remote_<YYYYmmddHHMMSS>.log): they never grow after their run
+# and are pruned by linbo-remote itself (RUN_LOG_RETENTION_DAYS).
+/var/log/linuxmuster/linbo/*[!0-9].log {
      rotate 4
      weekly
      compress
@@ -6,4 +9,14 @@
      missingok
      notifempty
      create 600 nobody nogroup
+}
+
+# one JSON line per linbo-remote run
+/var/log/linuxmuster/linbo/linbo-remote_runs.jsonl {
+     rotate 12
+     monthly
+     compress
+     missingok
+     notifempty
+     create 644 root root
 }
