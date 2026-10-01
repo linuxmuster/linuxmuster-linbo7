@@ -6,10 +6,11 @@
 #                "Wave 1 vs Wave 2" testing philosophy this follows.
 # Signed-off by: thomas@linuxmuster.net
 # Assisted by  : Claude
-# Date         : 20260921
+# Date         : 20261001
 #
 
 import os
+import re
 from unittest.mock import MagicMock
 
 import pytest
@@ -174,6 +175,13 @@ def test_direct_dispatch_happy_path(monkeypatch, tmp_path, capsys):
     # a tmux invocation happened, targeting the dot-form session name
     tmux_calls = [c for c in run_calls if c[0][0][0] == 'tmux']
     assert any('r100-pc01.linbo-remote' in c[0][0] for c in tmux_calls)
+    # the pane is piped to a per-run logfile, not a per-host one
+    pipe_args = [a for c in tmux_calls for a in c[0][0] if a.startswith('cat > ')]
+    assert len(pipe_args) == 1
+    assert re.fullmatch(
+        rf"cat > {re.escape(str(tmp_path))}/r100-pc01_linbo-remote_\d{{14}}\.log", pipe_args[0],
+    )
+    assert re.search(r'Log see \S+r100-pc01_linbo-remote_\d{14}\.log\.', out)
 
 
 def test_direct_dispatch_dry_run_writes_dry_run_flag_into_script(monkeypatch, tmp_path, capsys):

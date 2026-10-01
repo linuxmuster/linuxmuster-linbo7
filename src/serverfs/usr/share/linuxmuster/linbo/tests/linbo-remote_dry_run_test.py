@@ -9,7 +9,7 @@
 #                it is not part of the pytest/CI suite.
 # Signed-off by: thomas@linuxmuster.net
 # Assisted by  : Claude
-# Date         : 20260914
+# Date         : 20261001
 #
 """
 Usage: python3 linbo-remote_dry_run_test.py --host <hostname> [--nr <os-nr>] [--school <school>]
@@ -52,6 +52,7 @@ introduced or something this script can wait its way around.
 """
 
 import argparse
+import glob
 import os
 import subprocess
 import sys
@@ -119,8 +120,12 @@ def waitForSessionToEnd(host, timeout=20):
 
 
 def readLog(host):
+    """Content of the host's newest per-run log (<host>_linbo-remote_<timestamp>.log)."""
+    logs = glob.glob(os.path.join(LOGDIR, f'{host}_linbo-remote_*.log'))
+    if not logs:
+        return None
     try:
-        with open(os.path.join(LOGDIR, f'{host}.linbo-remote')) as f:
+        with open(max(logs, key=os.path.getmtime)) as f:
             return f.read()
     except OSError:
         return None

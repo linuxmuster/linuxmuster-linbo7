@@ -7,8 +7,11 @@
 #                wake-on-LAN target resolution. See tests/python/README.md.
 # Signed-off by: thomas@linuxmuster.net
 # Assisted by  : Claude
-# Date         : 20260921
+# Date         : 20261001
 #
+
+import fnmatch
+import re
 
 import pytest
 
@@ -25,6 +28,7 @@ from linbo_remote_lib import (
     resolveExplicitHosts,
     resolveWolTarget,
     tmuxAttachTarget,
+    runLogName,
     tmuxSessionName,
 )
 
@@ -239,10 +243,23 @@ def test_build_onboot_cmds_dry_run_comes_first():
     ) == 'dryrun,linbo:somehash,upload_image:1,noauto'
 
 
-# --- tmux session / logfile naming ------------------------------------------
+# --- tmux session / per-run logfile naming ------------------------------------------
 
 def test_tmux_session_name_uses_dot():
     assert tmuxSessionName('r100-pc01') == 'r100-pc01.linbo-remote'
+
+
+def test_run_log_name_has_host_and_timestamp():
+    assert runLogName('r100-pc01', '20261001120530') == 'r100-pc01_linbo-remote_20261001120530.log'
+
+
+def test_run_log_name_default_timestamp_is_seconds_resolution():
+    assert re.fullmatch(r'r100-pc01_linbo-remote_\d{14}\.log', runLogName('r100-pc01'))
+
+
+def test_run_log_name_does_not_match_update_linbofs_glob():
+    # update-linbofs scans LINBOLOGDIR/*_linbo.log for missing firmware
+    assert not fnmatch.fnmatch(runLogName('r100-pc01'), '*_linbo.log')
 
 
 def test_tmux_attach_target_uses_underscore():
