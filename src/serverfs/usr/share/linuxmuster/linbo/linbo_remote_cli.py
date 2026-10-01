@@ -317,11 +317,17 @@ def sendCmds(hosts, commands, wait, secrets_uploaded, dry_run=False):
             )
 
         session_name = lib.tmuxSessionName(host)
-        logfile = os.path.join(environment.LINBOLOGDIR, lib.runLogName(host))
+        started = time.localtime()
+        logfile = os.path.join(
+            environment.LINBOLOGDIR, lib.runLogName(host, time.strftime('%Y%m%d%H%M%S', started)),
+        )
+        record_prefix = lib.buildRunRecordPrefix(host, commands, started, logfile, dry_run=dry_run)
         script_path = os.path.join(TMPDIR, f'{os.getpid()}.{host}.sh')
 
         script_text = lib.renderRemoteScript(
             host, commands, script_path, secrets_uploaded=secrets_uploaded, dry_run=dry_run,
+            record_file=os.path.join(environment.LINBOLOGDIR, lib.RUN_RECORD_BASENAME),
+            record_prefix=record_prefix,
         )
         with open(script_path, 'w') as f:
             f.write(script_text)

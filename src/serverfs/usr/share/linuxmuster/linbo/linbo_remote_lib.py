@@ -40,6 +40,7 @@ the DHCP lease hook (see dhcpd-update-samba-dns.py) - devices.csv would not
 give a usable IP for those hosts at all.
 """
 
+import json
 import re
 import shlex
 import subprocess
@@ -350,6 +351,28 @@ def runLogName(hostname, timestamp=None):
     return f'{hostname}_linbo-remote_{timestamp}.log'
 
 
+RUN_RECORD_BASENAME = 'linbo-remote_runs.jsonl'
+
+
+def buildRunRecordPrefix(hostname, commands, started, logfile, mode='direct', dry_run=False):
+    """
+    The static part of one run's record (see renderRemoteScript()'s
+    record_file): a JSON object *without* its closing brace. The remote
+    script appends `,"end":...,"rc":...}` when it exits, because only it
+    knows the end time and exit status. `started` is a local
+    time.struct_time; the record is one line in LINBOLOGDIR/RUN_RECORD_BASENAME.
+    """
+    record = {
+        'hostname': hostname,
+        'mode': mode,
+        'commands': list(commands),
+        'dry_run': bool(dry_run),
+        'start': time.strftime('%Y-%m-%dT%H:%M:%S%z', started),
+        'log': logfile,
+    }
+    return json.dumps(record, separators=(',', ':'))[:-1]
+
+
 def tmuxAttachTarget(hostname):
     """The actual tmux session name to use for `-a`/`-l` (attach/list) - see tmuxSessionName()."""
     return f'{hostname}_linbo-remote'
@@ -363,7 +386,8 @@ WRAPPER = '/usr/bin/linbo_wrapper'
 _BACKGROUNDED_COMMAND_PREFIXES = ('start', 'reboot', 'halt', 'poweroff')
 
 
-def renderRemoteScript(hostname, commands, script_path, secrets_uploaded=False, dry_run=False):
+def renderRemoteScript(hostname, commands, script_path, secrets_uploaded=False, dry_run=False,
+                       record_file=None, record_prefix=None):
     """
     Build the per-host shell script executed inside a tmux session for -c
     (direct) mode: disables the GUI, runs each normalized command
@@ -387,9 +411,26 @@ def renderRemoteScript(hostname, commands, script_path, secrets_uploaded=False, 
         exactly where you don't want a real reboot while testing) so it just
         reports what it would do instead of actually doing it. See
         linbo_wrapper's own --dry-run handling.
+    record_file/record_prefix: when both are given, an EXIT trap appends one
+        JSON line to record_file - record_prefix (buildRunRecordPrefix())
+        plus the end time and the script's exit status. A trap, so that an
+        aborted run (e.g. its tmux session being killed) leaves a record too.
+        The append is serialized with flock, as parallel runs share the file.
     """
     wrapper = f'{WRAPPER} --dry-run' if dry_run else WRAPPER
-    lines = ['#!/bin/bash', f'{SSH_CMD} {hostname} gui_ctl disable', 'RC=0']
+    lines = ['#!/bin/bash']
+    if record_file and record_prefix:
+        lines += [
+            f'RUN_RECORD={shlex.quote(record_prefix)}',
+            f'RUN_RECORD_FILE={shlex.quote(record_file)}',
+            'writeRunRecord() {',
+            '    local rc=$?',
+            '    { flock 9 && printf \'%s,"end":"%s","rc":%d}\\n\' "$RUN_RECORD" '
+            '"$(date +%Y-%m-%dT%H:%M:%S%z)" "$rc" >&9; } 2>/dev/null 9>>"$RUN_RECORD_FILE"',
+            '}',
+            'trap writeRunRecord EXIT',
+        ]
+    lines += [f'{SSH_CMD} {hostname} gui_ctl disable', 'RC=0']
     has_backgrounded = False
     for index, cmd in enumerate(commands):
         if index > 0:
