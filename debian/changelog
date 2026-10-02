@@ -1,5 +1,6 @@
 linuxmuster-linbo7 (4.3.39-0) lmn73; urgency=low
 
+  * kernel updates: 6.12.111, 7.2.8 (#134, 70e42d6).
   * feat(init.sh): show netwait progress on the plymouth splash (#167, dee7ed7).
   * fix(init.sh): wait for a network interface to appear before enumerating it (#167, ddae3dc).
 
