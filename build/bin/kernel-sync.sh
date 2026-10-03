@@ -18,9 +18,10 @@
 #        kernel archive in cache/kernel; a newer or differing local version is
 #        kept. -f takes the remote version even if the local one is newer or
 #        differs.
-# build: start the GitHub workflow kernels.yml, which builds newer kernel.org
-#        versions and pushes them to the kernels branch. -w waits for the
-#        workflow run and pulls the result afterwards. Needs the gh cli.
+# build: start the GitHub release workflow with input "kernels", which only
+#        builds newer kernel.org versions and pushes them to the kernels branch.
+#        -w waits for the workflow run and pulls the result afterwards.
+#        Needs the gh cli.
 #
 # The kernels branch is named after the package version, e.g. kernels-4.3
 # for 4.3.39-0, so that the release workflow can find it for tag builds too.
@@ -50,7 +51,7 @@ source build/bin/kernel-archive.sh || exit 1
 
 KBRANCH="kernels-$(head -1 debian/changelog | sed -n 's|^[^(]*(\([0-9]*\.[0-9]*\)\..*|\1|p')"
 KREF="refs/heads/$KBRANCH"
-KWORKFLOW="kernels.yml"
+KWORKFLOW="release.yml"
 KNAMES_ALL="stable longterm legacy"
 GITDIR="$(git rev-parse --absolute-git-dir)"
 EMPTY_TREE="4b825dc642cb6eb9a060e54bf8d69288fbee4904"
@@ -202,9 +203,9 @@ doBuild() {
         echo "WARNING: local $branch differs from $REMOTE/$branch, the workflow uses the remote state."
     fi
 
-    echo "Starting workflow $KWORKFLOW on $branch ..."
+    echo "Starting kernel build ($KWORKFLOW) on $branch ..."
     local output runid
-    output="$(gh workflow run "$KWORKFLOW" --ref "$branch" 2>&1)" || { echo "$output"; return 1; }
+    output="$(gh workflow run "$KWORKFLOW" --ref "$branch" -f kernels=true 2>&1)" || { echo "$output"; return 1; }
     echo "$output"
     [ -z "$WAIT" ] && return 0
 
