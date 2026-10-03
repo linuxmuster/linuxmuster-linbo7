@@ -9,6 +9,7 @@
 # Usage: build/bin/kernel-sync.sh push [remote]
 #        build/bin/kernel-sync.sh pull [-f] [remote]
 #        build/bin/kernel-sync.sh build [-w]
+#        build/bin/kernel-sync.sh wait [runid]
 #
 # push:  commit the content of kernel/ as single commit without history and
 #        force-push it to the kernels branch, if it differs from the remote one.
@@ -22,6 +23,8 @@
 #        builds newer kernel.org versions and pushes them to the kernels branch.
 #        -w waits for the workflow run and pulls the result afterwards.
 #        Needs the gh cli.
+# wait:  wait for a kernel build run (default: the latest one) and pull the
+#        result afterwards, e.g. to resume an interrupted "build -w".
 #
 # The kernels branch is named after the package version, e.g. kernels-4.3
 # for 4.3.39-0, so that the release workflow can find it for tag builds too.
@@ -41,7 +44,12 @@ while getopts "fw" opt; do
     esac
 done
 shift $((OPTIND - 1))
-REMOTE="${1:-origin}"
+if [ "$ACTION" = "wait" ]; then
+    RUNID="$1"
+    REMOTE="origin"
+else
+    REMOTE="${1:-origin}"
+fi
 
 cd "$(git rev-parse --show-toplevel)" || exit 1
 
@@ -52,6 +60,10 @@ source build/bin/kernel-archive.sh || exit 1
 KBRANCH="kernels-$(head -1 debian/changelog | sed -n 's|^[^(]*(\([0-9]*\.[0-9]*\)\..*|\1|p')"
 KREF="refs/heads/$KBRANCH"
 KWORKFLOW="release.yml"
+# run-name of kernel build runs in release.yml
+KRUNTITLE="Build kernels"
+# seconds between workflow status queries
+KPOLL=60
 KNAMES_ALL="stable longterm legacy"
 GITDIR="$(git rev-parse --absolute-git-dir)"
 EMPTY_TREE="4b825dc642cb6eb9a060e54bf8d69288fbee4904"
@@ -213,19 +225,60 @@ doBuild() {
     if [ -z "$runid" ]; then
         # older gh versions do not print the run url
         sleep 5
-        runid="$(gh run list --workflow "$KWORKFLOW" --branch "$branch" --event workflow_dispatch \
-            --limit 1 --json databaseId --jq '.[0].databaseId')"
+        runid="$(latestKernelRun "$branch")"
     fi
+    doWait "$runid"
+}
+
+# print the id of the latest kernel build run, optionally on branch $1
+latestKernelRun() {
+    local branchopt=""
+    [ -n "$1" ] && branchopt="--branch $1"
+    gh run list --workflow "$KWORKFLOW" $branchopt --event workflow_dispatch --limit 20 \
+        --json databaseId,displayTitle \
+        --jq "[.[] | select(.displayTitle | startswith(\"$KRUNTITLE\"))][0].databaseId // empty"
+}
+
+# wait for kernel build run $1 (default: latest) and pull the result,
+# tolerating temporary errors while querying the run status
+doWait() {
+    local runid="$1"
+    local state errors=0
+    if ! command -v gh > /dev/null; then
+        echo "The gh cli is needed to query the workflow."
+        return 1
+    fi
+    [ -z "$runid" ] && runid="$(latestKernelRun)"
     if [ -z "$runid" ]; then
-        echo "Cannot determine the workflow run!"
+        echo "Cannot determine the kernel build run!"
         return 1
     fi
-    echo "Waiting for workflow run $runid ..."
-    gh run watch "$runid" --interval 60 --exit-status > /dev/null || {
-        echo "Workflow run $runid failed, see: gh run view $runid --log-failed"
-        return 1
-    }
-    echo "Workflow run $runid finished."
+    echo "Waiting for kernel build run $runid ..."
+    while true; do
+        state="$(gh run view "$runid" --json status,conclusion --jq '.status + " " + .conclusion' 2> /dev/null)"
+        case "$state" in
+            "completed success")
+                break
+                ;;
+            completed*)
+                echo "Kernel build run $runid ended with: ${state#completed }"
+                echo "See: gh run view $runid --log-failed"
+                return 1
+                ;;
+            "")
+                errors=$((errors + 1))
+                if [ "$errors" -ge 10 ]; then
+                    echo "Cannot query kernel build run $runid, resume with: $0 wait $runid"
+                    return 1
+                fi
+                ;;
+            *)
+                errors=0
+                ;;
+        esac
+        sleep "$KPOLL"
+    done
+    echo "Kernel build run $runid finished."
     doPull
 }
 
@@ -233,10 +286,12 @@ case "$ACTION" in
     push) doPush ;;
     pull) doPull ;;
     build) doBuild ;;
+    wait) doWait "$RUNID" ;;
     *)
         echo "Usage: $0 push [remote]"
         echo "       $0 pull [-f] [remote]"
         echo "       $0 build [-w]"
+        echo "       $0 wait [runid]"
         exit 1
         ;;
 esac
