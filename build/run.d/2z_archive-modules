@@ -9,6 +9,7 @@
 
 # read build environment
 for item in build/conf.d/*; do source "$item" || exit 1; done
+source "$BUILDBIN/kernel-archive.sh" || exit 1
 
 # iterate over kernels
 for kvers in ${KVERSARRAY[@]}; do
@@ -46,23 +47,7 @@ for kvers in ${KVERSARRAY[@]}; do
     mv "$kstoretmp" "$kstore" || exit 1
 
     # move older versions of this kernel branch to the archive
-    mkdir -p "$KERNELARCHIVE/$kname"
-    for item in "$KERNELDIR/$kname"/*; do
-        [ "$item" = "$kstore" ] && continue
-        # leftovers of interrupted builds are not archived
-        case "$item" in
-            *.tmp) rm -rf "$item"; continue ;;
-        esac
-        echo "Archiving old prebuilt kernel $item ..."
-        rm -rf "$KERNELARCHIVE/$kname/$(basename "$item")"
-        mv "$item" "$KERNELARCHIVE/$kname/" || exit 1
-    done
-
-    # keep only the last versions in the archive
-    ls -1 "$KERNELARCHIVE/$kname" | sort -V | head -n -"$KERNELARCHIVE_KEEP" | while read -r item; do
-        echo "Removing archived kernel $KERNELARCHIVE/$kname/$item ..."
-        rm -rf "$KERNELARCHIVE/$kname/$item"
-    done
+    archiveKernels "$kname" "$kvers" || exit 1
 
     [ -n "$KERNELSONLY" ] && continue
 
