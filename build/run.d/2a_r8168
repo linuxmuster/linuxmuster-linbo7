@@ -1,7 +1,10 @@
 #!/bin/bash
 #
-# thomas@linuxmuster.net
-# 20231227
+# Filename     : 2a_r8168
+# Description  : build r8168 module for kernels which are not prebuilt
+# Signed-off by: thomas@linuxmuster.net
+# Assisted by  : Claude
+# Date         : 20261003
 #
 
 # read build environment
@@ -14,6 +17,12 @@ for kvers in ${KVERSARRAY[@]}; do
     cd "$BUILDROOT"
     source "$KNAMES"
     echo "Processing $R81NAME module for kernel $kvers ..."
+
+    # module is already contained in the prebuilt modules archive
+    if [ -n "$kprebuilt" ]; then
+        echo " * Skipping $R81NAME, using prebuilt modules from $kstore."
+        continue
+    fi
 
     r81dir="$kextmod/$R81NAME"
     r81src="$r81dir/src"

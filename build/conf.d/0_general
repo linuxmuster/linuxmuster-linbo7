@@ -1,7 +1,9 @@
-# build.conf
-# general environment variables
-# thomas@linuxmuster.net
-# 20260914
+#
+# Filename     : 0_general
+# Description  : general build environment variables
+# Signed-off by: thomas@linuxmuster.net
+# Assisted by  : Claude
+# Date         : 20261003
 #
 
 # must be buildroot
@@ -35,6 +37,14 @@ LINBODIR="$PKGBUILDROOT/srv/linbo"
 KGET="$BUILDBIN/get-verified-kernel.sh"
 KNAMES="$BUILDBIN/kernel-names.sh"
 KRNLINDEX="$SRC/kernel.org"
+
+# prebuilt kernels & modules, stored per branch as kernel/<stable|longterm|legacy>/<version>,
+# synced with the orphan git branch kernels-<major.minor> by build/bin/kernel-sync.sh
+KERNELDIR="$BUILDROOT/kernel"
+
+# replaced prebuilt kernels are moved to this archive, the last versions per branch are kept
+KERNELARCHIVE="$CACHE/kernel"
+KERNELARCHIVE_KEEP=3
 
 # initramfs file used during kernel build
 INITRAMFS_KERNEL="$BUILDINITD/00_basic"

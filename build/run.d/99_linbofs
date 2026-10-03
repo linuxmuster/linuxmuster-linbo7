@@ -1,9 +1,10 @@
 #!/bin/bash
 #
-# collect all components for linbo filesystem
-#
-# thomas@linuxmuster.net
-# 20250916
+# Filename     : 99_linbofs
+# Description  : collect all components for linbo filesystem
+# Signed-off by: thomas@linuxmuster.net
+# Assisted by  : Claude
+# Date         : 20261003
 #
 
 echo "Creating linbofs ..."
@@ -77,9 +78,13 @@ find . -type f -printf "file %p %p %m 0 0\n" | \
   sed -e "s|^file ./|file /|g
           s| ./| $LINBOFS/|g" >> "$INITRAMFS_BUILD" || exit 1
 
-# create linbofs cpio archive from created initramfs.conf
+# create linbofs cpio archive from created initramfs.conf,
+# gen_init_cpio is compiled from the source in the prebuilt kernel store
+# (see 2z_archive-modules), so it always matches the current build environment
 kvers="${KVERSARRAY[0]}"
+cd "$BUILDROOT"
 source "$KNAMES"
-cd "$ksrc"
-./usr/gen_init_cpio "$INITRAMFS_BUILD" > "$PKGVARDIR/linbofs64" || exit 1
+mkdir -p "$TMPDIR"
+${CC:-gcc} -O2 -o "$TMPDIR/gen_init_cpio" "$kstorecpio" || exit 1
+"$TMPDIR/gen_init_cpio" "$INITRAMFS_BUILD" > "$PKGVARDIR/linbofs64" || exit 1
 xz --threads=0 -zve "$PKGVARDIR/linbofs64" || exit 1

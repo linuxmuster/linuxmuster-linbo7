@@ -1,7 +1,10 @@
 #!/bin/bash
 #
-# thomas@linuxmuster.net
-# 20250707
+# Filename     : 2b_r8125
+# Description  : build r8125 module for kernels which are not prebuilt
+# Signed-off by: thomas@linuxmuster.net
+# Assisted by  : Claude
+# Date         : 20261003
 #
 
 # read build environment
@@ -14,6 +17,12 @@ for kvers in ${KVERSARRAY[@]}; do
     cd "$BUILDROOT"
     source "$KNAMES"
     echo "Processing $R8125NAME module for kernel $kvers ..."
+
+    # module is already contained in the prebuilt modules archive
+    if [ -n "$kprebuilt" ]; then
+        echo " * Skipping $R8125NAME, using prebuilt modules from $kstore."
+        continue
+    fi
 
     r8125dir="$kextmod/$R8125NAME"
     r8125src="$r8125dir/src"

@@ -1,7 +1,10 @@
 #!/bin/bash
 #
-# thomas@linuxmuster.net
-# 20231201
+# Filename     : buildpackage.sh
+# Description  : build the debian package
+# Signed-off by: thomas@linuxmuster.net
+# Assisted by  : Claude
+# Date         : 20261003
 #
 
 set -o pipefail
@@ -20,6 +23,7 @@ dpkg-buildpackage \
     -I".directory" \
     -I"*.debhelper*" \
     -Icache \
+    -Ikernel \
     -Isrc \
     -Ibuild.log \
     -Itmp 2>&1 | tee ../build.log

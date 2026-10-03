@@ -1,9 +1,10 @@
 #!/bin/bash
 #
-# download and build kernels
-#
-# thomas@linuxmuster.net
-# 20240123
+# Filename     : 1_kernels
+# Description  : download and build kernels or use the prebuilt ones
+# Signed-off by: thomas@linuxmuster.net
+# Assisted by  : Claude
+# Date         : 20261003
 #
 
 # read build environment
@@ -16,6 +17,16 @@ for kvers in ${KVERSARRAY[@]}; do
     cd "$BUILDROOT"
     source "$KNAMES"
     echo "Processing $kname kernel $kvers ..."
+
+    # use prebuilt kernel if available
+    if [ -n "$kprebuilt" ]; then
+        echo "Using prebuilt kernel from $kstore."
+        [ -n "$KERNELSONLY" ] && continue
+        mkdir -p "$kinst"
+        cp "$kstore/linbo64" "$kinst" || exit 1
+        echo "$kvers" > "$kinst/version"
+        continue
+    fi
 
     mkdir -p "$kroot"
 

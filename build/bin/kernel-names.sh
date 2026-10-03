@@ -1,7 +1,9 @@
-# provide kernelnames based on version
 #
-# thomas@linuxmuster.net
-# 20231204
+# Filename     : kernel-names.sh
+# Description  : provide kernel name, paths and prebuilt state based on version
+# Signed-off by: thomas@linuxmuster.net
+# Assisted by  : Claude
+# Date         : 20261003
 #
 
 # get kernel name
@@ -25,3 +27,16 @@ karc="$CACHE/$kdir.tar.xz"
 kimg="$ksrc/arch/x86/boot/bzImage"
 klinbo="$kroot/linbo64"
 kinst="$PKGVARDIR/$kname"
+
+# prebuilt kernel & modules store
+kstore="$KERNELDIR/$kname/$kvers"
+kstoreconfig="$kstore/config"
+kstorecpio="$kstore/gen_init_cpio.c"
+
+# A stored kernel is only used if it is complete and was built with the
+# current kernel config, otherwise it is rebuilt.
+kprebuilt=""
+if [ -s "$kstore/linbo64" -a -s "$kstore/modules.tar.xz" -a -s "$kstorecpio" ] \
+    && cmp -s "$kcfg" "$kstoreconfig"; then
+    kprebuilt="yes"
+fi
