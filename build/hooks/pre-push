@@ -1,0 +1,20 @@
+#!/bin/bash
+#
+# Filename     : pre-push
+# Description  : git hook, syncs prebuilt kernels in kernel/ to the kernels branch on push
+# Signed-off by: thomas@linuxmuster.net
+# Assisted by  : Claude
+# Date         : 20261003
+#
+# Install once per clone:
+#   ln -s ../../build/hooks/pre-push .git/hooks/pre-push
+#
+# A failed kernel sync does not block the push, it only prints a warning.
+#
+
+REMOTE="$1"
+
+"$(git rev-parse --show-toplevel)/build/bin/kernel-sync.sh" push "$REMOTE" < /dev/null \
+    || echo "WARNING: prebuilt kernels have not been synced to $REMOTE!" >&2
+
+exit 0
