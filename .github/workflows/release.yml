@@ -15,6 +15,9 @@
 # there, or if the workflow is started manually with "build_kernels" enabled
 # and kernel.org has a newer version.
 #
+# A manual run with "publish" disabled only builds the package and uploads it
+# as workflow artifact, without GitHub release and linuxmuster/deb update.
+#
 # thomas@linuxmuster.net
 # 20261003
 
@@ -30,6 +33,10 @@ on:
         description: 'Build kernels if kernel.org has newer versions (BUILDKERNELS)'
         type: boolean
         default: false
+      publish:
+        description: 'Create the GitHub release and publish to linuxmuster/deb (off: build only)'
+        type: boolean
+        default: true
 
 jobs:
   resolve:
@@ -103,6 +110,7 @@ jobs:
 
   release:
     needs: build
+    if: github.event_name == 'push' || inputs.publish
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -123,6 +131,7 @@ jobs:
 
   publish:
     needs: [build, release]
+    if: github.event_name == 'push' || inputs.publish
     runs-on: ubuntu-latest
 
     steps:
