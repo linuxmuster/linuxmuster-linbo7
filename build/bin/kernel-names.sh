@@ -34,9 +34,11 @@ kstoreconfig="$kstore/config"
 kstorecpio="$kstore/gen_init_cpio.c"
 
 # A stored kernel is only used if it is complete and was built with the
-# current kernel config, otherwise it is rebuilt.
+# current kernel config, otherwise it is rebuilt. The header line containing
+# the kernel version is ignored, it changes with every patch level.
 kprebuilt=""
 if [ -s "$kstore/linbo64" -a -s "$kstore/modules.tar.xz" -a -s "$kstorecpio" ] \
-    && cmp -s "$kcfg" "$kstoreconfig"; then
+    && cmp -s <(grep -v '^# Linux/.* Kernel Configuration$' "$kcfg") \
+              <(grep -v '^# Linux/.* Kernel Configuration$' "$kstoreconfig"); then
     kprebuilt="yes"
 fi
