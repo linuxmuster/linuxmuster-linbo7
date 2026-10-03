@@ -10,10 +10,9 @@
 # Required repository secrets:
 #   REPO_SSH_KEY    GitHub SSH key for the linuxmuster/deb repository
 #
-# Prebuilt kernels are checked out from the orphan branch kernels-<major.minor>
+# Prebuilt kernels are pulled from the orphan branch kernels-<major.minor>
 # (see build/bin/kernel-sync.sh). Kernels are only compiled if one is missing
-# there, or if the workflow is started manually with "build_kernels" enabled
-# and kernel.org has a newer version.
+# there. Newer kernels are built by the kernel workflow (kernels.yml).
 #
 # A manual run with "publish" disabled only builds the package and uploads it
 # as workflow artifact, without GitHub release and linuxmuster/deb update.
@@ -29,10 +28,6 @@ on:
       - 'v[0-9]*'
   workflow_dispatch:
     inputs:
-      build_kernels:
-        description: 'Build kernels if kernel.org has newer versions (BUILDKERNELS)'
-        type: boolean
-        default: false
       publish:
         description: 'Create the GitHub release and publish to linuxmuster/deb (off: build only)'
         type: boolean
@@ -80,27 +75,17 @@ jobs:
         run: |
           echo "version=$(dpkg-parsechangelog -S Version)" >> "$GITHUB_OUTPUT"
           echo "distribution=$(dpkg-parsechangelog -S Distribution)" >> "$GITHUB_OUTPUT"
-          KBRANCH="kernels-$(dpkg-parsechangelog -S Version | cut -d. -f1-2)"
-          echo "kernelbranch=$KBRANCH" >> "$GITHUB_OUTPUT"
-          git config --global --add safe.directory "$PWD"
-          if git ls-remote --exit-code origin "refs/heads/$KBRANCH" > /dev/null; then
-            echo "haskernels=yes" >> "$GITHUB_OUTPUT"
-          else
-            echo "No prebuilt kernels branch $KBRANCH, kernels will be compiled."
-          fi
 
-      - name: Checkout prebuilt kernels
-        if: steps.meta.outputs.haskernels == 'yes'
-        uses: actions/checkout@v7
-        with:
-          ref: ${{ steps.meta.outputs.kernelbranch }}
-          path: build/kernel
+      - name: Pull prebuilt kernels
+        working-directory: build
+        run: |
+          git config --global --add safe.directory "$PWD"
+          build/bin/kernel-sync.sh pull
 
       - name: Build package
         run: /opt/lmndev/build/linuxmuster-linbo7.sh
         env:
           OUTPUT_DIR: ${{ github.workspace }}/output
-          BUILDKERNELS: ${{ inputs.build_kernels && 'yes' || '' }}
 
       - name: Upload packages as artifacts
         uses: actions/upload-artifact@v7

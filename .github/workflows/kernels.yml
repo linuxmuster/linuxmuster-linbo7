@@ -1,0 +1,97 @@
+# Kernel workflow for linuxmuster-linbo7
+#
+# Builds the LINBO kernels and modules if kernel.org has newer versions than
+# the prebuilt ones on the orphan branch kernels-<major.minor> and pushes the
+# result back to that branch. The release workflow and local package builds
+# then use these prebuilt kernels.
+#
+# Start it manually or locally with:
+#   build/bin/kernel-sync.sh build [-w]
+#
+# Prebuilt kernels are only pushed if the workflow runs on the branch the
+# kernels branch belongs to (e.g. 4.3 for kernels-4.3).
+#
+# thomas@linuxmuster.net
+# 20261003
+
+name: Kernels
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: kernels-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  resolve:
+    runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.image.outputs.image }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Select runner image
+        id: image
+        run: |
+          DIST=$(dpkg-parsechangelog -S Distribution)
+          NUM="${DIST#lmn}"
+          if [ "${NUM:-0}" -ge 74 ] 2>/dev/null; then
+            echo "image=ghcr.io/linuxmuster/lmndev-runner:latest" >> "$GITHUB_OUTPUT"
+          else
+            echo "image=ghcr.io/linuxmuster/lmndev-runner:24.04" >> "$GITHUB_OUTPUT"
+          fi
+
+  kernels:
+    needs: resolve
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    container:
+      image: ${{ needs.resolve.outputs.image }}
+      options: --user root
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: build
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          path: build
+
+      - name: Pull prebuilt kernels
+        run: |
+          git config --global --add safe.directory "$PWD"
+          git config --global user.name github-actions
+          git config --global user.email github-actions@github.com
+          build/bin/kernel-sync.sh pull
+
+      - name: Build newer kernels
+        env:
+          BUILDKERNELS: 'yes'
+          KERNELSONLY: 'yes'
+        run: |
+          source /opt/lmndev/build/common.sh
+          install_missing_deps
+          if command -v ccache > /dev/null; then
+            export PATH="/usr/lib/ccache:$PATH"
+          fi
+          for script in build/run.d/[12]*; do
+            echo "::group::$(basename "$script")"
+            "$script"
+            echo "::endgroup::"
+          done
+
+      - name: Push prebuilt kernels
+        run: |
+          KBRANCH="kernels-$(dpkg-parsechangelog -S Version | cut -d. -f1-2)"
+          if [ "$KBRANCH" != "kernels-$GITHUB_REF_NAME" ]; then
+            echo "Workflow runs on $GITHUB_REF_NAME, not pushing to $KBRANCH."
+            exit 0
+          fi
+          build/bin/kernel-sync.sh push
