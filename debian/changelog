@@ -3,6 +3,8 @@ linuxmuster-linbo7 (4.3.39-0) lmn73; urgency=low
   * kernel updates: 6.1.189, 6.12.112, 7.2.9 (#134).
   * feat(init.sh): show netwait progress on the plymouth splash (#167, dee7ed7).
   * fix(init.sh): wait for a network interface to appear before enumerating it (#167, ddae3dc).
+  * fix(init.sh): do not hang in udhcpc on an interface that is down (#187, a6de749).
+  * fix(linbo_mountcache): find the cache partition without by-id links (#189, b48a780).
 
  -- Thomas Schmitt <thomas@linuxmuster.net>  Sat,  3 Oct 2026 18:42:19 +0200
 
