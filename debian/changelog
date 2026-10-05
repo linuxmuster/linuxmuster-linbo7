@@ -1,10 +1,6 @@
 linuxmuster-linbo7 (7.4.19) lmn74; urgency=low
 
-  * fix(init.sh): do not hang in udhcpc on an interface that is down - an
-    interface that is not up made udhcpc loop on "Network is down" and
-    ignore dhcpretry, so LINBO never got past the dhcp request. Interfaces
-    that cannot be brought up are skipped and udhcpc is bounded by a
-    timeout (#187, 84a0a91).
+  * fix(init.sh): do not hang in udhcpc on an interface that is down (#187, 84a0a91).
 
  -- Thomas Schmitt <thomas@linuxmuster.net>  Mon,  5 Oct 2026 12:56:44 +0200
 
