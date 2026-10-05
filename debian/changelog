@@ -1,10 +1,3 @@
-linuxmuster-linbo7 (7.4.19) lmn74; urgency=low
-
-  * fix(init.sh): do not hang in udhcpc on an interface that is down (#187, 84a0a91).
-  * fix(linbo_mountcache): find the cache partition without by-id links (#189, 3757567).
-
- -- Thomas Schmitt <thomas@linuxmuster.net>  Mon,  5 Oct 2026 12:56:44 +0200
-
 linuxmuster-linbo7 (7.4.18) lmn74; urgency=low
 
   * feat(linbo-torrent): enable LPD and a 5 minute tracker interval by
@@ -18,8 +11,10 @@ linuxmuster-linbo7 (7.4.18) lmn74; urgency=low
     (#179, 6f13ee0).
   * feat(linbo-remote): prune old per-run logs, rotate the run record
     (#179, dd53957).
+  * fix(init.sh): do not hang in udhcpc on an interface that is down (#187, 84a0a91).
+  * fix(linbo_mountcache): find the cache partition without by-id links (#189, 3757567).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Thu,  1 Oct 2026 12:46:43 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon,  5 Oct 2026 16:57:02 +0200
 
 linuxmuster-linbo7 (7.4.17) lmn74; urgency=low
 
