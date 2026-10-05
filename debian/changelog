@@ -1,3 +1,21 @@
+linuxmuster-linbo7 (7.4.18) lmn74; urgency=low
+
+  * feat(linbo-torrent): enable LPD and a 5 minute tracker interval by
+    default (#152, d08c577).
+  * feat(linbo-remote): write one logfile per run - the log is named
+    <host>_linbo-remote_<YYYYmmddHHMMSS>.log, so a new run no longer
+    truncates the previous one (#179, 5b325b2).
+  * feat(linbo-remote): append a JSON record per finished run to
+    linbo-remote_runs.jsonl in the LINBO log directory (#179, 99a3b68).
+  * fix(linbo-remote): record 128+signal as rc of an aborted run
+    (#179, 6f13ee0).
+  * feat(linbo-remote): prune old per-run logs, rotate the run record
+    (#179, dd53957).
+  * fix(init.sh): do not hang in udhcpc on an interface that is down (#187, 84a0a91).
+  * fix(linbo_mountcache): find the cache partition without by-id links (#189, 3757567).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon,  5 Oct 2026 16:57:02 +0200
+
 linuxmuster-linbo7 (7.4.17) lmn74; urgency=low
 
   * fix(linbo_remote_lib): make isValidIpv4() a pure syntax check - the
