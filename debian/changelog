@@ -6,7 +6,7 @@ linuxmuster-linbo7 (4.3.39-0) lmn73; urgency=low
   * fix(init.sh): do not hang in udhcpc on an interface that is down (#187, a6de749).
   * fix(linbo_mountcache): find the cache partition without by-id links (#189, b48a780).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Sat,  3 Oct 2026 18:42:19 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon,  5 Oct 2026 14:49:57 +0200
 
 linuxmuster-linbo7 (4.3.38-0) lmn73; urgency=low
 
