@@ -9,7 +9,7 @@
 #                linbo-remote/linbo_remote_cli.py.
 # Signed-off by: thomas@linuxmuster.net
 # Assisted by  : Claude
-# Date         : 20260903
+# Date         : 20261001
 #
 
 import configparser
@@ -56,6 +56,30 @@ def getGrubEfiModules(efi_dir='/usr/lib/grub/x86_64-efi'):
     return GRUB_COMMON_MODULES + ' ' + ' '.join(efi_modules)
 
 
+def getSchoolFromDevicesFile(wsfile):
+    """
+    School a workstations file belongs to, by sophomorix's path convention
+    (same as linuxmuster-base7's readDevicesCsv()): a non-default school's
+    file is <school>/<school>.devices.csv, default-school's is devices.csv.
+    """
+    basename = os.path.basename(wsfile)
+    if basename.endswith('.devices.csv'):
+        return basename[:-len('.devices.csv')]
+    return 'default-school'
+
+
+def getQualifiedHostname(school, hostname, csv_hostname):
+    """
+    Host name as it appears in hostcfg and dhcp: unchanged for default-school,
+    <school>-<name> for another school. The name keeps the case of the
+    devices.csv row, because linuxmuster-import-devices writes the prefixed
+    entries that way (getHostname() returns the lowercased name).
+    """
+    if school == 'default-school':
+        return hostname
+    return school + '-' + csv_hostname
+
+
 def usage():
     print('Purpose: linbo-mkgrubimg creates host specific image for grub network')
     print('boot and stores it in /srv/linbo/boot/grub/hostcfg/<hostname>.img.')
@@ -68,7 +92,9 @@ def usage():
     print('                                        workstations file.')
     print(' -w <file>,     --workstations=<file> : path to workstations file, default is')
     print('                                        /etc/linuxmuster/sophomorix')
-    print('                                        /default-school/devices.csv.')
+    print('                                        /default-school/devices.csv. For')
+    print('                                        another school use its')
+    print('                                        <school>/<school>.devices.csv.')
 
 
 def main(argv=None):
@@ -86,14 +112,14 @@ def main(argv=None):
     # default values
     setfilename = False
     wsfile = environment.WIMPORTDATA
-    hostname = None
+    search = None
 
     # evaluate options
     for o, a in opts:
         if o in ("-s", "--setfilename"):
             setfilename = True
         elif o in ("-n", "--name"):
-            hostname, hostrow = getHostname(wsfile, a)
+            search = a
         elif o in ("-w", "--workstations"):
             if os.path.isfile(a):
                 wsfile = a
@@ -106,10 +132,17 @@ def main(argv=None):
         else:
             assert False, "unhandled option"
 
-    # evaluate hostname
+    # evaluate hostname, only now that -w is known whatever the option order
+    hostname = None
+    if search is not None:
+        hostname, hostrow = getHostname(wsfile, search)
     if hostname is None:
         usage()
         sys.exit(1)
+    # hosts of a non-default school carry a <school>- prefix in dhcp and
+    # hostcfg, as linuxmuster-import-devices writes them
+    school = getSchoolFromDevicesFile(wsfile)
+    hostname = getQualifiedHostname(school, hostname, hostrow[1])
 
     # grub image filename
     img = environment.LINBOGRUBDIR + '/hostcfg/' + hostname + '.img'
@@ -205,7 +238,7 @@ def main(argv=None):
     foption = 'filename "' + imgrel + '"'
     # modify workstations file
     row_old = field1 + ';' + field2 + ';' + group + ';' + mac + ';' + ip + ';' + field6 + ';' + field7 + ';' + field8 + ';' + field9 + ';' + field10 + ';' + field11
-    row_new = field1 + ';' + hostname + ';' + group + ';' + mac + ';' + ip + ';' + field6 + ';' + field7 + ';' + foption + ';' + field9 + ';' + field10 + ';' + field11
+    row_new = field1 + ';' + field2 + ';' + group + ';' + mac + ';' + ip + ';' + field6 + ';' + field7 + ';' + foption + ';' + field9 + ';' + field10 + ';' + field11
     rc, content = readTextfile(wsfile)
     rc = writeTextfile(wsfile, content.replace(row_old, row_new), 'w')
     # modify dhcp device entry
@@ -222,7 +255,7 @@ def main(argv=None):
         if 'host ' + hostname in content:
             # replace device entry with custom grub img path
             row_old = re.findall('host ' + hostname + ' .*?(?=}|$)', content, re.DOTALL)[0]
-            row_new = 'host ' + hostname + ' {\n  hardware ethernet ' + mac + ';\n  fixed-address ' + ip + ';\n  ' + foption + ';\n  option host-name "' + hostname + '";\n  option extensions-path "' + group + '";\n'
+            row_new = 'host ' + hostname + ' {\n  hardware ethernet ' + mac + ';\n  fixed-address ' + ip + ';\n  ' + foption + ';\n  option host-name "' + hostname + '";\n  option extensions-path "' + group + '";\n  option nis-domain "' + group + '";\n'
             row_new = row_new.replace('  fixed-address 0.0.0.0;\n', '')
             rc = writeTextfile(item, content.replace(row_old, row_new), 'w')
             break
