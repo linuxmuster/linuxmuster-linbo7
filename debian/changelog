@@ -1,3 +1,12 @@
+linuxmuster-linbo7 (7.4.19) lmn74; urgency=low
+
+  * fix(linbo-torrent): never hand machine account files to nobody
+    (#182, b760996).
+  * fix(linbo-configure): make existing machine account files root-only
+    on upgrade (#182, 03324a7).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 07 Oct 2026 13:34:27 +0200
+
 linuxmuster-linbo7 (7.4.18) lmn74; urgency=low
 
   * feat(linbo-torrent): enable LPD and a 5 minute tracker interval by
