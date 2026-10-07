@@ -7,6 +7,7 @@
 build-stamp
 cache
 configure-stamp
+/kernel/
 kernel64
 mkpkg
 tmp

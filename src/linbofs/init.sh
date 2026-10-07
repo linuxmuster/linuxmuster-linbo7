@@ -4,7 +4,7 @@
 # Description  : System setup and hardware detection - busybox init script
 # Signed-off by: thomas@linuxmuster.net
 # Assisted by  : Claude
-# Date         : 20260901
+# Date         : 20261005
 #
 # (C) Klaus Knopper 2007
 # License: GPL V2
@@ -309,6 +309,7 @@ network(){
   local dev
   local ipaddr
   local netwaited
+  local dhcptimeout
   [ -z "$dhcpretry" ] && dhcpretry=3
   # Wait briefly for at least one non-loopback interface to appear before
   # enumerating them below. Some USB NICs (e.g. RTL8153, #167) enumerate a
@@ -326,7 +327,12 @@ network(){
   done
   print_status "Requesting ip address per dhcp (retry=$dhcpretry) ..."
   for dev in $(grep ':' /proc/net/dev | awk -F\: '{ print $1 }' | awk '{ print $1}' | grep -v ^lo | sort); do
-    ip link set dev "$dev" up
+    # An interface which is not up makes udhcpc loop forever on "Network is
+    # down" without honouring -t (#187), so do not even try it.
+    if ! ip link set dev "$dev" up; then
+      print_status "Interface $dev: could not bring up, skipping."
+      continue
+    fi
     # activate wol
     ethtool -s "$dev" wol g
     # check if using vlan
@@ -334,14 +340,24 @@ network(){
       print_status "Using vlan id $vlanid."
       vconfig add "$dev" "$vlanid"
       dev="$dev.$vlanid"
-      ip link set dev "$dev" up
+      if ! ip link set dev "$dev" up; then
+        print_status "Interface $dev: could not bring up, skipping."
+        continue
+      fi
     fi
     # wifi support
     if [ "$dev" = "wlan0" -a -s /etc/wpa_supplicant.conf ]; then
       wpa_supplicant -B -c/etc/wpa_supplicant.conf -iwlan0
       [ -n "$dhcpretry_wifi" ] && dhcpretry="$dhcpretry_wifi"
     fi
-    udhcpc -O nisdomain -n -i "$dev" -t $dhcpretry ; RC="$?"
+    # udhcpc can still hang when the interface goes down later on (#187), so
+    # bound it from outside. SIGKILL, because udhcpc exits 0 on SIGTERM and
+    # the timeout would then look like a success. The address check covers
+    # the remaining case of an exit 0 without a lease.
+    dhcptimeout=""
+    command -v timeout >/dev/null && dhcptimeout="timeout -s KILL $((dhcpretry * 4 + 5))"
+    $dhcptimeout udhcpc -O nisdomain -n -i "$dev" -t $dhcpretry ; RC="$?"
+    [ "$RC" = "0" ] && ! ip -4 addr show dev "$dev" | grep -q inet && RC=1
     if [ "$RC" = "0" ]; then
       # set mtu
       [ -n "$mtu" ] && ifconfig "$dev" mtu $mtu

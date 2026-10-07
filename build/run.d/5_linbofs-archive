@@ -1,9 +1,11 @@
 #!/bin/bash
 #
-# collect all components for linbo filesystem
 #
-# thomas@linuxmuster.net
-# 20260512
+# Filename     : 5_linbofs-archive
+# Description  : collect all components for linbo filesystem
+# Signed-off by: thomas@linuxmuster.net
+# Assisted by  : Claude
+# Date         : 20261005
 #
 
 # read build environment
@@ -23,4 +25,8 @@ cd "$CACHE"
 mkdir -p "$PKGVARDIR"
 sudo chown root:root "$LINBOFSDST" -R
 sudo tar -v -c -I 'xz -T0' -f "$LINBOFSARCHIVE" "linbofs64" || exit 1
+# The content is owned by root, the archive file itself must belong to the
+# build user: dh_fixperms runs unprivileged in a non-root build container
+# and fails with "Operation not permitted" on a root-owned file (#188).
+sudo chown "$(id -u):$(id -g)" "$LINBOFSARCHIVE" || exit 1
 cd "$BUILDROOT"

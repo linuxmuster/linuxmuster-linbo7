@@ -52,11 +52,18 @@ usage(){
 }
 
 # update image permissions
+# *.macct files hold samba machine account password hashes. The [linbo]
+# rsync module serves LINBODIR as nobody without login, so they must never
+# belong to nobody, at any depth (backups, .incoming, ...). They are left out
+# of the nobody chown rather than taken back afterwards.
+# images/.incoming is the staging dir of the central image sync
+# (linuxmuster-tools), which keeps it root 700 while an upload waits there,
+# so it is left out of the nobody chown too.
 update_permissions(){
-  chown nobody:nogroup "$LINBOIMGDIR" -R
+  find "$LINBOIMGDIR" -type f -name "*.macct" -exec chown root:root {} + -exec chmod 600 {} +
+  find "$LINBOIMGDIR" -path "$LINBOIMGDIR/.incoming" -prune \
+    -o ! \( -type f -name "*.macct" \) -exec chown -h nobody:nogroup {} +
   chown "$OTRUSER":"$OTRUSER" "$OTRDIR" -R
-  chown root:root "$LINBOIMGDIR"/*/*.macct
-  chmod 600 "$LINBOIMGDIR"/*/*.macct
 }
 
 # save torrent hash

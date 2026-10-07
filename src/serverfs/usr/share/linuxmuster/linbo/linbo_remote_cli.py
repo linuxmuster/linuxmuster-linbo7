@@ -9,13 +9,13 @@
 #                Step 2 of the linbo-remote Python rewrite (issue #169).
 # Signed-off by: thomas@linuxmuster.net
 # Assisted by  : Claude
-# Date         : 20260921
+# Date         : 20261001
 #
 """
 linbo-remote's CLI orchestration.
 
 Preserves the external contract of the original bash implementation
-(exit codes, key stdout strings, tmux session/logfile naming, onboot
+(exit codes, key stdout strings, tmux session naming, one logfile per run, onboot
 .cmd-file format - see the tracking issue for the full consumer list),
 while fixing two confirmed bugs rather than replicating them (see issue
 #169 step 2 notes and tests/python/README.md):
@@ -300,6 +300,8 @@ def sendCmds(hosts, commands, wait, secrets_uploaded, dry_run=False):
     if wait:
         doWait(wait, f'Waiting {wait} second(s) for client(s) to boot', leading_blank_line=True)
 
+    lib.pruneRunLogs(environment.LINBOLOGDIR)
+
     print()
     print('Sending command(s) to:')
     for host in hosts:
@@ -317,11 +319,17 @@ def sendCmds(hosts, commands, wait, secrets_uploaded, dry_run=False):
             )
 
         session_name = lib.tmuxSessionName(host)
-        logfile = os.path.join(environment.LINBOLOGDIR, session_name)
+        started = time.localtime()
+        logfile = os.path.join(
+            environment.LINBOLOGDIR, lib.runLogName(host, time.strftime('%Y%m%d%H%M%S', started)),
+        )
+        record_prefix = lib.buildRunRecordPrefix(host, commands, started, logfile, dry_run=dry_run)
         script_path = os.path.join(TMPDIR, f'{os.getpid()}.{host}.sh')
 
         script_text = lib.renderRemoteScript(
             host, commands, script_path, secrets_uploaded=secrets_uploaded, dry_run=dry_run,
+            record_file=os.path.join(environment.LINBOLOGDIR, lib.RUN_RECORD_BASENAME),
+            record_prefix=record_prefix,
         )
         with open(script_path, 'w') as f:
             f.write(script_text)

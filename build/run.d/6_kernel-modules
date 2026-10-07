@@ -1,9 +1,11 @@
 #!/bin/bash
 #
-# archiving modules
 #
-# thomas@linuxmuster.net
-# 20260506
+# Filename     : 6_kernel-modules
+# Description  : archiving modules
+# Signed-off by: thomas@linuxmuster.net
+# Assisted by  : Claude
+# Date         : 20261005
 #
 
 # read build environment
@@ -28,4 +30,8 @@ cp -v "kversion" "$PKGVARDIR" || exit 1
 sudo rm -f "$MODARCHIVE"
 sudo chown root:root "lib" -R
 sudo tar -v -c -I 'xz -T0' -f "$MODARCHIVE" "lib" || exit 1
+# The content is owned by root, the archive file itself must belong to the
+# build user: dh_fixperms runs unprivileged in a non-root build container
+# and fails with "Operation not permitted" on a root-owned file (#188).
+sudo chown "$(id -u):$(id -g)" "$MODARCHIVE" || exit 1
 cd "$BUILDROOT"
