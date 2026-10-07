@@ -1,8 +1,10 @@
 #!/bin/sh
 #
-# linbo_mountcache [-r] | [help]
-# thomas@linuxmuster.net
-# 20250425
+# Filename     : linbo_mountcache
+# Description  : mount the cache partition - linbo_mountcache [-r] | [help]
+# Signed-off by: thomas@linuxmuster.net
+# Assisted by  : Claude
+# Date         : 20261005
 #
 
 
@@ -24,22 +26,37 @@ usage(){
 }
 
 
+# check if a partition is the cache: it has to be mountable and to hold the
+# linbo kernel. Sets $cache on success.
+checkcache(){
+  local dev="$1"
+  [ -b "$dev" ] || return 1
+  mount "$dev" /tmp/mnt &> /dev/null || return 1
+  if [ -s /tmp/mnt/linbo64 ]; then
+    export cache="$dev"
+    umount /tmp/mnt &> /dev/null
+    return 0
+  fi
+  umount /tmp/mnt &> /dev/null
+  return 1
+}
+
+
 # find cache partition
 findcache(){
   local item
-  local dev
   mkdir -p /tmp/mnt
   for item in /dev/disk/by-id/*part*; do
-    dev="$(readlink "$item" | sed 's|../../|/dev/|')"
-    if mount "$dev" /tmp/mnt &> /dev/null; then
-      if [ -s /tmp/mnt/linbo64 ]; then
-        export cache="$dev"
-        umount /tmp/mnt &> /dev/null
-        break
-      fi
-      umount /tmp/mnt &> /dev/null
-    fi
+    checkcache "$(readlink "$item" | sed 's|../../|/dev/|')" && return 0
   done
+  # Not every disk has by-id links (virtio disk without serial, some eMMC and
+  # USB devices), so fall back to the partitions known to the kernel. Without
+  # this an offline boot finds no cache and ends in remote control mode (#189).
+  for item in /sys/class/block/*/partition; do
+    [ -e "$item" ] || continue
+    checkcache "/dev/$(basename "$(dirname "$item")")" && return 0
+  done
+  return 1
 }
 
 #### functions end ####
