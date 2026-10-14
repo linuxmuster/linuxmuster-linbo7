@@ -221,6 +221,19 @@ set_guid(){
 }
 
 
+# group_bootfile path [suffix]
+# prints path.$HOSTGROUP[suffix], a group keyed windows boot file stored in the
+# image. Falls back to the plain group name (the part after "<school>+") if
+# only that one exists, as in images created before hardware groups of
+# non-default schools became school qualified (#178).
+group_bootfile(){
+  local file="$1.$HOSTGROUP$2"
+  local plainfile="$1.${HOSTGROUP#*+}$2"
+  [ ! -e "$file" -a -e "$plainfile" ] && file="$plainfile"
+  echo "$file"
+}
+
+
 # patch fstab with root & efi partitions: patch_fstab rootdev
 patch_fstab(){
   echo -n "patch_fstab " ;  printargs "$@"
@@ -397,11 +410,11 @@ syncl(){
         local srcdir="$(ls -d /mnt/[Ww][Ii][Nn][Dd][Oo][Ww][Ss]/[Bb][Oo][Oo][Tt]/[Ee][Ff][Ii] 2> /dev/null)"
         [ -n "$srcdir" ] && cp -r "$srcdir"/* "$bootdir/"
       fi
-      bcd_backup="$bootdir"/BCD."$HOSTGROUP"."$partname"
+      bcd_backup="$(group_bootfile "$bootdir"/BCD ."$partname")"
     else
       # bios
       bootdir="$(ls -d /mnt/[Bb][Oo][Oo][Tt])"
-      bcd_backup="$bootdir"/BCD."$HOSTGROUP"
+      bcd_backup="$(group_bootfile "$bootdir"/BCD)"
     fi
 
     # restore bcd
@@ -412,11 +425,11 @@ syncl(){
 
     # restore disk boot sector
     # detect old versions
-    local bsmbr="$bootdir"/bsmbr."$HOSTGROUP"
-    local bsmbr_old="$bootdir"/winmbr446."$HOSTGROUP"
+    local bsmbr="$(group_bootfile "$bootdir"/bsmbr)"
+    local bsmbr_old="$(group_bootfile "$bootdir"/winmbr446)"
     [ -e "$bsmbr_old" ] && mv "$bsmbr_old" "$bsmbr"
-    [ -e "$bsmbr" ] || bsmbr="$bootdir"/winmbr."$HOSTGROUP"
-    [ -e "$bsmbr" ] || bsmbr="$bootdir"/win7mbr."$HOSTGROUP"
+    [ -e "$bsmbr" ] || bsmbr="$(group_bootfile "$bootdir"/winmbr)"
+    [ -e "$bsmbr" ] || bsmbr="$(group_bootfile "$bootdir"/win7mbr)"
     if [ -e "$bsmbr" ]; then
       echo "Restoring windows bootloader from $(basename "$bsmbr")"
       case "$bsmbr" in
@@ -435,7 +448,7 @@ syncl(){
     # restore disk & partition uuids on efi systems
     if [ -n "$efipart" ]; then
       # restore old gptlabel
-      local gptlabel="$bootdir"/gptlabel."$HOSTGROUP"
+      local gptlabel="$(group_bootfile "$bootdir"/gptlabel)"
       # only if no disk guid file exists
       if [ -s "$gptlabel" -a ! -s /mnt/.guid.disk ]; then
         echo "Saving current gpt label."
