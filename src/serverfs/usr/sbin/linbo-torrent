@@ -4,7 +4,7 @@
 # Description  : starts tmux sessions for each valid torrent in LINBODIR
 # Signed-off by: thomas@linuxmuster.net
 # Assisted by  : Claude
-# Date         : 20260901
+# Date         : 20261018
 #
 
 # read environment
@@ -14,10 +14,6 @@ set -o pipefail
 
 THELPER=$LINBOSHAREDIR/linbo-torrenthelper.sh
 LINBOIMGEXT="qcow2 qdiff iso"
-
-# get ctorrent options from file
-[ -e /etc/default/linbo-torrent ] && source /etc/default/linbo-torrent
-isinteger "$PIECELEN" && plopt="-l $PIECELEN"
 
 # start of functions
 
