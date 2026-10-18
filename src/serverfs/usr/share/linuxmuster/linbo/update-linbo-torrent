@@ -1,0 +1,59 @@
+#!/bin/bash
+#
+# Filename     : update-linbo-torrent
+# Description  : replace an outdated /etc/default/linbo-torrent with the current template
+# Signed-off by: thomas@linuxmuster.net
+# Assisted by  : Claude
+# Date         : 20261018
+#
+
+# linbo-configure.sh copies /etc/default/linbo-torrent from the template
+# only if it is missing or has no aria2c options at all, so an upgraded
+# server keeps the aria2c options it was installed with and never gets
+# local peer discovery and the 5 minute tracker interval (#152).
+#
+# A file still in the old header format (no "# Filename" line) without
+# --bt-enable-lpd in ARIA2C_GLOBAL_OPTS is the default of an older release:
+# it is backed up with a timestamp and replaced by the template, then
+# linbo-torrent is restarted to seed with the new options. Changes an admin
+# made to such a file are only kept in the backup. The clients get the new
+# file with the next update-linbofs, which linbo-configure.sh runs anyway.
+#
+# A file in the new header format or with --bt-enable-lpd is left alone.
+# Safe to run repeatedly: reports "nothing to do" once the file is current.
+
+CONF="/etc/default/linbo-torrent"
+TPL="/usr/share/linuxmuster/templates/linbo-torrent"
+
+# returns 0 if the given file is an outdated default
+is_outdated(){
+  grep -q '^# Filename *:' "$1" && return 1
+  grep '^ARIA2C_GLOBAL_OPTS=' "$1" | grep -q -- '--bt-enable-lpd' && return 1
+  return 0
+}
+
+update_linbo_torrent(){
+  local conf="$1"
+  local tpl="$2"
+  local backup
+  if [ ! -e "$conf" ]; then
+    echo "$conf not found, nothing to do."
+    return 0
+  fi
+  if [ ! -s "$tpl" ]; then
+    echo "$tpl not found!"
+    return 1
+  fi
+  if ! is_outdated "$conf"; then
+    echo "$conf is up to date, nothing to do."
+    return 0
+  fi
+  backup="$conf.$(date +%Y%m%d%H%M%S)"
+  echo "Replacing outdated $conf with the current template (#152), backup: $backup"
+  cp -p "$conf" "$backup" || return 1
+  cp "$tpl" "$conf" || return 1
+  echo "Restarting linbo-torrent ..."
+  systemctl restart linbo-torrent.service
+}
+
+update_linbo_torrent "$CONF" "$TPL"

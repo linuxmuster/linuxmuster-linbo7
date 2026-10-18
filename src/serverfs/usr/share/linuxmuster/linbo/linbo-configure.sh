@@ -4,7 +4,7 @@
 # Description  : configure script for linuxmuster-linbo7 package
 # Signed-off by: thomas@linuxmuster.net
 # Assisted by  : Claude
-# Date         : 20261007
+# Date         : 20261018
 #
 
 # read environment & setup values
@@ -73,6 +73,9 @@ if [ -e "$conf" ]; then
   rm -f "$conf"
   systemctl daemon-reload
 fi
+
+# replace an outdated linbo-torrent defaults file with the current template (#152)
+"$LINBOSHAREDIR/update-linbo-torrent"
 
 # check linbo's multicast and torrent services
 for service in linbo-multicast linbo-torrent; do
