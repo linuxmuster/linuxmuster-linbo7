@@ -7,7 +7,7 @@ linuxmuster-linbo7 (7.4.20) lmn74; urgency=low
   * fix(linbo-configure): replace an outdated /etc/default/linbo-torrent on
     upgrade (#152, ed672f3).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 14 Oct 2026 12:01:30 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sun, 18 Oct 2026 13:27:35 +0200
 
 linuxmuster-linbo7 (7.4.19) lmn74; urgency=low
 
