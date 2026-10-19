@@ -4,7 +4,7 @@
 # Description  : System setup and hardware detection - busybox init script
 # Signed-off by: thomas@linuxmuster.net
 # Assisted by  : Claude
-# Date         : 20261005
+# Date         : 20261019
 #
 # (C) Klaus Knopper 2007
 # License: GPL V2
@@ -428,6 +428,22 @@ set_autostart() {
   mv /start.conf.new /start.conf
 }
 
+# wlan_pending - true if wifi is configured and a wifi card is present, but
+# wlan0 has not been registered by its driver yet. A wifi card is a pci device
+# of class 0x0280xx (network controller, other); usb wifi sticks cannot be
+# told apart this way, so they are not covered.
+wlan_pending(){
+  local class
+  [ -s /etc/wpa_supplicant.conf ] || return 1
+  [ -d /sys/class/net/wlan0 ] && return 1
+  for class in /sys/bus/pci/devices/*/class; do
+    case "$(cat "$class" 2>/dev/null)" in
+      0x0280??) return 0 ;;
+    esac
+  done
+  return 1
+}
+
 network(){
   echo
   rm -f /tmp/linbo-network.done
@@ -437,6 +453,7 @@ network(){
   local ipaddr
   local netwaited
   local dhcptimeout
+  local waitmsg
   [ -z "$dhcpretry" ] && dhcpretry=3
   # Wait briefly for at least one non-loopback interface to appear before
   # enumerating them below. Some USB NICs (e.g. RTL8153, #167) enumerate a
@@ -445,11 +462,20 @@ network(){
   # settle. Without this, the interface list below can come up empty and
   # LINBO goes straight to offline without ever trying. No delay is added
   # if an interface is already present, which is the common case.
+  # The same applies to a wifi card next to a wired interface (#190): wait
+  # for wlan0 as well, but only if wifi is configured and a wifi card is there.
   [ -z "$netwait" ] && netwait=10
   netwaited=0
-  while [ -z "$(grep ':' /proc/net/dev | awk -F\: '{ print $1 }' | awk '{ print $1}' | grep -v ^lo)" ] && [ "$netwaited" -lt "$netwait" ]; do
+  while [ "$netwaited" -lt "$netwait" ]; do
+    if [ -z "$(grep ':' /proc/net/dev | awk -F\: '{ print $1 }' | awk '{ print $1}' | grep -v ^lo)" ]; then
+      waitmsg="network interface"
+    elif wlan_pending; then
+      waitmsg="wlan0"
+    else
+      break
+    fi
     netwaited=$((netwaited + 1))
-    print_status "Waiting for network interface to appear ($netwaited/$netwait) ..."
+    print_status "Waiting for $waitmsg to appear ($netwaited/$netwait) ..."
     sleep 1
   done
   print_status "Requesting ip address per dhcp (retry=$dhcpretry) ..."
