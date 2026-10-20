@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 #
-# thomas@linuxmuster.net
-# 20260521
+# Filename     : rsync-post-upload.sh
+# Description  : rsync post-xfer hook of the linbo-upload module
+# Signed-off by: thomas@linuxmuster.net
+# Assisted by  : Claude
+# Date         : 20261020
 #
 
 # read in linuxmuster specific environment
@@ -93,10 +96,6 @@ if [ -s "$BACKUP" ]; then
     echo "Upload of $BASENAME failed." >&2
     mv -fv "$BACKUP" "$FILE"
     echo "Recovered $BASENAME from backup." >&2
-    # remove empty BAKDIR
-    if [ -d "$BAKDIR"]; then
-      [ -z "$(ls -A "$BAKDIR")" ] && rm -rf "$BAKDIR"
-    fi
   fi
 fi
 
