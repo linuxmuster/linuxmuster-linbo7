@@ -4,8 +4,52 @@
 # Description  : rsync post-xfer hook of the linbo-upload module
 # Signed-off by: thomas@linuxmuster.net
 # Assisted by  : Claude
-# Date         : 20261020
+# Date         : 20261023
 #
+
+
+#### functions begin ####
+
+# copy_source_supplements imgroot name infofile
+# An image uploaded under a new name takes over the supplemental files (reg,
+# postsync, prestart) of the native image it derives from, named by
+# sourceimage in its info file. Existing files of the new image are never
+# overwritten.
+copy_source_supplements(){
+  local imgroot="$1"
+  local name="$2"
+  local infofile="$3"
+  local sourceimage
+  local source
+  local ext
+  local src
+  local dst
+  sourceimage="$(grep ^sourceimage= "$infofile" 2> /dev/null | awk -F\" '{print $2}')"
+  source="${sourceimage%.qcow2}"
+  # only a base image other than this one, no path components
+  [ -n "$source" ] && [ "$source" != "$sourceimage" ] || return 0
+  [ "$source" = "$name" ] && return 0
+  case "$source" in
+    */*|.*) return 0 ;;
+  esac
+  for ext in reg postsync prestart; do
+    src="$imgroot/$source/$source.$ext"
+    dst="$imgroot/$name/$name.$ext"
+    [ -s "$src" ] || continue
+    if [ -e "$dst" ]; then
+      echo "$name.$ext exists, it is not taken over from $source."
+      continue
+    fi
+    cp -p "$src" "$dst" || continue
+    echo "Took over $source.$ext as $name.$ext."
+    if grep -qF "$source" "$dst"; then
+      echo "Note: $name.$ext mentions $source, please check it."
+    fi
+  done
+}
+
+#### functions end ####
+
 
 # read in linuxmuster specific environment
 source /usr/share/linuxmuster/helperfunctions.sh || exit 1
@@ -152,6 +196,18 @@ case "$EXT" in
       cat "$LINBODIR/last_registered" | tee -a "$WIMPORTDATA"
     fi
     rm $FILE
+  ;;
+
+  info)
+    # an image under a new name takes over the supplemental files of its
+    # source image, as soon as its info file has arrived
+    case "$BASENAME" in
+      *.qcow2.info)
+        if [ "$RSYNC_EXIT_STATUS" = "0" ]; then
+          copy_source_supplements "$LINBOIMGDIR" "$BASE" "$FILE" >&2
+        fi
+        ;;
+    esac
   ;;
 
   *) ;;
