@@ -23,7 +23,8 @@ Recommends: linuxmuster-base7
 Pre-Depends: linuxmuster-common
 Depends: argon2, aria2, btcheck, buildtorrent, busybox, coreutils, cpio,
   dosfstools, dropbear-bin, grub-common, grub-efi-amd64-bin, grub-ipxe,
-  grub-pc-bin, isolinux, linux-firmware, linuxmuster-linbo-gui7, logrotate,
+  grub-pc-bin, isolinux, linux-firmware, linuxmuster-cli7,
+  linuxmuster-linbo-gui7, logrotate,
   mbr, opentracker, python3, pv, qemu-utils, rsync, sed, ssh, syslinux-common,
   syslinux-utils, tftpd-hpa, tmux, udpcast, wakeonlan, xorriso, xz-utils, zip,
   zlib1g, zstd
