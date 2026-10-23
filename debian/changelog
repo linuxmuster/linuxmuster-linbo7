@@ -1,3 +1,18 @@
+linuxmuster-linbo7 (7.4.21) lmn74; urgency=low
+
+  * fix(rsync-post-upload): drop the dead empty-BAKDIR cleanup after a
+    failed upload (#133, fd29b93).
+  * feat(linbo_create_image): create a base image under a new name
+    (#133, 866eef6).
+  * feat(rsync-pre-upload): accept image uploads only from registered
+    devices (#133, c04f422).
+  * feat(rsync-pre-upload): leave image uploads of other schools unchecked
+    (#133, c7250bc).
+  * feat(rsync-pre-upload): guard image uploads under a new name
+    (#133, b2b3f6a).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 23 Oct 2026 15:26:45 +0200
+
 linuxmuster-linbo7 (7.4.20) lmn74; urgency=low
 
   * fix(linbo_mkgrubimg): handle hosts of non-default schools
