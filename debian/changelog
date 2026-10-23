@@ -10,8 +10,10 @@ linuxmuster-linbo7 (7.4.21) lmn74; urgency=low
     (#133, c7250bc).
   * feat(rsync-pre-upload): guard image uploads under a new name
     (#133, b2b3f6a).
+  * feat(rsync-post-upload): take over the supplemental files of the
+    source image (#133, 4d70dc2).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 23 Oct 2026 15:26:45 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 23 Oct 2026 15:52:33 +0200
 
 linuxmuster-linbo7 (7.4.20) lmn74; urgency=low
 
