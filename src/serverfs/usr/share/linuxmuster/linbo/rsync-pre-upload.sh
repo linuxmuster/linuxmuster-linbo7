@@ -1,14 +1,51 @@
 #!/bin/bash
 #
+# Filename     : rsync-pre-upload.sh
+# Description  : rsync pre-xfer hook of the linbo-upload module
+# Signed-off by: thomas@linuxmuster.net
+# Assisted by  : Claude
+# Date         : 20261023
+#
 # (C) Klaus Knopper 2007
 # Pre-Upload script for rsync/LINBO:
 # Moves old version of file out of the way,
 # and installs a new version.
-#
-# thomas@linuxmuster.net
-# 20250326
 # GPL v3
 #
+
+
+#### functions begin ####
+
+# is_image_path file imgdir
+# true if file lies below imgdir, compared as canonical paths
+is_image_path(){
+  local file
+  local imgdir
+  file="$(realpath -m "$1")"
+  imgdir="$(realpath -m "$2")"
+  case "$file" in
+    "$imgdir"/*) return 0 ;;
+  esac
+  return 1
+}
+
+
+# upload_host_registered ip
+# true if devices.csv has a device with exactly this ip whose machine account
+# is registered in ldap ("lmncli devices" filters by substring, so the ip
+# column is compared exactly)
+upload_host_registered(){
+  local ip="$1"
+  [ -n "$ip" ] || return 1
+  lmncli --csv devices "$ip" 2> /dev/null | awk -F';' -v ip="$ip" '
+    { gsub(/\r/, "") }
+    NR == 1 { for (i = 1; i <= NF; i++) col[$i] = i ; next }
+    col["IP"] && col["LDAP"] && $col["IP"] == ip && $col["LDAP"] == "Registered" { found = 1 }
+    END { exit !found }'
+}
+
+#### functions end ####
+
 
 # read in linuxmuster specific environment
 source /usr/share/linuxmuster/helperfunctions.sh || exit 1
@@ -41,6 +78,15 @@ echo "RSYNC_REQUEST: $RSYNC_REQUEST"
 echo "FILE: $FILE"
 echo "PIDFILE: $PIDFILE"
 echo "EXT: $EXT"
+
+# image files are only accepted from devices registered in devices.csv and
+# ldap, other uploads (e.g. the registration of a new host) are not affected
+if is_image_path "$FILE" "$LINBOIMGDIR"; then
+  if ! upload_host_registered "$RSYNC_HOST_ADDR"; then
+    echo "Upload of $BASENAME refused: $RSYNC_HOST_ADDR is not a registered device."
+    exit 1
+  fi
+fi
 
 if [ "$EXT" = "new" ]; then
   [ -e "$PIDFILE" ] && rm -f "$PIDFILE"
