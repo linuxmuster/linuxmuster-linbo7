@@ -16,7 +16,7 @@ SCRIPT="$(dirname "$0")/../../src/serverfs/usr/share/linuxmuster/linbo/rsync-pre
 
 oneTimeSetUp() {
   . "$(dirname "$0")/lib/extract_function.sh"
-  extract_function "$SCRIPT" is_image_path upload_host_registered \
+  extract_function "$SCRIPT" is_image_path upload_host_registered other_school_device \
     > "$SHUNIT_TMPDIR/rsync-pre-upload_functions.sh"
   . "$SHUNIT_TMPDIR/rsync-pre-upload_functions.sh"
 }
@@ -114,6 +114,42 @@ test_upload_host_registered_rejects_when_lmncli_prints_nothing() {
 
 test_upload_host_registered_rejects_an_empty_ip() {
   assertFalse 'upload_host_registered ""'
+}
+
+# --- other_school_device() -----------------------------------------------
+
+# fixture sophomorix dir with default-school and school "s2"
+mkschools() {
+  SOPHDIR="$SHUNIT_TMPDIR/sophomorix"
+  rm -rf "$SOPHDIR"
+  mkdir -p "$SOPHDIR/default-school" "$SOPHDIR/s2"
+  echo "r100;multi-1;multi-disk0;52:54:00:70:af:79;10.0.100.1;;;;classroom-studentcomputer;;1" \
+    > "$SOPHDIR/default-school/devices.csv"
+  printf '%s\r\n' "r1;pc1;g1;52:54:00:00:00:01;10.2.0.1;;;;classroom-studentcomputer;;1" \
+    "#r1;pc2;g1;52:54:00:00:00:02;10.2.0.2;;;;classroom-studentcomputer;;1" \
+    > "$SOPHDIR/s2/s2.devices.csv"
+}
+
+test_other_school_device_finds_a_device_of_another_school() {
+  mkschools
+  assertTrue 'other_school_device 10.2.0.1 "$SOPHDIR"'
+}
+
+test_other_school_device_ignores_default_school_and_comments() {
+  mkschools
+  assertFalse 'other_school_device 10.0.100.1 "$SOPHDIR"'
+  assertFalse 'other_school_device 10.2.0.2 "$SOPHDIR"'
+}
+
+test_other_school_device_compares_the_ip_exactly() {
+  mkschools
+  assertFalse 'other_school_device 10.2.0.10 "$SOPHDIR"'
+  assertFalse 'other_school_device 10.2.0 "$SOPHDIR"'
+}
+
+test_other_school_device_rejects_an_empty_ip() {
+  mkschools
+  assertFalse 'other_school_device "" "$SOPHDIR"'
 }
 
 . "$(dirname "$0")/shunit2"

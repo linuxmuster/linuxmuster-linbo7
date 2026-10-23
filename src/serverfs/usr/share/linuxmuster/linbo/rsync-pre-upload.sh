@@ -44,6 +44,26 @@ upload_host_registered(){
     END { exit !found }'
 }
 
+
+# other_school_device ip [sophomorixdir]
+# true if ip belongs to a device of a school other than default-school
+# (<school>/<school>.devices.csv). Multi-school environments are not
+# supported by the image upload checks yet, so these devices stay unchecked.
+other_school_device(){
+  local ip="$1"
+  local dir="${2:-/etc/linuxmuster/sophomorix}"
+  local csv
+  [ -n "$ip" ] || return 1
+  for csv in "$dir"/*/*.devices.csv; do
+    [ -s "$csv" ] || continue
+    awk -F';' -v ip="$ip" '
+      { gsub(/\r/, "") }
+      $1 !~ /^#/ && $5 == ip { found = 1 }
+      END { exit !found }' "$csv" && return 0
+  done
+  return 1
+}
+
 #### functions end ####
 
 
@@ -80,9 +100,14 @@ echo "PIDFILE: $PIDFILE"
 echo "EXT: $EXT"
 
 # image files are only accepted from devices registered in devices.csv and
-# ldap, other uploads (e.g. the registration of a new host) are not affected
+# ldap, other uploads (e.g. the registration of a new host) are not affected;
+# devices of other schools are not checked until multi-school is supported
 if is_image_path "$FILE" "$LINBOIMGDIR"; then
-  if ! upload_host_registered "$RSYNC_HOST_ADDR"; then
+  if upload_host_registered "$RSYNC_HOST_ADDR"; then
+    :
+  elif other_school_device "$RSYNC_HOST_ADDR"; then
+    echo "$RSYNC_HOST_ADDR is a device of another school, upload of $BASENAME is not checked."
+  else
     echo "Upload of $BASENAME refused: $RSYNC_HOST_ADDR is not a registered device."
     exit 1
   fi
