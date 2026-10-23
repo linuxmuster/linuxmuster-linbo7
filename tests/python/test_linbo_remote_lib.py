@@ -7,7 +7,7 @@
 #                wake-on-LAN target resolution. See tests/python/README.md.
 # Signed-off by: thomas@linuxmuster.net
 # Assisted by  : Claude
-# Date         : 20261001
+# Date         : 20261023
 #
 
 import fnmatch
@@ -123,6 +123,65 @@ def test_initcache_bad_dltype_raises():
 def test_format_nr_not_an_integer_raises():
     with pytest.raises(LinboRemoteError, match='not an integer'):
         parseCommandString('format:x')
+
+
+# --- image_name (#133) ----------------------------------------------------
+# linbo_wrapper runs once per command, so image_name is not passed on itself
+# but appended as 4th field to the following create_image/upload_image.
+
+def test_image_name_is_appended_to_create_and_upload():
+    assert parseCommandString('image_name:noble,create_image:1,upload_image:1') == [
+        'create_image:1::noble', 'upload_image:1::noble',
+    ]
+
+
+def test_image_name_keeps_the_create_image_comment():
+    assert parseCommandString('image_name:Noble_24-04,create_image:1:new noble,reboot') == [
+        'create_image:1:"new noble":Noble_24-04', 'reboot',
+    ]
+
+
+def test_image_name_only_affects_following_commands():
+    assert parseCommandString('upload_image:1,image_name:noble,create_image:1,sync:1') == [
+        'upload_image:1', 'create_image:1::noble', 'sync:1',
+    ]
+
+
+def test_create_image_comment_ends_at_image_name():
+    assert parseCommandString('create_image:1:msg,image_name:noble,upload_image:1') == [
+        'create_image:1:"msg"', 'upload_image:1::noble',
+    ]
+
+
+@pytest.mark.parametrize('name', ['no.ble', 'noble.qcow2', '../noble', 'no ble', ''])
+def test_image_name_invalid_raises(name):
+    with pytest.raises(LinboRemoteError, match='not a valid image name'):
+        parseCommandString(f'image_name:{name},create_image:1')
+
+
+def test_image_name_without_name_raises():
+    with pytest.raises(LinboRemoteError, match='not valid'):
+        parseCommandString('image_name,create_image:1')
+
+
+@pytest.mark.parametrize('cmds', [
+    'image_name:noble',
+    'image_name:noble,sync:1,reboot',
+    'create_image:1,image_name:noble',
+])
+def test_image_name_without_following_image_command_raises(cmds):
+    with pytest.raises(LinboRemoteError, match='needs a following'):
+        parseCommandString(cmds)
+
+
+@pytest.mark.parametrize('cmds', [
+    'image_name:noble,create_qdiff:1',
+    'image_name:noble,create_image:1,upload_qdiff:1',
+    'create_qdiff:1,image_name:noble,upload_image:1',
+])
+def test_image_name_with_qdiff_raises(cmds):
+    with pytest.raises(LinboRemoteError, match='Differential images'):
+        parseCommandString(cmds)
 
 
 # --- hostsInGroup / hostsInRoom -----------------------------------------
