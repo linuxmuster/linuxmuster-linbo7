@@ -1,8 +1,10 @@
 #!/bin/sh
 #
-# linbo_wrapper: wrapper for linbo commands
-# thomas@linuxmuster.net
-# 20260914
+# Filename     : linbo_wrapper
+# Description  : wrapper for linbo commands
+# Signed-off by: thomas@linuxmuster.net
+# Assisted by  : Claude
+# Date         : 20261023
 #
 
 SECRETS=/tmp/rsyncd.secrets
@@ -35,9 +37,9 @@ usage(){
   echo "sync:<#>                   : Synchronizes operating system nr. <#>."
   echo "new:<#>                    : Formats and synchronizes operating system nr. <#>."
   echo "start:<#>                  : Starts operating system nr. <#>."
-  echo "create_image:<#>:<\"msg\"> : Creates a baseimage from operating system nr. <#>."
+  echo "create_image:<#>:<\"msg\">:<name> : Creates a baseimage from operating system nr. <#>."
   echo "create_qdiff:<#>:<\"msg\"> : Creates a differential image from operating system nr. <#>."
-  echo "upload_image:<#>           : Uploads the baseimage of operating system nr. <#>."
+  echo "upload_image:<#>::<name>   : Uploads the baseimage of operating system nr. <#>."
   echo "upload_qdiff:<#>           : Uploads the differential image of operating system nr. <#>."
   echo "update                     : Updates LINBO's kernel and initrd and installs GRUB."
   echo "reboot                     : Reboots the client."
@@ -45,12 +47,26 @@ usage(){
   echo "help                       : Show this help."
   echo
   echo "<\"msg\"> image comment (optional)."
+  echo "<name> creates or uploads the baseimage <name>.qcow2 instead of the one defined"
+  echo "in start.conf (optional). It may consist of letters, digits, \"_\" and \"-\"."
+  echo "Differential images cannot get a new name."
   echo "The position numbers depend on the position in the start.conf."
   echo "The Commands are invoked in the order they are given."
   echo "The upload command needs a file /tmp/rsyncd.secrets with the RSYNC credentials"
   echo "in the form: <username>:<password>"
   echo
   exit
+}
+
+
+# image_name_file name
+# prints the image file for a new image name, fails for an invalid name
+# (letters, digits, "_" and "-" only, same as in linbo_create_image)
+image_name_file(){
+  case "$1" in
+    ""|*[!A-Za-z0-9_-]*) return 1 ;;
+  esac
+  echo "${1}.qcow2"
 }
 
 
@@ -115,11 +131,27 @@ while [ "$#" -gt "0" ]; do
   cmd="$(echo "$1" | awk -F\: '{ print $1 }')"
   osnr="$(echo "$1" | awk -F\: '{ print $2 }')"
   msg="$(echo "$1" | awk -F\: '{ print $3 }')"
+  # new image name of the image commands (#133), never parsed from others
+  # like "linbo:<password>"
+  name=""
+  case "$cmd" in
+    create_image|create_qdiff|upload_image|upload_qdiff)
+      name="$(echo "$1" | awk -F\: '{ print $4 }')"
+      ;;
+  esac
 
   # do not print linbo password
   echo "Command     : $cmd"
   [ -n "$osnr" -a "$cmd" != "linbo" ] && echo "OS number   : $osnr"
   [ -n "$msg" ] && echo "Comment        : $msg"
+  newimage=""
+  if [ -n "$name" ]; then
+    echo "Image name  : $name"
+    if ! newimage="$(image_name_file "$name")"; then
+      echo "Invalid image name $name, allowed are letters, digits, \"_\" and \"-\"!"
+      exit 1
+    fi
+  fi
 
   case "$cmd" in
 
@@ -144,8 +176,16 @@ while [ "$#" -gt "0" ]; do
       source /conf/os.$osnr
       # differential image
       if [ "$cmd" = "create_qdiff" ]; then
+        if [ -n "$newimage" ]; then
+          echo "Differential images cannot be created under a new name!"
+          exit 1
+        fi
         qdiff="qdiff"
         imagefile="${baseimage/.qcow2/.qdiff}"
+      elif [ -n "$newimage" ]; then
+        # base image under a new name
+        qdiff="$newimage"
+        imagefile="$newimage"
       else
         imagefile="$baseimage"
       fi
@@ -155,10 +195,16 @@ while [ "$#" -gt "0" ]; do
 
     upload_image|upload_qdiff)
       source /conf/os.$osnr || exit 1
-      imagefile="$baseimage"
+      imagefile="${newimage:-$baseimage}"
       get_passwd
       # differential image
-      [ "$cmd" = "upload_qdiff" ] && imagefile="${imagefile/.qcow2/.qdiff}"
+      if [ "$cmd" = "upload_qdiff" ]; then
+        if [ -n "$newimage" ]; then
+          echo "Differential images cannot be uploaded under a new name!"
+          exit 1
+        fi
+        imagefile="${imagefile/.qcow2/.qdiff}"
+      fi
       echo "Uploading $imagefile to $LINBOSERVER ..."
       run_cmd linbo_upload "$password" "$imagefile" || exit 1
       ;;

@@ -1,10 +1,13 @@
 #!/bin/sh
 #
-# test_linbo_wrapper.sh
-# thomas@linuxmuster.net
-# 20260914
+# Filename     : test_linbo_wrapper.sh
+# Description  : tests for run_cmd(), get_passwd() and image_name_file() of linbo_wrapper
+# Signed-off by: thomas@linuxmuster.net
+# Assisted by  : Claude
+# Date         : 20261023
 #
-# Wave 1: run_cmd() and get_passwd() from linbo_wrapper.
+# Wave 1: run_cmd(), get_passwd() and image_name_file() (#133, pure string
+# check) from linbo_wrapper.
 # run_cmd() (added for --dry-run, issue #170) has no filesystem/device
 # access of its own - it either runs its argument as a real command or
 # just echoes it, so it's tested against stub commands, the same idiom
@@ -16,7 +19,7 @@ SCRIPT="$(dirname "$0")/../../src/linbofs/usr/bin/linbo_wrapper"
 
 oneTimeSetUp() {
   . "$(dirname "$0")/lib/extract_function.sh"
-  extract_function "$SCRIPT" run_cmd get_passwd > "$SHUNIT_TMPDIR/linbo_wrapper_functions.sh"
+  extract_function "$SCRIPT" run_cmd get_passwd image_name_file > "$SHUNIT_TMPDIR/linbo_wrapper_functions.sh"
   . "$SHUNIT_TMPDIR/linbo_wrapper_functions.sh"
 }
 
@@ -92,6 +95,21 @@ linbo:therealpassword
 EOF
   get_passwd
   assertEquals "therealpassword" "$password"
+}
+
+# --- image_name_file() (#133) --------------------------------------------
+
+test_image_name_file_appends_qcow2_to_a_valid_name() {
+  assertEquals "noble.qcow2" "$(image_name_file noble)"
+  assertEquals "Noble_24-04.qcow2" "$(image_name_file Noble_24-04)"
+}
+
+test_image_name_file_rejects_invalid_names() {
+  assertFalse 'image_name_file ""'
+  assertFalse 'image_name_file no.ble'
+  assertFalse 'image_name_file noble.qcow2'
+  assertFalse 'image_name_file ../noble'
+  assertFalse 'image_name_file "no ble"'
 }
 
 . "$(dirname "$0")/shunit2"

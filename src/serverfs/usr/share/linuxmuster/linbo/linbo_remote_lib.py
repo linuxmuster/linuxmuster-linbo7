@@ -8,7 +8,7 @@
 #                Steps 1+2 of the linbo-remote Python rewrite (issue #169).
 # Signed-off by: thomas@linuxmuster.net
 # Assisted by  : Claude
-# Date         : 20261001
+# Date         : 20261023
 #
 """
 Helper functions for the linbo-remote Python rewrite.
@@ -56,10 +56,20 @@ _REQUIRED_NR_COMMANDS = ('new', 'sync', 'start', 'postsync', 'prestart', 'upload
 _OPTIONAL_NR_COMMANDS = ('format',)
 _COMMENT_COMMANDS = ('create_image', 'create_qdiff')
 _INITCACHE_COMMAND = 'initcache'
+# image_name:<name> lets the following create_image/upload_image commands
+# work on <name>.qcow2 instead of the image defined in start.conf (#133).
+# linbo_wrapper runs once per command, so it does not get image_name itself:
+# the name is appended to those commands as 4th field instead, e.g.
+# create_image:1:"msg":noble and upload_image:1::noble.
+_IMAGE_NAME_COMMAND = 'image_name'
+_IMAGE_NAME_TARGETS = ('create_image', 'upload_image')
+_QDIFF_COMMANDS = ('create_qdiff', 'upload_qdiff')
+# same rule as valid_image_basename() in linbo_create_image
+_IMAGE_NAME_RE = re.compile(r'^[A-Za-z0-9_-]+$')
 
 KNOWN_COMMANDS = (
     _NO_ARG_COMMANDS + _REQUIRED_NR_COMMANDS + _OPTIONAL_NR_COMMANDS
-    + _COMMENT_COMMANDS + (_INITCACHE_COMMAND,)
+    + _COMMENT_COMMANDS + (_INITCACHE_COMMAND, _IMAGE_NAME_COMMAND)
 )
 
 
@@ -120,8 +130,14 @@ def parseCommandString(cmds):
 
     Raises LinboRemoteError with a human-readable message on anything the
     original bash parser would have rejected via usage().
+
+    image_name:<name> is not passed on itself, it is appended as 4th field to
+    the create_image/upload_image commands following it (see
+    _IMAGE_NAME_COMMAND).
     """
     commands = []
+    image_name = None
+    has_qdiff = False
     remaining = cmds
     while remaining:
         cmd = _splitHead(remaining)
@@ -155,13 +171,38 @@ def parseCommandString(cmds):
                 comment, remaining = _extractComment(remaining)
                 entry = f'{entry}:"{comment}"'
 
+        elif cmd == _IMAGE_NAME_COMMAND:
+            if remaining[:1] != ':':
+                raise LinboRemoteError(f'Command string "{remaining}" is not valid!')
+            image_name, remaining = _extractToken(remaining)
+            if not _IMAGE_NAME_RE.match(image_name):
+                raise LinboRemoteError(
+                    f'{image_name} is not a valid image name, allowed are letters, digits, "_" and "-"!'
+                )
+            entry = None
+
         # label/partition/reboot/halt: no arguments, nothing further to consume
 
-        commands.append(entry)
+        has_qdiff = has_qdiff or cmd in _QDIFF_COMMANDS
+        if image_name and cmd in _IMAGE_NAME_TARGETS:
+            # create_image:<nr>[:"msg"] / upload_image:<nr> -> 4th field
+            fields = entry.split(':', 2)
+            comment = fields[2] if len(fields) > 2 else ''
+            entry = f'{fields[0]}:{fields[1]}:{comment}:{image_name}'
+        if entry is not None:
+            commands.append(entry)
 
         # remove one separating comma between commands, if present
         if remaining[:1] == ',':
             remaining = remaining[1:]
+
+    # a new image name is only supported for base images (#133)
+    if image_name:
+        if has_qdiff:
+            raise LinboRemoteError('Differential images cannot be created or uploaded under a new name!')
+        if not any(c.endswith(f':{image_name}') for c in commands
+                   if c.split(':', 1)[0] in _IMAGE_NAME_TARGETS):
+            raise LinboRemoteError('image_name needs a following create_image or upload_image command!')
 
     return commands
 

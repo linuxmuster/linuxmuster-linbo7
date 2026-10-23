@@ -9,7 +9,7 @@
 #                Step 2 of the linbo-remote Python rewrite (issue #169).
 # Signed-off by: thomas@linuxmuster.net
 # Assisted by  : Claude
-# Date         : 20261001
+# Date         : 20261023
 #
 """
 linbo-remote's CLI orchestration.
@@ -118,6 +118,12 @@ def printUsage(msg=None):
     print('upload_image:<#>         : Uploads a full image from operating system nr <#>.')
     print('create_qdiff:<#>:<"msg"> : Creates a differential image from operating system nr <#>.')
     print('upload_qdiff:<#>         : Uploads a differential image from operating system nr <#>.')
+    print('image_name:<name>        : The following create_image and upload_image commands')
+    print('                           use the image <name>.qcow2 instead of the one defined')
+    print('                           in start.conf, e.g.')
+    print('                           image_name:noble,create_image:1,upload_image:1')
+    print('                           <name> may consist of letters, digits, "_" and "-".')
+    print('                           Cannot be combined with create_qdiff/upload_qdiff.')
     print('reboot                   : Reboots the client.')
     print('halt                     : Shuts the client down.')
     print()
