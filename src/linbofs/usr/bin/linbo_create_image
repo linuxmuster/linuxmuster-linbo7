@@ -1,8 +1,10 @@
 #!/bin/sh
 #
-# linbo_create_image
-# thomas@linuxmuster.net
-# 20260518
+# Filename     : linbo_create_image
+# Description  : creates a base or differential image of an operating system
+# Signed-off by: thomas@linuxmuster.net
+# Assisted by  : Claude
+# Date         : 20261023
 #
 
 
@@ -16,14 +18,82 @@ usage(){
   echo "either defined by start.conf postition number or by root partition."
   echo
   echo "Usage:"
-  echo "  linbo_create_image <#> [qdiff] | [help]"
-  echo "  linbo_create_image <root> [qdiff] | [help]"
+  echo "  linbo_create_image <#> [qdiff|<name>] | [help]"
+  echo "  linbo_create_image <root> [qdiff|<name>] | [help]"
+  echo
+  echo "<name> creates a base image under a new name instead of the one defined"
+  echo "in start.conf, e.g. \"noble\" or \"noble.qcow2\". Allowed are letters,"
+  echo "digits, \"_\" and \"-\". Differential images cannot get a new name."
   echo
   echo "For compatibility reasons legacy options are also accepted. In this case"
   echo "the image type is defined by the filename:"
   echo "  linbo_create_image <cache> <imagefilename> <root>"
   echo
   exit "$RC"
+}
+
+
+# valid_image_basename name
+# a new image name may only consist of letters, digits, "_" and "-"
+valid_image_basename(){
+  case "$1" in
+    ""|*[!A-Za-z0-9_-]*) return 1 ;;
+  esac
+  return 0
+}
+
+
+# get_sourceimage imagefile baseimage
+# Prints baseimage if imagefile is a base image under a new name, nothing if
+# it is the native base or differential image of start.conf. Fails for a
+# differential image under a new name and for invalid names.
+get_sourceimage(){
+  local imagefile="$1"
+  local baseimage="$2"
+  case "$imagefile" in
+    "$baseimage"|"${baseimage%.*}.qdiff") return 0 ;;
+    *.qdiff)
+      echo "Differential images cannot be created under a new name!" >&2
+      return 1
+      ;;
+    *.qcow2) ;;
+    *)
+      echo "Unknown image type of $imagefile!" >&2
+      return 1
+      ;;
+  esac
+  if ! valid_image_basename "${imagefile%.qcow2}"; then
+    echo "Invalid image name ${imagefile%.qcow2}, allowed are letters, digits, \"_\" and \"-\"!" >&2
+    return 1
+  fi
+  echo "$baseimage"
+}
+
+
+# check_server_image imagefile sourceimage
+# An image under a new name must not overwrite a foreign image on the server:
+# an existing image of that name is only accepted if it was derived from the
+# same source image. If the server cannot be asked, the check is left to the
+# server, which checks every upload anyway.
+check_server_image(){
+  local imagefile="$1"
+  local sourceimage="$2"
+  local infofile="${imagefile}.info"
+  local tmpdir="${TMPDIR:-/tmp}/check_server_image.$$"
+  local existing
+  local RC=0
+  rm -rf "$tmpdir"
+  mkdir -p "$tmpdir"
+  (cd "$tmpdir" && linbo_download "images/${imagefile%.qcow2}/$infofile") > /dev/null 2>&1
+  if [ -s "$tmpdir/$infofile" ]; then
+    existing="$(grep ^sourceimage= "$tmpdir/$infofile" | awk -F\" '{print $2}')"
+    if [ "$existing" != "$sourceimage" ]; then
+      echo "Image $imagefile already exists on the server and is not derived from $sourceimage!"
+      RC=1
+    fi
+  fi
+  rm -rf "$tmpdir"
+  return "$RC"
 }
 
 
@@ -191,10 +261,11 @@ mk_diffimage(){
 }
 
 
-# mk_qcow2 rootdev imagefile
+# mk_qcow2 rootdev imagefile [sourceimage]
 mk_qcow2(){
   local rootdev="$1"
   local imagefile="$2"
+  local sourceimage="$3"
   local imageext="${imagefile/*.}"
   [ "$(pwd)" = "/cache" ] || cd /cache
   echo "## $(date) : Starting creation of $imagefile."
@@ -240,7 +311,7 @@ mk_qcow2(){
   umount /mnt || umount -l /mnt
   # create info file
   local imgsize="$(get_filesize $imagefile)"
-  linbo_mkinfo "$imagefile" "$rootdev"
+  linbo_mkinfo "$imagefile" "$rootdev" "$sourceimage"
   echo "Done."
   ls -l "$rootdev"
   touch "$imagefile".complete
@@ -266,6 +337,9 @@ if [ ! -s /start.conf ]; then
   exit 1
 fi
 
+baseimage=""
+legacy=""
+
 # check os number option
 if isinteger "$1"; then
   osnr="$1"
@@ -276,6 +350,7 @@ elif [ -b "$1" -a "$1" != "$cache" ]; then
 
 # check legacy options (cache imagefile rootdev)
 else
+  legacy="yes"
   for item in $@; do
     [ "$item" = "$cache" ] && continue
     case "$item" in *.qcow2|*.qdiff) imagefile="$item" ; continue ;; esac
@@ -284,17 +359,32 @@ else
   # check items
   [ -z "$imagefile" ] && usage 1
   [ -b "$root" ] || usage 1
+  # the os is needed to tell a new image name from the native one
+  osnr="$(osnr_startconf "$root")"
 fi
 
 # read os config parameters if osnr is known
 if [ -n "$osnr" ]; then
   source /conf/os.$osnr &> /dev/null || usage 1
-  # check differential image
-  if [ "$2" = "qdiff" ]; then
-    imagefile="${baseimage/.qcow2/.qdiff}"
-  else
-    imagefile="$baseimage"
+  if [ -z "$legacy" ]; then
+    case "$2" in
+      "") imagefile="$baseimage" ;;
+      qdiff) imagefile="${baseimage/.qcow2/.qdiff}" ;;
+      *.qcow2|*.qdiff) imagefile="$2" ;;
+      *) imagefile="${2}.qcow2" ;;
+    esac
   fi
+fi
+[ -z "$imagefile" ] && usage 1
+
+# a base image under a new name remembers the native image it derives from
+sourceimage=""
+if [ -n "$baseimage" ]; then
+  sourceimage="$(get_sourceimage "$imagefile" "$baseimage")" || exit 1
+fi
+if [ -n "$sourceimage" ]; then
+  echo "Image $imagefile gets a new name, it derives from $sourceimage."
+  check_server_image "$imagefile" "$sourceimage" || exit 1
 fi
 
 linbo_mountcache &> /dev/null || exit 1
@@ -302,7 +392,7 @@ linbo_mountcache &> /dev/null || exit 1
 cd /cache
 
 echo "Creating image $imagefile of partition $root ..."
-mk_qcow2 "$root" "$imagefile" ; RC="$?"
+mk_qcow2 "$root" "$imagefile" "$sourceimage" ; RC="$?"
 
 if [ "$RC" = "0" ]; then
   echo "Done."
