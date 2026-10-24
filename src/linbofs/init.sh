@@ -4,7 +4,7 @@
 # Description  : System setup and hardware detection - busybox init script
 # Signed-off by: thomas@linuxmuster.net
 # Assisted by  : Claude
-# Date         : 20261005
+# Date         : 20261024
 #
 # (C) Klaus Knopper 2007
 # License: GPL V2
@@ -73,6 +73,23 @@ print_status(){
     plymouth --update="$line"
   else
     echo "$line"
+  fi
+}
+
+# run_with_status command [args]
+# Shows the stdout of a command, but keeps it out of the log: progress bars
+# (qemu-img, rsync, pv) redraw their line with \r and buildtorrent with \b,
+# which would flood init.log and which "while read" would hold back until
+# the next newline, i.e. until the step is done. In the splash every redraw
+# becomes a status line of its own, on the console the output is shown as
+# is. stderr is left alone, so error messages still go to init.log.
+run_with_status(){
+  if [ -n "$SPLASH" ]; then
+    "$@" | tr '\r\b' '\n\n' | while IFS=" " read -r line; do
+      [ -n "$line" ] && print_status "$line"
+    done
+  else
+    "$@" > /dev/console
   fi
 }
 
@@ -536,17 +553,13 @@ if [ -s /linbocmd ]; then
     fi
     print_status "$msg"
     echo "$msg" 2>&1
-    /usr/bin/linbo_wrapper $dryrunflag "$cmd" | while read line; do
-      print_status "$line"
-    done
+    run_with_status /usr/bin/linbo_wrapper $dryrunflag "$cmd"
   done
   IFS="$OIFS"
 fi
 
 # autoinitcache in case of nogui
-linbo_autoinitcache | while read line; do
-  print_status "$line"
-done
+run_with_status linbo_autoinitcache
 
 # seed cached torrents
 cd /cache
