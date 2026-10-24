@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # Filename     : test_init.sh
-# Description  : tests for run_with_status() of init.sh
+# Description  : tests for run_with_status() and last_output_lines() of init.sh
 # Signed-off by: thomas@linuxmuster.net
 # Assisted by  : Claude
 # Date         : 20261024
@@ -15,12 +15,14 @@ SCRIPT="$(dirname "$0")/../../src/linbofs/init.sh"
 
 oneTimeSetUp() {
   . "$(dirname "$0")/lib/extract_function.sh"
-  extract_function "$SCRIPT" run_with_status > "$SHUNIT_TMPDIR/init_functions.sh"
+  extract_function "$SCRIPT" run_with_status last_output_lines > "$SHUNIT_TMPDIR/init_functions.sh"
   . "$SHUNIT_TMPDIR/init_functions.sh"
 }
 
 setUp() {
   SPLASH="yes"
+  RUN_STATUS_OUT="$SHUNIT_TMPDIR/run_with_status.out"
+  rm -f "$RUN_STATUS_OUT"
   STATUS="$SHUNIT_TMPDIR/status"
   : > "$STATUS"
 }
@@ -57,6 +59,28 @@ test_run_with_status_ignores_a_comma_ifs_of_the_caller() {
   IFS="
 "
   assertEquals "a, b" "$(cat "$STATUS")"
+}
+
+test_run_with_status_returns_the_exit_status_of_the_command() {
+  run_with_status sh -c 'echo working; exit 3'
+  assertEquals 3 $?
+  run_with_status true
+  assertEquals 0 $?
+}
+
+test_last_output_lines_reduces_progress_bars_to_their_last_state() {
+  run_with_status printf 'Creating noble.qcow2\n(0.00/100%%)\r(42.00/100%%)\r\n[=> ]\b\b\b\b\b[==>]\b\b\b\b\b\nCreation of noble.qcow2 failed. :(\n'
+  assertEquals "$(printf '%s\n' 'Creating noble.qcow2' '(42.00/100%)' '[==>]' 'Creation of noble.qcow2 failed. :(')" \
+    "$(last_output_lines)"
+}
+
+test_last_output_lines_prints_the_last_n_lines() {
+  run_with_status printf '1\n2\n3\n4\n'
+  assertEquals "$(printf '%s\n' 3 4)" "$(last_output_lines 2)"
+}
+
+test_last_output_lines_prints_nothing_without_output() {
+  assertEquals "" "$(last_output_lines)"
 }
 
 . "$(dirname "$0")/shunit2"

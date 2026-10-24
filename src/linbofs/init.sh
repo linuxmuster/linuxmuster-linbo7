@@ -76,6 +76,9 @@ print_status(){
   fi
 }
 
+# stdout of the last command run by run_with_status
+RUN_STATUS_OUT="/tmp/run_with_status.out"
+
 # run_with_status command [args]
 # Shows the stdout of a command, but keeps it out of the log: progress bars
 # (qemu-img, rsync, pv) redraw their line with \r and buildtorrent with \b,
@@ -83,14 +86,30 @@ print_status(){
 # the next newline, i.e. until the step is done. In the splash every redraw
 # becomes a status line of its own, on the console the output is shown as
 # is. stderr is left alone, so error messages still go to init.log.
+# The stdout is kept in $RUN_STATUS_OUT for last_output_lines(), the exit
+# status is the one of the command (pipefail, only in this subshell).
 run_with_status(){
-  if [ -n "$SPLASH" ]; then
-    "$@" | tr '\r\b' '\n\n' | while IFS=" " read -r line; do
-      [ -n "$line" ] && print_status "$line"
-    done
-  else
-    "$@" > /dev/console
-  fi
+  (
+    set -o pipefail
+    if [ -n "$SPLASH" ]; then
+      "$@" | tee "$RUN_STATUS_OUT" | tr '\r\b' '\n\n' | while IFS=" " read -r line; do
+        [ -n "$line" ] && print_status "$line"
+      done
+    else
+      "$@" | tee "$RUN_STATUS_OUT" > /dev/console
+    fi
+  )
+}
+
+# last_output_lines [n]
+# Prints the last n (default 10) lines of the stdout kept by run_with_status,
+# each progress bar reduced to its last state, e.g. to log why a command
+# failed.
+last_output_lines(){
+  [ -s "$RUN_STATUS_OUT" ] || return 0
+  tr '\b' '\r' < "$RUN_STATUS_OUT" | awk -F '\r' '{
+    for (i = NF; i > 0; i--) if ($i ~ /[^ ]/) { print $i ; break }
+  }' | tail -n "${1:-10}"
 }
 
 # create device nodes
@@ -539,6 +558,7 @@ if [ -s /linbocmd ]; then
   OIFS="$IFS"
   IFS=","
   dryrunflag=""
+  failed=""
   for cmd in $(cat /linbocmd); do
     [ "$cmd" = "noauto" -o "$cmd" = "disablegui" ] && continue
     if [ "$cmd" = "dryrun" ]; then
@@ -551,14 +571,27 @@ if [ -s /linbocmd ]; then
     else
       msg="linbo_wrapper $cmd"
     fi
+    # stop after a failed command like linbo-remote -c does, e.g. no upload
+    # of an image whose creation failed
+    if [ -n "$failed" ]; then
+      echo "Skipping $msg after a failed command."
+      continue
+    fi
     print_status "$msg"
     echo "$msg" 2>&1
-    run_with_status /usr/bin/linbo_wrapper $dryrunflag "$cmd"
+    run_with_status /usr/bin/linbo_wrapper $dryrunflag "$cmd" ; rc="$?"
+    if [ "$rc" != "0" ]; then
+      failed="yes"
+      print_status "$msg failed (rc $rc)!"
+      echo "$msg failed (rc $rc), last output:"
+      last_output_lines | sed 's|^|  |'
+    fi
   done
   IFS="$OIFS"
 fi
 
-# autoinitcache in case of nogui
+# autoinitcache in case of nogui (its exit status is 1 if there is nothing
+# to do, so it does not tell about a failure)
 run_with_status linbo_autoinitcache
 
 # seed cached torrents
