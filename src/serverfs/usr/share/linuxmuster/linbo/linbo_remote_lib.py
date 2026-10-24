@@ -8,7 +8,7 @@
 #                Steps 1+2 of the linbo-remote Python rewrite (issue #169).
 # Signed-off by: thomas@linuxmuster.net
 # Assisted by  : Claude
-# Date         : 20261023
+# Date         : 20261024
 #
 """
 Helper functions for the linbo-remote Python rewrite.
@@ -140,6 +140,7 @@ def parseCommandString(cmds):
     has_qdiff = False
     remaining = cmds
     while remaining:
+        start = remaining
         cmd = _splitHead(remaining)
         if cmd not in KNOWN_COMMANDS:
             raise LinboRemoteError(f'Command "{cmd}" is not known!')
@@ -182,6 +183,12 @@ def parseCommandString(cmds):
             entry = None
 
         # label/partition/reboot/halt: no arguments, nothing further to consume
+
+        # a field more than the command takes, e.g. "image_name:1:win11"
+        if remaining[:1] == ':':
+            consumed = start[:len(start) - len(remaining)]
+            leftover = remaining.split(',', 1)[0]
+            raise LinboRemoteError(f'Unexpected "{leftover}" after "{consumed}"!')
 
         has_qdiff = has_qdiff or cmd in _QDIFF_COMMANDS
         if image_name and cmd in _IMAGE_NAME_TARGETS:
