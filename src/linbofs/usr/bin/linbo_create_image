@@ -203,6 +203,8 @@ mk_baseimage(){
   interruptible qemu-img convert -p -c -f raw -O qcow2 "$rootdev" "$imagefile" ; RC="$?"
   if [ "$RC" != "0" ]; then
     echo "Creation of $imagefile failed. :("
+    # do not leave an incomplete image behind
+    rm -f "$imagefile"
     return "$RC"
   fi
   # remove diffimage files in case of new baseimage
