@@ -18,7 +18,23 @@ usage(){
   echo "For compatibility reasons legacy options are also accepted:"
   echo "  linbo_upload <server> <user> <password> <cache> <file>"
   echo
+  echo "An image (qcow2, qdiff) is only uploaded, if its info file states its"
+  echo "actual size, i.e. if it was created or downloaded completely."
+  echo
   exit "$RC"
+}
+
+
+# image_size_matches imagefile
+# true if the info file of an image states the actual size of the image: an
+# image whose creation was aborted still has the info file of its former
+# version or, under a new name, none at all
+image_size_matches(){
+  local imagefile="$1"
+  local infosize
+  [ -s "${imagefile}.info" ] || return 1
+  infosize="$(awk -F= '/^imagesize=/ { gsub(/"/, "", $2) ; print $2 }' "${imagefile}.info")"
+  [ -n "$infosize" ] && [ "$infosize" = "$(get_filesize "$imagefile")" ]
 }
 
 # print help
@@ -58,9 +74,13 @@ if [ -e "$FILE" ]; then
     for item in info desc hash torrent; do
       [ -s "${FILE}.${item}" ] && filelist="$filelist ${FILE}.${item}"
     done
+    if ! image_size_matches "$FILE"; then
+      echo "$FILE is incomplete, its size does not match ${FILE}.info."
+      RC=1
+    fi
   fi
-  echo "Uploading $filelist to $LINBOSERVER ..."
-  for item in $filelist; do
+  [ "$RC" = "0" ] && echo "Uploading $filelist to $LINBOSERVER ..."
+  [ "$RC" = "0" ] && for item in $filelist; do
     interruptible rsync --skip-compress="$RSYNC_SKIP_COMPRESS" --log-file=/tmp/rsync.log --progress -Ha $RSYNC_PERMISSIONS --partial "$item" "$LINBOUSER@$LINBOSERVER::linbo-upload/${subdir}${item}" || RC=1
     # rsync errors are also logged, e.g. an upload refused by the server
     grep -q "rsync error" /tmp/rsync.log && RC=1
