@@ -1,8 +1,10 @@
 #!/bin/sh
 #
-# linbo_upload
-# thomas@linuxmuster.net
-# 20260520
+# Filename     : linbo_upload
+# Description  : uploads a file from the cache to the server
+# Signed-off by: thomas@linuxmuster.net
+# Assisted by  : Claude
+# Date         : 20261024
 #
 
 usage(){
@@ -59,9 +61,9 @@ if [ -e "$FILE" ]; then
   fi
   echo "Uploading $filelist to $LINBOSERVER ..."
   for item in $filelist; do
-    interruptible rsync --skip-compress="$RSYNC_SKIP_COMPRESS" --log-file=/tmp/rsync.log --progress -Ha $RSYNC_PERMISSIONS --partial "$item" "$LINBOUSER@$LINBOSERVER::linbo-upload/${subdir}${item}"
-    # because return code is always 0 this is necessary
-    grep -q " rsync --skip-compress="$RSYNC_SKIP_COMPRESS" error" /tmp/rsync.log && RC=1
+    interruptible rsync --skip-compress="$RSYNC_SKIP_COMPRESS" --log-file=/tmp/rsync.log --progress -Ha $RSYNC_PERMISSIONS --partial "$item" "$LINBOUSER@$LINBOSERVER::linbo-upload/${subdir}${item}" || RC=1
+    # rsync errors are also logged, e.g. an upload refused by the server
+    grep -q "rsync error" /tmp/rsync.log && RC=1
     cat /tmp/rsync.log >> /tmp/linbo.log
     rm /tmp/rsync.log
     [ "$RC" = "0" ] || break
