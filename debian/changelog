@@ -17,8 +17,14 @@ linuxmuster-linbo7 (7.4.21) lmn74; urgency=low
   * fix(linbo-remote): name a surplus field instead of an unknown empty
     command (#133, 446256f).
   * fix(linbo_upload): report failed uploads as failed (#198, d8d57ff).
+  * feat(init.sh): show the progress of onboot commands in the splash
+    (#199, 9ab96b4).
+  * feat(init.sh): log failed onboot commands and skip the remaining ones
+    (#199, a2be6c2).
+  * fix(linbo_upload, linbo_create_image): never upload an incomplete image
+    (#199, dea35d6).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 24 Oct 2026 17:33:44 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 24 Oct 2026 19:40:26 +0200
 
 linuxmuster-linbo7 (7.4.20) lmn74; urgency=low
 
