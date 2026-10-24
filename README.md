@@ -68,6 +68,22 @@ Note:
 * Press the big os button.
 * Select "Create differential image."
 
+## Images under a new name
+Since 7.4.21 a base image can be created and uploaded under a name other than the `BaseImage` of the client's start.conf, e.g. to build `noble.qcow2` on a client that runs `jammy.qcow2`, without changing start.conf. On the server it is handled like a native image.
+* Client side:
+  ```
+  linbo-remote -c|-p image_name:<name>,create_image:<#>,upload_image:<#> ...
+  linbo_create_image <#> <name>
+  linbo_upload <password> <name>.qcow2
+  ```
+* `<name>` may consist of letters, digits, `_` and `-`, with or without `.qcow2` for `linbo_create_image`. In `linbo-remote`, `image_name` takes only the name and must come before the image commands it applies to.
+* Only base images: differential images (`qdiff`) cannot get a new name.
+* The image's info file records the native image it derives from as `sourceimage="<native>.qcow2"`.
+* When the info file arrives on the server, the image takes over `<native>.reg`, `<native>.postsync` and `<native>.prestart` as `<name>.reg`, `<name>.postsync` and `<name>.prestart`. Files the new image already has are never overwritten. A taken over file that mentions the native image name is noted in `/srv/linbo/log/rsync-post-upload.log`, a postsync script may e.g. download files by the old name. Windows driver profile assignments are not taken over.
+* An image under a new name must not overwrite a foreign image: an existing image of that name is only replaced, if its `sourceimage` is a `BaseImage` of the uploading client's start.conf. Images uploaded under a new name before 7.4.21 have no `sourceimage` and can only be replaced again after adding them as `BaseImage` to the client's start.conf or adding `sourceimage` to their info file.
+* Image uploads in general are only accepted from devices registered in `devices.csv` and ldap, see [TROUBLESHOOTING.md](TROUBLESHOOTING.md). Devices of other schools than `default-school` are not checked yet.
+* To use the new image, set it as `BaseImage` in start.conf.
+
 ## LINBO kernel parameters
 Parameter  |  Description
 --|--
@@ -100,6 +116,10 @@ Parameter  |  Description
 * The option `-c` now disables the gui by default during command execution. 
 * The new option `-a` allows to attach a host's tmux session.
 * Every `-c` run writes its own log `<hostname>_linbo-remote_<YYYYmmddHHMMSS>.log` and appends one JSON line (hostname, mode, commands, dry_run, start, end, rc, log) to `linbo-remote_runs.jsonl`, both in `/var/log/linuxmuster/linbo/`.
+* New in 7.4.21: `image_name:<name>` creates and uploads a base image under a new name, see [Images under a new name](#images-under-a-new-name):
+  ```
+  linbo-remote -i <hostname> -c image_name:<name>,create_image:<#>,upload_image:<#>
+  ```
 
 Full linbo-remote help:
 
@@ -163,6 +183,13 @@ create_image:<#>:<"msg"> : Creates a full image from operating system nr <#>.
 upload_image:<#>         : Uploads a full image from operating system nr <#>.
 create_qdiff:<#>:<"msg"> : Creates a differential image from operating system nr <#>.
 upload_qdiff:<#>         : Uploads a differential image from operating system nr <#>.
+image_name:<name>        : The create_image and upload_image commands following
+                           it use the image <name>.qcow2 instead of the one
+                           defined in start.conf. It takes only the name, no
+                           position number, and must come before them, e.g.
+                           image_name:noble,create_image:1,upload_image:1
+                           <name> may consist of letters, digits, "_" and "-".
+                           Cannot be combined with create_qdiff/upload_qdiff.
 reboot                   : Reboots the client.
 halt                     : Shuts the client down.
 

@@ -7,7 +7,7 @@
 #                wake-on-LAN target resolution. See tests/python/README.md.
 # Signed-off by: thomas@linuxmuster.net
 # Assisted by  : Claude
-# Date         : 20261023
+# Date         : 20261024
 #
 
 import fnmatch
@@ -157,6 +157,21 @@ def test_create_image_comment_ends_at_image_name():
 def test_image_name_invalid_raises(name):
     with pytest.raises(LinboRemoteError, match='not a valid image name'):
         parseCommandString(f'image_name:{name},create_image:1')
+
+
+@pytest.mark.parametrize('cmds, message', [
+    # the field order mixed up: name with a position number
+    ('create_image:1,upload_image:1,image_name:1:win11-test',
+     'Unexpected ":win11-test" after "image_name:1"!'),
+    ('sync:1:x,reboot', 'Unexpected ":x" after "sync:1"!'),
+    ('reboot:1', 'Unexpected ":1" after "reboot"!'),
+    ('initcache:rsync:x', 'Unexpected ":x" after "initcache:rsync"!'),
+    ('create_image:1:a:b', 'Unexpected ":b" after "create_image:1:a"!'),
+])
+def test_unexpected_field_after_a_command_raises(cmds, message):
+    with pytest.raises(LinboRemoteError) as error:
+        parseCommandString(cmds)
+    assert str(error.value) == message
 
 
 def test_image_name_without_name_raises():
