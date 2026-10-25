@@ -2,7 +2,7 @@ linuxmuster-linbo7 (4.3.40-0) lmn73; urgency=low
 
   * fix(linbo_upload): report failed uploads as failed (#198, 27a0dab).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Sat, 24 Oct 2026 19:46:28 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Sun, 25 Oct 2026 14:45:58 +0100
 
 linuxmuster-linbo7 (4.3.39-0) lmn73; urgency=low
 
